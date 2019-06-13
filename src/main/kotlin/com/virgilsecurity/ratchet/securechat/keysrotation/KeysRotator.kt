@@ -163,7 +163,7 @@ class KeysRotator(
         )
 
         validateResponse.usedOneTimeKeysIds.forEach {
-            LOG.value.fine("Marking one-time key as orhpaned ${it.hexEncodedString()}")
+            LOG.value.fine("Marking one-time key as orphaned ${it.hexEncodedString()}")
             this.oneTimeKeysStorage.markKeyOrphaned(now, it)
             rotationLog.oneTimeKeysMarkedOrphaned += 1
             rotationLog.oneTimeKeysOrphaned += 1
@@ -195,11 +195,12 @@ class KeysRotator(
         val numOfRelevantOneTimeKeys = oneTimeKeysIds.size - validateResponse.usedOneTimeKeysIds.size
         val numbOfOneTimeKeysToGen = max(this.desiredNumberOfOneTimeKeys - numOfRelevantOneTimeKeys, 0)
 
-        LOG.value.fine("Generating ${numbOfOneTimeKeysToGen} one-time keys")
+        LOG.value.fine("Generating $numbOfOneTimeKeysToGen one-time keys")
         var oneTimePublicKeys: MutableList<ByteArray>
         if (numbOfOneTimeKeysToGen > 0) {
             var publicKeys = mutableListOf<ByteArray>()
-            for (i in 0..numbOfOneTimeKeysToGen) {
+            for (i in 1..numbOfOneTimeKeysToGen) {
+                LOG.value.fine("Generation $i key of $numbOfOneTimeKeysToGen")
                 val keyPair = this.crypto.generateKeyPair(KeyType.CURVE25519)
                 val oneTimePrivateKey = this.crypto.exportPrivateKey(keyPair.privateKey)
                 val oneTimePublicKey = this.crypto.exportPublicKey(keyPair.publicKey)

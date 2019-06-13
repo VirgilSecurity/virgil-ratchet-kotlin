@@ -88,7 +88,7 @@ class SecureSessionTest {
             })
 
         var cardVerifier = TrustAllCardVerifier()
-        var ramCardClient = VirgilCardClient()
+        var ramCardClient = InMemoryCardClient()
 
         val senderCardManager = CardManager(VirgilCardCrypto(crypto), senderTokenProvider, cardVerifier, ramCardClient)
 

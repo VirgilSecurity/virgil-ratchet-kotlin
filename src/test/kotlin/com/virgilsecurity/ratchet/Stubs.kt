@@ -51,11 +51,13 @@ import com.virgilsecurity.ratchet.securechat.keysrotation.RotationLog
 import com.virgilsecurity.ratchet.sessionstorage.GroupSessionStorage
 import com.virgilsecurity.ratchet.sessionstorage.SessionStorage
 import com.virgilsecurity.ratchet.utils.hexEncodedString
+import com.virgilsecurity.ratchet.utils.logger
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.CardVerifier
 import com.virgilsecurity.sdk.client.CardClient
+import com.virgilsecurity.sdk.client.VirgilCardClient
 import com.virgilsecurity.sdk.crypto.HashAlgorithm
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey
@@ -105,23 +107,24 @@ class InMemoryGroupSessionStorage : GroupSessionStorage {
 }
 
 class InMemoryLongTermKeysStorage : LongTermKeysStorage {
-    val map = mutableMapOf<ByteArray, LongTermKey>()
+    val map = mutableMapOf<String, LongTermKey>()
 
     override fun storeKey(key: ByteArray, keyId: ByteArray): LongTermKey {
         val longTermKey = LongTermKey(keyId, key, Date())
-        this.map[keyId] = longTermKey
+        this.map[keyId.hexEncodedString()] = longTermKey
         return longTermKey
     }
 
     override fun retrieveKey(keyId: ByteArray): LongTermKey {
-        if (!this.map.containsKey(keyId)) {
+        val hex = keyId.hexEncodedString()
+        if (!this.map.containsKey(hex)) {
             KeyStorageException(KeyStorageException.KEY_NOT_FOUND)
         }
-        return this.map[keyId]!!
+        return this.map[hex]!!
     }
 
     override fun deleteKey(keyId: ByteArray) {
-        this.map.remove(keyId)
+        this.map.remove(keyId.hexEncodedString())
     }
 
     override fun retrieveAllKeys(): List<LongTermKey> {
@@ -129,11 +132,12 @@ class InMemoryLongTermKeysStorage : LongTermKeysStorage {
     }
 
     override fun markKeyOutdated(date: Date, keyId: ByteArray) {
-        if (!this.map.containsKey(keyId)) {
+        val hex = keyId.hexEncodedString()
+        if (!this.map.containsKey(hex)) {
             KeyStorageException(KeyStorageException.KEY_NOT_FOUND)
         }
-        val longTermKey = this.map[keyId]!!
-        this.map[keyId] = LongTermKey(keyId, longTermKey.key, longTermKey.creationDate, date)
+        val longTermKey = this.map[hex]!!
+        this.map[hex] = LongTermKey(keyId, longTermKey.key, longTermKey.creationDate, date)
     }
 
     override fun reset() {
@@ -142,14 +146,10 @@ class InMemoryLongTermKeysStorage : LongTermKeysStorage {
 }
 
 class InMemoryOneTimeKeysStorage : OneTimeKeysStorage {
-    val map: MutableMap<ByteArray, OneTimeKey>
+    val map: MutableMap<String, OneTimeKey>
 
     constructor() {
-        this.map = mutableMapOf<ByteArray, OneTimeKey>()
-    }
-
-    constructor(map: MutableMap<ByteArray, OneTimeKey>) {
-        this.map = map
+        this.map = mutableMapOf<String, OneTimeKey>()
     }
 
     override fun startInteraction() {
@@ -159,23 +159,28 @@ class InMemoryOneTimeKeysStorage : OneTimeKeysStorage {
     }
 
     override fun storeKey(key: ByteArray, keyId: ByteArray): OneTimeKey {
+        val hexKey = keyId.hexEncodedString()
+        LOG.value.info("Store key: $hexKey")
         val oneTimeKey = OneTimeKey(keyId, key)
-        this.map[keyId] = oneTimeKey
+        this.map[hexKey] = oneTimeKey
         return oneTimeKey
     }
 
     override fun retrieveKey(keyId: ByteArray): OneTimeKey {
-        if (!this.map.containsKey(keyId)) {
+        val hexKey = keyId.hexEncodedString()
+        if (!this.map.containsKey(hexKey)) {
             throw KeyStorageException(KeyStorageException.KEY_NOT_FOUND)
         }
-        return this.map[keyId]!!
+        return this.map[hexKey]!!
     }
 
     override fun deleteKey(keyId: ByteArray) {
-        if (!this.map.containsKey(keyId)) {
+        val hexKey = keyId.hexEncodedString()
+        LOG.value.info("Delete key: $hexKey")
+        if (!this.map.containsKey(hexKey)) {
             throw KeyStorageException(KeyStorageException.KEY_NOT_FOUND)
         }
-        this.map.remove(keyId)
+        this.map.remove(hexKey)
     }
 
     override fun retrieveAllKeys(): List<OneTimeKey> {
@@ -183,15 +188,21 @@ class InMemoryOneTimeKeysStorage : OneTimeKeysStorage {
     }
 
     override fun markKeyOrphaned(date: Date, keyId: ByteArray) {
-        if (!this.map.containsKey(keyId)) {
+        val hexKey = keyId.hexEncodedString()
+        LOG.value.info("Mark key orphaned: $hexKey")
+        if (!this.map.containsKey(hexKey)) {
             throw KeyStorageException(KeyStorageException.KEY_NOT_FOUND)
         }
-        val oneTimeKey = this.map[keyId]!!
-        this.map[keyId] = OneTimeKey(keyId, oneTimeKey.key, date)
+        val oneTimeKey = this.map[hexKey]!!
+        this.map[hexKey] = OneTimeKey(keyId, oneTimeKey.key, date)
     }
 
     override fun reset() {
         this.map.clear()
+    }
+
+    companion object {
+        val LOG = logger()
     }
 }
 
@@ -278,25 +289,24 @@ class InMemoryRatchetClient(private val cardManager: CardManager) : RatchetClien
         val usedLongTermKeyId: ByteArray?
 
         if (longTermKeyId != null && userStore.longTermPublicKey?.publicKey != null &&
-            this.keyId.computePublicKeyId(userStore.longTermPublicKey?.publicKey) == longTermKeyId
+            this.keyId.computePublicKeyId(userStore.longTermPublicKey!!.publicKey)!!.contentEquals(longTermKeyId)
         ) {
             usedLongTermKeyId = null
         } else {
             usedLongTermKeyId = longTermKeyId
         }
 
-        val usedOneTimeKeysIds =
-            oneTimeKeysIds.subtract(userStore.oneTimePublicKeys.map { this.keyId.computePublicKeyId(it) }).toList()
+        val validOneTimeKeysId = userStore.oneTimePublicKeys.map { this.keyId.computePublicKeyId(it).hexEncodedString() }
+        val usedOneTimeKeysIds = oneTimeKeysIds.filter { !validOneTimeKeysId.contains(it.hexEncodedString()) }.toList()
 
         return ValidatePublicKeysResponse(usedLongTermKeyId, usedOneTimeKeysIds)
     }
 
     override fun getPublicKeySet(identity: String, token: String): PublicKeySet {
-        val jwt = Jwt(token)
-        val userStore = this.users[jwt.identity] ?: UserStore()
+        Jwt(token)
+        val userStore = this.users[identity] ?: UserStore()
 
-
-        val identityPublicKey = userStore.identityPublicKey?.publicKey?.exportPublicKey()
+        val identityPublicKey = userStore.identityPublicKeyData
         val longTermPublicKey = userStore.longTermPublicKey
         if (identityPublicKey == null || longTermPublicKey == null) {
             throw RuntimeException()
@@ -320,12 +330,18 @@ class InMemoryRatchetClient(private val cardManager: CardManager) : RatchetClien
     }
 }
 
-class InMemoryCardClient : CardClient {
+class InMemoryCardClient : VirgilCardClient(TestConfig.serviceURL + "/cards/v5/") {
     private val crypto = VirgilCrypto()
     private val cards = mutableMapOf<String, RawSignedModel>()
 
     override fun getCard(cardId: String?, token: String?): Tuple<RawSignedModel, Boolean> {
-        val rawCard = this.cards[cardId] ?: throw RuntimeException("Card not found")
+        if (this.cards.containsKey(cardId)) {
+            LOG.value.info("Card $cardId exists")
+        } else {
+            val cardIds = this.cards.keys.joinToString()
+            LOG.value.warning("No card $cardId betwee $cardIds")
+        }
+        val rawCard = this.cards[cardId] ?: throw RuntimeException("Card $cardId not found")
         return Tuple(rawCard, false)
     }
 
@@ -340,6 +356,7 @@ class InMemoryCardClient : CardClient {
     override fun publishCard(rawCard: RawSignedModel?, token: String?): RawSignedModel {
         val cardId = this.crypto.computeHash(rawCard?.contentSnapshot, HashAlgorithm.SHA512).copyOfRange(0, 32)
             .hexEncodedString()
+        LOG.value.info("Publish card $cardId")
 
         this.cards[cardId] = rawCard!!
 
@@ -348,6 +365,10 @@ class InMemoryCardClient : CardClient {
 
     override fun revokeCard(cardId: String?, token: String?) {
         TODO("not implemented")
+    }
+
+    companion object {
+        val LOG = logger()
     }
 }
 

@@ -65,7 +65,7 @@ interface RatchetClientInterface {
     /**
      * Checks list of keys ids and returns subset of that list with already used keys ids.
      *
-     * keyId == SHA512(raw 32-byte publicKey)[0..<8].
+     * keyId == SHA512(raw 32-byte publicKey)[0..7].
      *
      * @param longTermKeyId long-term public key id to validate.
      * @param oneTimeKeysIds list of one-time public keys ids to validate.

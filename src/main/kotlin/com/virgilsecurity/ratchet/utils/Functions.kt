@@ -40,9 +40,22 @@ fun <R : Any> R.logger(): Lazy<Logger> {
     return lazy { Logger.getLogger(this::class.java.name) }
 }
 
-fun ByteArray.hexEncodedString(): String = String.format("%02X", this)
+private val HEX_CHARS = "0123456789abcdef"
+private val HEX_CHARS_ARR = HEX_CHARS.toCharArray()
 
-private val HEX_CHARS = "0123456789ABCDEF"
+fun ByteArray.hexEncodedString(): String {
+    val result = StringBuffer()
+
+    forEach {
+        val octet = it.toInt()
+        val firstIndex = (octet and 0xF0).ushr(4)
+        val secondIndex = octet and 0x0F
+        result.append(HEX_CHARS_ARR[firstIndex])
+        result.append(HEX_CHARS_ARR[secondIndex])
+    }
+
+    return result.toString()
+}
 
 fun String.hexStringToByteArray(): ByteArray {
 

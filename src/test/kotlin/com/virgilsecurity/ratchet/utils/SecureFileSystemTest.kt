@@ -34,14 +34,9 @@ class SecureFileSystemTest {
         val name = UUID.randomUUID().toString()
 
         secureFileSystem.write(name, data)
+        Assert.assertTrue(secureFileSystem.read(name).isNotEmpty())
         secureFileSystem.delete(name)
-
-        try {
-            secureFileSystem.read(name)
-            Assert.fail("File should not exists at this moment")
-        } catch (e: NoSuchFileException) {
-            // It's OK
-        }
+        Assert.assertTrue(secureFileSystem.read(name).isEmpty())
     }
 
     @Test
@@ -50,13 +45,8 @@ class SecureFileSystemTest {
         val name = UUID.randomUUID().toString()
 
         secureFileSystem.write(name, data)
+        Assert.assertTrue(secureFileSystem.read(name).isNotEmpty())
         secureFileSystem.deleteDir()
-
-        try {
-            secureFileSystem.read(name)
-            Assert.fail("File should not exists at this moment")
-        } catch (e: NoSuchFileException) {
-            // It's OK
-        }
+        Assert.assertTrue(secureFileSystem.read(name).isEmpty())
     }
 }

@@ -29,10 +29,11 @@ class TestConfig {
                 System.getenv("API_PUBLIC_KEY_ID")
         }
         val serviceURL: String by lazy {
-            if (System.getProperty("SERVICE_URL") != null)
-                System.getProperty("SERVICE_URL")
-            else
-                System.getenv("SERVICE_URL")
+            when {
+                System.getProperty("SERVICE_URL") != null -> System.getProperty("SERVICE_URL")
+                System.getenv("SERVICE_URL") != null -> System.getenv("SERVICE_URL")
+                else -> "https://api.virgilsecurity.com"
+            }
         }
     }
 }

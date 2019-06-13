@@ -35,6 +35,7 @@ package com.virgilsecurity.ratchet.securechat.keysrotation
 
 import com.virgilsecurity.crypto.ratchet.RatchetKeyId
 import com.virgilsecurity.ratchet.*
+import com.virgilsecurity.ratchet.utils.logger
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -49,6 +50,7 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import java.util.concurrent.TimeUnit
+import java.util.logging.Level
 
 class KeysRotatorTest {
 
@@ -86,7 +88,7 @@ class KeysRotatorTest {
             VirgilCardCrypto(this.crypto),
             this.tokenProvider,
             cardVerifier,
-            VirgilCardClient(TestConfig.serviceURL)
+            VirgilCardClient(TestConfig.serviceURL + "/card/v5/")
         )
 
         this.card = this.cardManager.publishCard(identityKeyPair.privateKey, identityKeyPair.publicKey)
@@ -248,6 +250,7 @@ class KeysRotatorTest {
                 val keyId = this.keyId.computePublicKeyId(longTermKey)
 
                 if (!longTermStorage.retrieveKey(keyId).identifier.contentEquals(keyId)) {
+                    LOG.value.warning("Wrong long term key ID")
                     return false
                 }
 
@@ -255,19 +258,25 @@ class KeysRotatorTest {
                 val cloudOneTimeKeysIds = userStore.oneTimePublicKeys.map { this.keyId.computePublicKeyId(it) }
 
                 if (storedOneTimeKeysIds.size != cloudOneTimeKeysIds.size) {
+                    LOG.value.warning("One time keys cound doesn't match")
                     return false
                 }
                 storedOneTimeKeysIds.forEachIndexed { i, value ->
                     if (!cloudOneTimeKeysIds[i].contentEquals(value)) {
+                        LOG.value.warning("Could one time key $i doesn't match")
                         return false
                     }
                 }
             }
         } catch (e: Exception) {
+            LOG.value.log(Level.SEVERE, "Unpredictable error", e)
             return false
         }
 
         return true
     }
 
+    companion object {
+        val LOG = logger()
+    }
 }

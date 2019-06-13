@@ -71,6 +71,12 @@ class SecureSession {
 
         this.ratchetSession = RatchetSession()
         ratchetSession.setRng(crypto.rng)
+
+        this.ratchetSession.respond(senderIdentityPublicKey,
+            this.crypto.exportPrivateKey(receiverIdentityPrivateKey),
+            receiverLongTermPrivateKey.key,
+            receiverOneTimePrivateKey?.key ?: byteArrayOf(),
+            ratchetMessage)
     }
 
     /**
@@ -91,7 +97,7 @@ class SecureSession {
 
         ratchetSession.initiate(
             senderIdentityPrivateKey, receiverIdentityPublicKey, receiverLongTermPublicKey,
-            receiverOneTimePublicKey ?: byteArrayOf()
+            receiverOneTimePublicKey
         )
     }
 

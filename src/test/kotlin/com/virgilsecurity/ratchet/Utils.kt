@@ -43,7 +43,7 @@ class Utils {
     companion object {
 
         fun encryptDecrypt100Times(senderSession: SecureSession, receiverSession: SecureSession) {
-            for (i in 0..100) {
+            for (i in 1..100) {
                 val sender: SecureSession
                 val receiver: SecureSession
 
@@ -64,7 +64,7 @@ class Utils {
         }
 
         fun encryptDecrypt100Times(groupSessions: List<SecureGroupSession>) {
-            for (i in 0..100) {
+            for (i in 1..100) {
                 val senderNum = Random.nextInt(0, groupSessions.size)
 
                 val sender = groupSessions[senderNum]
@@ -73,7 +73,7 @@ class Utils {
 
                 val message = sender.encrypt(plainText)
 
-                for (j in 0..groupSessions.size) {
+                for (j in 0 until groupSessions.size) {
                     if (j == senderNum) {
                         continue
                     }
@@ -92,7 +92,7 @@ class Utils {
             receiverSecureChat: SecureChat,
             receiverIdentity: String
         ) {
-            for (i in 0..100) {
+            for (i in 1..100) {
                 val sender: SecureSession
                 val receiver: SecureSession
 

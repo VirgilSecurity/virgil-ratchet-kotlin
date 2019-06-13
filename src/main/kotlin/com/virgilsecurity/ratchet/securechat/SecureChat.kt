@@ -33,6 +33,7 @@
 
 package com.virgilsecurity.ratchet.securechat
 
+import com.github.kittinunf.fuel.util.encodeBase64
 import com.virgilsecurity.crypto.ratchet.*
 import com.virgilsecurity.ratchet.client.RatchetClient
 import com.virgilsecurity.ratchet.client.RatchetClientInterface
@@ -56,6 +57,7 @@ import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import com.virgilsecurity.sdk.jwt.TokenContext
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
+import com.virgilsecurity.sdk.utils.ConvertionUtils
 
 class SecureChat {
 
@@ -273,7 +275,7 @@ class SecureChat {
         identity: String, identityPublicKey: VirgilPublicKey, name: String?,
         identityPublicKeyData: ByteArray, longTermPublicKey: SignedPublicKey, oneTimePublicKey: ByteArray?
     ): SecureSession {
-        if (!identityPublicKeyData.contentEquals(this.crypto.exportPublicKey(identityPublicKey))) {
+        if (!this.keyId.computePublicKeyId(identityPublicKeyData).contentEquals(this.keyId.computePublicKeyId(this.crypto.exportPublicKey(identityPublicKey)))) {
             throw SecureChatException(SecureChatException.IDENTITY_KEY_DOESNT_MATCH, "Wrong identity public key")
         }
         if (!this.crypto.verifySignature(longTermPublicKey.signature, longTermPublicKey.publicKey, identityPublicKey)) {
@@ -451,7 +453,7 @@ class SecureChat {
         receiversCards.forEach { card ->
             val participantId = card.identifier.hexStringToByteArray()
             val participantPublicKey = card.publicKey as VirgilPublicKey
-            val participantPublicKeyData = this.crypto.exportPublicKey(publicKey)
+            val participantPublicKeyData = this.crypto.exportPublicKey(participantPublicKey)
             ticket.addNewParticipant(participantId, participantPublicKeyData)
         }
 
@@ -515,19 +517,19 @@ class SecureChat {
         val tokenContext = TokenContext("delete", false, "ratchet")
         val token = this.accessTokenProvider.getToken(tokenContext)
 
-        LOG.value.fine("Reseting cloud")
+        LOG.value.fine("Resetting cloud")
         this.client.deleteKeysEntity(token.stringRepresentation())
 
-        LOG.value.fine("Reseting one-time keys")
+        LOG.value.fine("Resetting one-time keys")
         this.oneTimeKeysStorage.reset()
 
-        LOG.value.fine("Reseting long-term keys")
+        LOG.value.fine("Resetting long-term keys")
         this.longTermKeysStorage.reset()
 
-        LOG.value.fine("Reseting sessions")
+        LOG.value.fine("Resetting sessions")
         this.sessionStorage.reset()
 
-        LOG.value.fine("Reseting success")
+        LOG.value.fine("Resetting success")
     }
 
     companion object {
