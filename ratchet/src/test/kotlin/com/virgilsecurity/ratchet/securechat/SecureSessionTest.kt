@@ -38,7 +38,6 @@ import com.virgilsecurity.ratchet.exception.SecureChatException
 import com.virgilsecurity.ratchet.securechat.keysrotation.KeysRotator
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
-import com.virgilsecurity.sdk.client.VirgilCardClient
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.KeyType
 import com.virgilsecurity.sdk.crypto.VirgilAccessTokenSigner

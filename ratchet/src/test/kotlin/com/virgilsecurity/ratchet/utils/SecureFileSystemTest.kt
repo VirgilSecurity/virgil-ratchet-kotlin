@@ -3,7 +3,6 @@ package com.virgilsecurity.ratchet.utils
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import java.nio.file.NoSuchFileException
 import java.util.*
 
 

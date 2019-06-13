@@ -56,7 +56,6 @@ import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.CardVerifier
-import com.virgilsecurity.sdk.client.CardClient
 import com.virgilsecurity.sdk.client.VirgilCardClient
 import com.virgilsecurity.sdk.crypto.HashAlgorithm
 import com.virgilsecurity.sdk.crypto.VirgilCrypto

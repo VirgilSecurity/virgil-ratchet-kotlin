@@ -31,27 +31,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-buildscript {
-    ext.versions = [
-            virgil_sdk   : '5.1.1',
-            virgil_crypto: '0.7.1',
-            gson         : '2.8.5',
-            fuel         : '1.15.1'
-    ]
-
-    repositories {
-        jcenter()
-        mavenCentral()
-    }
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.3.31'
 }
 
-allprojects {
-    repositories {
-        jcenter()
-        mavenCentral()
-    }
+group 'com.virgilsecurity'
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
 
-subprojects {
-    version = '0.1.0-SNAPSHOT'
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
 }
