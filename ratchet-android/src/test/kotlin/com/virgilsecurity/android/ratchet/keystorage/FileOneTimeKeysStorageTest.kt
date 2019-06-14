@@ -31,41 +31,45 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-buildscript {
-    ext.versions = [
-            kotlinVersion     : '1.3.31',
-            virgilSdk         : '5.1.1',
-            virgilCrypto      : '0.7.1',
-            gson              : '2.8.5',
-            fuel              : '1.15.1',
-            junit             : '5.3.1',
-            junitPlugin       : '1.0.0',
-            dokka             : '0.9.17',
-            gradle            : '3.4.1',
-            mavenPublishPlugin: '3.6.2'
-    ]
+package com.virgilsecurity.android.ratchet.keystorage
 
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
-    }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlinVersion"
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:$versions.dokka"
-        classpath "com.android.tools.build:gradle:$versions.gradle"
-        classpath "digital.wup:android-maven-publish:$versions.mavenPublishPlugin"
-    }
-}
+import com.virgilsecurity.ratchet.exception.KeyStorageException
+import com.virgilsecurity.ratchet.keystorage.FileOneTimeKeysStorage
+import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import java.util.*
 
-allprojects {
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
-    }
-}
+class FileOneTimeKeysStorageTest {
 
-subprojects {
-    version = '0.1.0-SNAPSHOT'
+    val identity = UUID.randomUUID().toString()
+    val path = createTempDir().toPath()
+    private lateinit var keyStorage: FileOneTimeKeysStorage
+
+    @BeforeAll
+    fun setup() {
+        val crypto = VirgilCrypto()
+        this.keyStorage = FileOneTimeKeysStorage(identity, crypto, crypto.generateKeyPair(), path)
+    }
+
+    @Test
+    fun startInteraction() {
+        this.keyStorage.startInteraction()
+    }
+
+    @Test
+    fun stopInteraction_noStart() {
+        try {
+            this.keyStorage.stopInteraction()
+        } catch (e: KeyStorageException) {
+            assertEquals(KeyStorageException.ILLEGAL_STORAGE_STATE, e.errorCode)
+        }
+    }
+
+    @Test
+    fun start_stopInteraction() {
+        this.keyStorage.startInteraction()
+        this.keyStorage.startInteraction()
+    }
 }

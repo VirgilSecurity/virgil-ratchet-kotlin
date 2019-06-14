@@ -32,18 +32,151 @@
  */
 
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.3.31'
+    id 'signing'
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
+apply plugin: 'maven-publish'
+apply plugin: 'digital.wup.android-maven-publish'
+apply plugin: 'org.jetbrains.dokka'
+
+android {
+    compileSdkVersion 28
+    buildToolsVersion "28.0.3"
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 28
+        consumerProguardFiles 'proguard-rules.txt'
+    }
 }
 
 group 'com.virgilsecurity'
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    // Inner dependencies
+    api (project(':ratchet')) {
+        exclude group: 'com.virgilsecurity.crypto', module: 'common'
+        exclude group: 'com.virgilsecurity.crypto', module: 'foundation'
+        exclude group: 'com.virgilsecurity.crypto', module: 'ratchet'
+    }
+
+    api "com.virgilsecurity.crypto:common-android:$versions.virgilCrypto"
+    implementation "com.virgilsecurity.crypto:foundation-android:$versions.virgilCrypto"
+    implementation "com.virgilsecurity.crypto:ratchet-android:$versions.virgilCrypto"
+
+    // Kotlin
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$versions.kotlin"
+
+    // Android
+    compileOnly "com.google.android:android:$versions.android"
+
+    // Test
+    androidTestImplementation "org.junit.jupiter:junit-jupiter-api:$versions.junit"
+    androidTestRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$versions.junit"
 }
 
-compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+task generateVersionVirgilAgent {
+    outputs.dir "$buildDir/generated"
+    doFirst {
+        def versionFile = file("$buildDir/generated/release/com/virgilsecurity/android/ratchet/build/VersionVirgilAgent.kt")
+        versionFile.parentFile.mkdirs()
+        versionFile.text =
+                """
+package com.virgilsecurity.android.ratchet.build;
+
+object VersionVirgilAgent {
+    const val VERSION = "$project.version"
 }
-compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+"""
+    }
+}
+
+project.android.sourceSets.main.java.srcDirs = ["${buildDir}/generated/release/", "src/main/java"]
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    dependsOn(generateVersionVirgilAgent)
+}
+
+sourceCompatibility = "8"
+targetCompatibility = "8"
+
+task sourcesJar(type: Jar) {
+    from(project.android.sourceSets.main.java.srcDirs)
+    classifier = 'sources'
+}
+
+task javadocJar(type: Jar, dependsOn: 'dokka') {
+    from("$buildDir/javadoc")
+    classifier = 'javadoc'
+}
+
+def authentication_username = hasProperty('authentication_username') ? authentication_username : System.getenv('authentication_username')
+def authentication_password = hasProperty('authentication_password') ? authentication_password : System.getenv('authentication_password')
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'ratchet-android'
+            artifact javadocJar
+            artifact sourcesJar
+            from components.android
+
+            pom { // TODO update info about ratchet
+                name = 'Virgil Double Ratchet Android SDK'
+                description = 'Virgil Security provides Double Ratchet SDK'
+                url = 'https://www.virgilsecurity.com/'
+                licenses {
+                    license {
+                        name = 'Virgil Security, Inc. license'
+                        url = 'https://github.com/VirgilSecurity/virgil-ratchet-kotlin/blob/master/LICENSE.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'BuddahLD'
+                        name = 'Danylo Oliinyk'
+                        email = 'doliinyk@virgilsecurity.com'
+                        organizationUrl = 'https://github.com/BuddahLD'
+                    }
+                    developer {
+                        id = 'andrii-iakovenko'
+                        name = 'Andrii Iakovenko'
+                        email = 'andrii-iakovenko@gmail.com'
+                        organizationUrl = 'https://github.com/andrii-iakovenko'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/VirgilSecurity/virgil-ratchet-kotlin.git'
+                    developerConnection = 'scm:git:git@github.com:VirgilSecurity/virgil-ratchet-kotlin.git'
+                    url = 'https://github.com/VirgilSecurity/virgil-ratchet-kotlin'
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            credentials {
+                username "${authentication_username}"
+                password "${authentication_password}"
+            }
+        }
+    }
+}
+
+signing {
+    sign publishing.publications.mavenJava
+}
+
+dokka {
+    outputFormat = 'html'
+    outputDirectory = "$buildDir/javadoc"
+    reportUndocumented = false
 }

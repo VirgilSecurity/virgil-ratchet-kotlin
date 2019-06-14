@@ -31,41 +31,54 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-buildscript {
-    ext.versions = [
-            kotlinVersion     : '1.3.31',
-            virgilSdk         : '5.1.1',
-            virgilCrypto      : '0.7.1',
-            gson              : '2.8.5',
-            fuel              : '1.15.1',
-            junit             : '5.3.1',
-            junitPlugin       : '1.0.0',
-            dokka             : '0.9.17',
-            gradle            : '3.4.1',
-            mavenPublishPlugin: '3.6.2'
-    ]
+package com.virgilsecurity.android.ratchet.utils
 
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
-    }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlinVersion"
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:$versions.dokka"
-        classpath "com.android.tools.build:gradle:$versions.gradle"
-        classpath "digital.wup:android-maven-publish:$versions.mavenPublishPlugin"
-    }
-}
+import com.virgilsecurity.ratchet.utils.SecureFileSystem
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import java.util.*
 
-allprojects {
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
-    }
-}
+class SecureFileSystemTest {
+    val identity = UUID.randomUUID().toString()
+    val path = createTempDir().toPath()
+    lateinit var secureFileSystem: SecureFileSystem
 
-subprojects {
-    version = '0.1.0-SNAPSHOT'
+    @BeforeAll
+    fun setup() {
+        secureFileSystem = SecureFileSystem(identity, path, null)
+    }
+
+    @Test
+    fun write_then_read() {
+        val data = UUID.randomUUID().toString().toByteArray()
+        val name = UUID.randomUUID().toString()
+
+        secureFileSystem.write(name, data)
+        val dataFromFile = secureFileSystem.read(name)
+        assertNotNull(dataFromFile)
+        assertArrayEquals(data, dataFromFile)
+    }
+
+    @Test
+    fun write_then_deleteFile() {
+        val data = UUID.randomUUID().toString().toByteArray()
+        val name = UUID.randomUUID().toString()
+
+        secureFileSystem.write(name, data)
+        assertTrue(secureFileSystem.read(name).isNotEmpty())
+        secureFileSystem.delete(name)
+        assertTrue(secureFileSystem.read(name).isEmpty())
+    }
+
+    @Test
+    fun write_then_deleteDir() {
+        val data = UUID.randomUUID().toString().toByteArray()
+        val name = UUID.randomUUID().toString()
+
+        secureFileSystem.write(name, data)
+        assertTrue(secureFileSystem.read(name).isNotEmpty())
+        secureFileSystem.deleteDir()
+        assertTrue(secureFileSystem.read(name).isEmpty())
+    }
 }

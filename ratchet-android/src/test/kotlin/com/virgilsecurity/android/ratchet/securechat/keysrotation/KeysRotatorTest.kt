@@ -33,8 +33,11 @@
 
 package com.virgilsecurity.ratchet.securechat.keysrotation
 
+import com.virgilsecurity.android.ratchet.InMemoryLongTermKeysStorage
+import com.virgilsecurity.android.ratchet.InMemoryOneTimeKeysStorage
+import com.virgilsecurity.android.ratchet.InMemoryRatchetClient
+import com.virgilsecurity.android.ratchet.TestConfig
 import com.virgilsecurity.crypto.ratchet.RatchetKeyId
-import com.virgilsecurity.ratchet.*
 import com.virgilsecurity.ratchet.utils.logger
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
@@ -70,14 +73,14 @@ class KeysRotatorTest {
         this.crypto = VirgilCrypto()
 
         val identityKeyPair = this.crypto.generateKeyPair(KeyType.ED25519)
-        this.identity = generateIdentity()
+        this.identity = com.virgilsecurity.android.ratchet.generateIdentity()
         this.privateKey = TestConfig.apiPrivateKey
         this.generator = JwtGenerator(
-            TestConfig.appId,
-            this.privateKey,
-            TestConfig.apiPublicKeyId,
-            TimeSpan.fromTime(10050, TimeUnit.MILLISECONDS),
-            VirgilAccessTokenSigner(this.crypto)
+                TestConfig.appId,
+                this.privateKey,
+                TestConfig.apiPublicKeyId,
+                TimeSpan.fromTime(10050, TimeUnit.MILLISECONDS),
+                VirgilAccessTokenSigner(this.crypto)
         )
 
         this.tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
@@ -240,9 +243,9 @@ class KeysRotatorTest {
     }
 
     private fun compareCloudAndStorage(
-        userStore: InMemoryRatchetClient.UserStore,
-        longTermStorage: InMemoryLongTermKeysStorage,
-        oneTimeStorage: InMemoryOneTimeKeysStorage
+            userStore: InMemoryRatchetClient.UserStore,
+            longTermStorage: InMemoryLongTermKeysStorage,
+            oneTimeStorage: InMemoryOneTimeKeysStorage
     ): Boolean {
 
         val longTermKey = userStore.longTermPublicKey?.publicKey

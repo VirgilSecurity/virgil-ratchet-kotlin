@@ -1,8 +1,8 @@
 package com.virgilsecurity.ratchet.utils
 
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import java.util.*
 
 
@@ -11,7 +11,7 @@ class SecureFileSystemTest {
     val path = createTempDir().toPath()
     lateinit var secureFileSystem: SecureFileSystem
 
-    @Before
+    @BeforeAll
     fun setup() {
         secureFileSystem = SecureFileSystem(identity, path, null)
     }
@@ -23,8 +23,8 @@ class SecureFileSystemTest {
 
         secureFileSystem.write(name, data)
         val dataFromFile = secureFileSystem.read(name)
-        Assert.assertNotNull(dataFromFile)
-        Assert.assertArrayEquals(data, dataFromFile)
+        assertNotNull(dataFromFile)
+        assertArrayEquals(data, dataFromFile)
     }
 
     @Test
@@ -33,9 +33,9 @@ class SecureFileSystemTest {
         val name = UUID.randomUUID().toString()
 
         secureFileSystem.write(name, data)
-        Assert.assertTrue(secureFileSystem.read(name).isNotEmpty())
+        assertTrue(secureFileSystem.read(name).isNotEmpty())
         secureFileSystem.delete(name)
-        Assert.assertTrue(secureFileSystem.read(name).isEmpty())
+        assertTrue(secureFileSystem.read(name).isEmpty())
     }
 
     @Test
@@ -44,8 +44,8 @@ class SecureFileSystemTest {
         val name = UUID.randomUUID().toString()
 
         secureFileSystem.write(name, data)
-        Assert.assertTrue(secureFileSystem.read(name).isNotEmpty())
+        assertTrue(secureFileSystem.read(name).isNotEmpty())
         secureFileSystem.deleteDir()
-        Assert.assertTrue(secureFileSystem.read(name).isEmpty())
+        assertTrue(secureFileSystem.read(name).isEmpty())
     }
 }

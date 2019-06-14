@@ -31,41 +31,42 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-buildscript {
-    ext.versions = [
-            kotlinVersion     : '1.3.31',
-            virgilSdk         : '5.1.1',
-            virgilCrypto      : '0.7.1',
-            gson              : '2.8.5',
-            fuel              : '1.15.1',
-            junit             : '5.3.1',
-            junitPlugin       : '1.0.0',
-            dokka             : '0.9.17',
-            gradle            : '3.4.1',
-            mavenPublishPlugin: '3.6.2'
-    ]
+package com.virgilsecurity.android.ratchet
 
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
-    }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlinVersion"
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:$versions.dokka"
-        classpath "com.android.tools.build:gradle:$versions.gradle"
-        classpath "digital.wup:android-maven-publish:$versions.mavenPublishPlugin"
-    }
-}
+import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
+import java.util.*
 
-allprojects {
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
-    }
-}
+class TestConfig {
 
-subprojects {
-    version = '0.1.0-SNAPSHOT'
+    companion object {
+        val virgilCrypto = VirgilCrypto(false)
+        val appId: String by lazy {
+            if (System.getProperty("APP_ID") != null)
+                System.getProperty("APP_ID")
+            else
+                System.getenv("APP_ID")
+        }
+        val apiPrivateKey: VirgilPrivateKey by lazy {
+            (if (System.getProperty("API_PRIVATE_KEY") != null)
+                System.getProperty("API_PRIVATE_KEY")
+            else
+                System.getenv("API_PRIVATE_KEY")).let {
+                virgilCrypto.importPrivateKey(Base64.getDecoder().decode(it)).privateKey
+            }
+        }
+        val apiPublicKeyId: String by lazy {
+            if (System.getProperty("API_PUBLIC_KEY_ID") != null)
+                System.getProperty("API_PUBLIC_KEY_ID")
+            else
+                System.getenv("API_PUBLIC_KEY_ID")
+        }
+        val serviceURL: String by lazy {
+            when {
+                System.getProperty("SERVICE_URL") != null -> System.getProperty("SERVICE_URL")
+                System.getenv("SERVICE_URL") != null -> System.getenv("SERVICE_URL")
+                else -> "https://api.virgilsecurity.com"
+            }
+        }
+    }
 }

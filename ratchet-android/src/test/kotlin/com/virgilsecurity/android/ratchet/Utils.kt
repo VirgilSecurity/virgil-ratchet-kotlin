@@ -31,7 +31,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.ratchet
+package com.virgilsecurity.android.ratchet
 
 import com.virgilsecurity.ratchet.securechat.SecureChat
 import com.virgilsecurity.ratchet.securechat.SecureGroupSession

@@ -1,9 +1,43 @@
-package com.virgilsecurity.ratchet.client
+/*
+ * Copyright (c) 2015-2019, Virgil Security, Inc.
+ *
+ * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
+ *
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     (1) Redistributions of source code must retain the above copyright notice, this
+ *     list of conditions and the following disclaimer.
+ *
+ *     (2) Redistributions in binary form must reproduce the above copyright notice,
+ *     this list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
+ *
+ *     (3) Neither the name of virgil nor the names of its
+ *     contributors may be used to endorse or promote products derived from
+ *     this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package com.virgilsecurity.android.ratchet.client
 
 import com.virgilsecurity.crypto.ratchet.RatchetKeyId
-import com.virgilsecurity.ratchet.TestConfig
+import com.virgilsecurity.android.ratchet.TestConfig
+import com.virgilsecurity.ratchet.client.RatchetClient
 import com.virgilsecurity.ratchet.data.SignedPublicKey
-import com.virgilsecurity.ratchet.generateIdentity
+import com.virgilsecurity.android.ratchet.generateIdentity
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -16,7 +50,6 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import java.lang.IllegalStateException
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
@@ -111,14 +144,14 @@ class RatchetClientTest {
     @Test
     fun full_cycle__multiple_identities__should_succeed() {
         class Entry(
-            var identity: String,
-            var token: String,
-            var client: RatchetClient,
-            var identityPublicKey: ByteArray,
-            var longTermKey: ByteArray,
-            var longTermKeySignature: ByteArray,
-            var oneTimeKey1: ByteArray,
-            var oneTimeKey2: ByteArray
+                var identity: String,
+                var token: String,
+                var client: RatchetClient,
+                var identityPublicKey: ByteArray,
+                var longTermKey: ByteArray,
+                var longTermKeySignature: ByteArray,
+                var oneTimeKey1: ByteArray,
+                var oneTimeKey2: ByteArray
         )
 
         val entries = mutableListOf<Entry>()
@@ -196,7 +229,7 @@ class RatchetClientTest {
 
         try {
             this.client.getPublicKeySet(this.identity, token)
-            fail<IllegalStateException>() // TODO update fail message. Do we need to fail here?
+            fail<IllegalStateException>()
 
         }
         catch(e: Exception) {}
@@ -217,8 +250,8 @@ class RatchetClientTest {
         this.client = RatchetClient(URL(TestConfig.serviceURL))
 
         this.generator = JwtGenerator(
-            TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
-            TimeSpan.fromTime(10050, TimeUnit.MILLISECONDS), VirgilAccessTokenSigner(crypto)
+                TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
+                TimeSpan.fromTime(10050, TimeUnit.MILLISECONDS), VirgilAccessTokenSigner(crypto)
         )
 
         val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {

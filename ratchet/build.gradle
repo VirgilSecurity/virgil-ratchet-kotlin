@@ -32,9 +32,14 @@
  */
 
 plugins {
-    id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '1.3.31'
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
 }
+
+apply plugin: 'kotlin'
+apply plugin: 'maven'
+apply plugin: 'org.jetbrains.dokka'
 
 sourceCompatibility = 1.8
 
@@ -42,19 +47,27 @@ group 'com.virgilsecurity'
 
 dependencies {
     // Virgil
-    api "com.virgilsecurity.sdk:crypto:${versions.virgil_sdk}"
-    api "com.virgilsecurity.sdk:sdk:${versions.virgil_sdk}"
+    api "com.virgilsecurity.sdk:crypto:$versions.virgilSdk"
+    api "com.virgilsecurity.sdk:sdk:$versions.virgilSdk"
 
-    implementation "com.virgilsecurity.crypto:common:${versions.virgil_crypto}"
-    implementation "com.virgilsecurity.crypto:foundation:${versions.virgil_crypto}"
-    implementation "com.virgilsecurity.crypto:ratchet:${versions.virgil_crypto}"
+    implementation "com.virgilsecurity.crypto:common:$versions.virgilCrypto"
+    implementation "com.virgilsecurity.crypto:foundation:$versions.virgilCrypto"
+    implementation "com.virgilsecurity.crypto:ratchet:$versions.virgilCrypto"
 
     // Http
-    implementation "com.google.code.gson:gson:${versions.gson}"
-    implementation "com.github.kittinunf.fuel:fuel:${versions.fuel}"
+    implementation "com.google.code.gson:gson:$versions.gson"
+    implementation "com.github.kittinunf.fuel:fuel:$versions.fuel"
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    // Kotlin
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$versions.kotlinVersion"
+
+    // Test
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$versions.junit"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$versions.junit"
+}
+
+test {
+    useJUnitPlatform()
 }
 
 task generateVersionVirgilAgent {
@@ -82,4 +95,74 @@ compileKotlin {
 }
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
+}
+
+task sourcesJar(type: Jar) {
+    from(sourceSets["main"].allSource)
+    classifier = 'sources'
+}
+
+task javadocJar(type: Jar, dependsOn: 'dokka') {
+    from "$buildDir/javadoc"
+    classifier = 'javadoc'
+}
+
+def authentication_username = hasProperty('authentication_username') ? authentication_username : System.getenv('authentication_username')
+def authentication_password = hasProperty('authentication_password') ? authentication_password : System.getenv('authentication_password')
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'ratchet'
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+
+            pom {
+                name = 'Virgil Double Ratchet Java/Kotlin SDK'
+                description = 'Virgil Security provides an SDK which allows you to communicate with Virgil Keyknox Service. Virgil Keyknox Service allows users to store their sensitive data (such as Private Key) encrypted (with end-to-end encryption) for using and sharing it between different devices.'
+                url = 'https://www.virgilsecurity.com/'
+                licenses {
+                    license {
+                        name = 'Virgil Security, Inc. license'
+                        url = 'https://github.com/VirgilSecurity/keyknox-kotlin/blob/master/LICENSE.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'andrii-iakovenko'
+                        name = 'Andrii Iakovenko'
+                        email = 'andrii-iakovenko@gmail.com'
+                        organizationUrl = 'https://github.com/andrii-iakovenko'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/VirgilSecurity/keyknox-kotlin.git'
+                    developerConnection = 'scm:git:git@github.com:VirgilSecurity/keyknox-kotlin.git'
+                    url = 'https://github.com/VirgilSecurity/keyknox-kotlin'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            credentials {
+                username "${authentication_username}"
+                password "${authentication_password}"
+            }
+        }
+    }
+}
+
+signing {
+    sign publishing.publications.mavenJava
+}
+
+dokka {
+    outputFormat = 'html'
+    outputDirectory = "$buildDir/javadoc"
+    reportUndocumented = false
 }

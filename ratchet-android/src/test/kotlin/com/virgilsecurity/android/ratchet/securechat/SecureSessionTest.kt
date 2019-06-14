@@ -31,10 +31,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.ratchet.securechat
+package com.virgilsecurity.android.ratchet.securechat
 
-import com.virgilsecurity.ratchet.*
+import com.virgilsecurity.android.ratchet.*
 import com.virgilsecurity.ratchet.exception.SecureChatException
+import com.virgilsecurity.ratchet.securechat.SecureChat
 import com.virgilsecurity.ratchet.securechat.keysrotation.KeysRotator
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
@@ -62,14 +63,14 @@ class SecureSessionTest {
         val receiverIdentityKeyPair = crypto.generateKeyPair(KeyType.ED25519)
         val senderIdentityKeyPair = crypto.generateKeyPair(KeyType.ED25519)
 
-        val senderIdentity = generateIdentity()
-        val receiverIdentity = generateIdentity()
+        val senderIdentity = com.virgilsecurity.android.ratchet.generateIdentity()
+        val receiverIdentity = com.virgilsecurity.android.ratchet.generateIdentity()
 
         val receiverTokenProvider = CallbackJwtProvider(
             CallbackJwtProvider.GetTokenCallback {
                 val generator = JwtGenerator(
-                    TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
-                    TimeSpan.fromTime(10050, TimeUnit.SECONDS), VirgilAccessTokenSigner(crypto)
+                        TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
+                        TimeSpan.fromTime(10050, TimeUnit.SECONDS), VirgilAccessTokenSigner(crypto)
                 )
 
                 return@GetTokenCallback generator.generateToken(receiverIdentity).stringRepresentation()
@@ -78,8 +79,8 @@ class SecureSessionTest {
         val senderTokenProvider = CallbackJwtProvider(
             CallbackJwtProvider.GetTokenCallback {
                 val generator = JwtGenerator(
-                    TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
-                    TimeSpan.fromTime(10050, TimeUnit.SECONDS), VirgilAccessTokenSigner(crypto)
+                        TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
+                        TimeSpan.fromTime(10050, TimeUnit.SECONDS), VirgilAccessTokenSigner(crypto)
                 )
 
                 return@GetTokenCallback generator.generateToken(senderIdentity).stringRepresentation()
@@ -104,10 +105,10 @@ class SecureSessionTest {
         val fakeClient = InMemoryRatchetClient(receiverCardManager)
 
         this.senderSecureChat = SecureChat(
-            crypto, senderIdentityKeyPair.privateKey, senderCard,
-            senderTokenProvider, fakeClient, InMemoryLongTermKeysStorage(),
-            InMemoryOneTimeKeysStorage(), InMemorySessionStorage(), InMemoryGroupSessionStorage(),
-            FakeKeysRotator()
+                crypto, senderIdentityKeyPair.privateKey, senderCard,
+                senderTokenProvider, fakeClient, InMemoryLongTermKeysStorage(),
+                InMemoryOneTimeKeysStorage(), InMemorySessionStorage(), InMemoryGroupSessionStorage(),
+                FakeKeysRotator()
         )
 
         val receiverKeysRotator = KeysRotator(
@@ -117,10 +118,10 @@ class SecureSessionTest {
         )
 
         this.receiverSecureChat = SecureChat(
-            crypto, receiverIdentityKeyPair.privateKey,
-            receiverCard, receiverTokenProvider, fakeClient, receiverLongTermKeysStorage,
-            receiverOneTimeKeysStorage, InMemorySessionStorage(),
-            InMemoryGroupSessionStorage(), receiverKeysRotator
+                crypto, receiverIdentityKeyPair.privateKey,
+                receiverCard, receiverTokenProvider, fakeClient, receiverLongTermKeysStorage,
+                receiverOneTimeKeysStorage, InMemorySessionStorage(),
+                InMemoryGroupSessionStorage(), receiverKeysRotator
         )
     }
 
@@ -129,7 +130,7 @@ class SecureSessionTest {
         this.receiverSecureChat.rotateKeys()
         val senderSession = this.senderSecureChat.startNewSessionAsSender(receiverCard)
 
-        val plainText = generateText()
+        val plainText = com.virgilsecurity.android.ratchet.generateText()
         val cipherText = senderSession.encrypt(plainText)
 
         val receiverSession = this.receiverSecureChat.startNewSessionAsReceiver(senderCard, cipherText)
@@ -148,7 +149,7 @@ class SecureSessionTest {
 
         assertNotNull(senderSecureChat.existingSession(receiverCard.identity))
 
-        val plainText = generateText()
+        val plainText = com.virgilsecurity.android.ratchet.generateText()
         val cipherText = senderSession.encrypt(plainText)
 
         val receiverSession = receiverSecureChat.startNewSessionAsReceiver(senderCard, cipherText)
@@ -172,7 +173,7 @@ class SecureSessionTest {
         this.receiverSecureChat.rotateKeys()
         val senderSession = senderSecureChat.startNewSessionAsSender(receiverCard)
 
-        val plainText = generateText()
+        val plainText = com.virgilsecurity.android.ratchet.generateText()
         val cipherText = senderSession.encrypt(plainText)
 
         this.receiverSecureChat.startNewSessionAsReceiver(senderCard, cipherText)
@@ -183,7 +184,7 @@ class SecureSessionTest {
         } catch (e: SecureChatException) {
             assertEquals(SecureChatException.SESSION_ALREADY_EXISTS, e.errorCode)
         } catch (e: Exception) {
-            fail<Exception>(e)
+            fail<Exception>()
         }
 
         try {
@@ -192,7 +193,7 @@ class SecureSessionTest {
         } catch (e: SecureChatException) {
             assertEquals(SecureChatException.SESSION_ALREADY_EXISTS, e.errorCode)
         } catch (e: Exception) {
-            fail<Exception>(e)
+            fail<Exception>()
         }
 
         try {
@@ -201,7 +202,7 @@ class SecureSessionTest {
         } catch (e: SecureChatException) {
             assertEquals(SecureChatException.SESSION_ALREADY_EXISTS, e.errorCode)
         } catch (e: Exception) {
-            fail<Exception>(e)
+            fail<Exception>()
         }
         try {
             this.receiverSecureChat.startNewSessionAsReceiver(senderCard, cipherText)
@@ -209,7 +210,7 @@ class SecureSessionTest {
         } catch (e: SecureChatException) {
             assertEquals(SecureChatException.SESSION_ALREADY_EXISTS, e.errorCode)
         } catch (e: Exception) {
-            fail<Exception>(e)
+            fail<Exception>()
         }
     }
 }

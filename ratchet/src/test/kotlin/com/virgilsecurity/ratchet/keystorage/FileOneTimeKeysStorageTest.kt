@@ -1,9 +1,9 @@
 import com.virgilsecurity.ratchet.exception.KeyStorageException
 import com.virgilsecurity.ratchet.keystorage.FileOneTimeKeysStorage
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import java.util.*
 
 class FileOneTimeKeysStorageTest {
@@ -12,7 +12,7 @@ class FileOneTimeKeysStorageTest {
     val path = createTempDir().toPath()
     private lateinit var keyStorage: FileOneTimeKeysStorage
 
-    @Before
+    @BeforeAll
     fun setup() {
         val crypto = VirgilCrypto()
         this.keyStorage = FileOneTimeKeysStorage(identity, crypto, crypto.generateKeyPair(), path)
@@ -28,7 +28,7 @@ class FileOneTimeKeysStorageTest {
         try {
             this.keyStorage.stopInteraction()
         } catch (e: KeyStorageException) {
-            Assert.assertEquals(KeyStorageException.ILLEGAL_STORAGE_STATE, e.errorCode)
+            assertEquals(KeyStorageException.ILLEGAL_STORAGE_STATE, e.errorCode)
         }
     }
 
