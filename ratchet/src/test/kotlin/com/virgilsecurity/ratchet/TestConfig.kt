@@ -35,5 +35,8 @@ class TestConfig {
                 else -> "https://api.virgilsecurity.com"
             }
         }
+        val cardsServiceURL: String by lazy {
+            "$serviceURL/card/v5/"
+        }
     }
 }

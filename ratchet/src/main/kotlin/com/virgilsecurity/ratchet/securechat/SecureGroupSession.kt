@@ -34,9 +34,8 @@
 package com.virgilsecurity.ratchet.securechat
 
 import com.virgilsecurity.crypto.ratchet.*
+import com.virgilsecurity.ratchet.exception.HexEncodingException
 import com.virgilsecurity.ratchet.exception.SecureGroupSessionException
-import com.virgilsecurity.ratchet.sessionstorage.GroupSessionStorage
-import com.virgilsecurity.ratchet.utils.areEquals
 import com.virgilsecurity.ratchet.utils.hexEncodedString
 import com.virgilsecurity.ratchet.utils.hexStringToByteArray
 import com.virgilsecurity.sdk.cards.Card
@@ -47,50 +46,79 @@ import java.nio.charset.StandardCharsets
 class SecureGroupSession {
 
     val crypto: VirgilCrypto
-    val sessionStorage: GroupSessionStorage
+//    val sessionStorage: GroupSessionStorage
     val ratchetGroupSession: RatchetGroupSession
     val syncObj = 1
 
     constructor(
         crypto: VirgilCrypto,
-        sessionStorage: GroupSessionStorage,
         privateKeyData: ByteArray,
         myId: ByteArray,
-        ratchetGroupMessage: RatchetGroupMessage
+        ratchetGroupMessage: RatchetGroupMessage,
+        cards: List<Card>
     ) {
         this.crypto = crypto
-        this.sessionStorage = sessionStorage
 
         this.ratchetGroupSession = RatchetGroupSession()
         this.ratchetGroupSession.setRng(crypto.rng)
         this.ratchetGroupSession.setPrivateKey(privateKeyData)
         this.ratchetGroupSession.myId = myId
-        this.ratchetGroupSession.setupSession(ratchetGroupMessage)
+
+        val info = RatchetGroupParticipantsInfo(0, cards.size.toLong())
+
+        cards.forEach { card ->
+            val participantId = card.identifier.hexStringToByteArray()
+
+            if (card.publicKey !is VirgilPublicKey) {
+                throw SecureGroupSessionException(SecureGroupSessionException.PUBLIC_KEY_IS_NOT_VIRGIL, "Card public key should be a VirgilPublicKey")
+            }
+            val publicKey = card.publicKey as VirgilPublicKey
+            val publicKeyData = this.crypto.exportPublicKey(publicKey)
+
+            info.addParticipant(participantId, publicKeyData)
+        }
+        this.ratchetGroupSession.setupSessionState(ratchetGroupMessage, info)
     }
 
-    constructor(data: ByteArray, privateKeyData: ByteArray, sessionStorage: GroupSessionStorage, crypto: VirgilCrypto) {
+    /**
+     * Init session from serialized representation.
+     *
+     * @param data serialized session
+     * @param privateKeyData private key data
+     * @param crypto VirgilCrypto
+     */
+    constructor(data: ByteArray, privateKeyData: ByteArray, crypto: VirgilCrypto) {
         this.crypto = crypto
-        this.sessionStorage = sessionStorage
 
         this.ratchetGroupSession = RatchetGroupSession.deserialize(data)
         this.ratchetGroupSession.setRng(crypto.rng)
         this.ratchetGroupSession.setPrivateKey(privateKeyData)
     }
 
-    fun identifier(): String {
-        return this.ratchetGroupSession.sessionId.hexEncodedString()
+    /**
+     * Session id.
+     */
+    fun identifier(): ByteArray {
+        return this.ratchetGroupSession.sessionId
     }
 
+    /**
+     * User identity card id.
+     */
     fun myIdentifier(): String {
         return this.ratchetGroupSession.myId.hexEncodedString()
     }
 
-    fun participantsCount(): Int {
+    /**
+     * Number of participants.
+     */
+    fun participantsCount(): Long {
         return this.ratchetGroupSession.participantsCount
     }
 
     /**
-     * Encrypts string. Updates session in storage.
+     * Encrypts string.
+     * This operation changes session state, so session should be updated in storage.
      *
      * @param string message to encrypt
      * @return RatchetMessage
@@ -101,143 +129,152 @@ class SecureGroupSession {
     }
 
     /**
-     * Encrypts data. Updates session in storage.
+     * Encrypts data.
+     * This operation changes session state, so session should be updated in storage.
      *
      * @param data message to encrypt
      * @return RatchetMessage
      */
     fun encrypt(data: ByteArray): RatchetGroupMessage {
         synchronized(syncObj) {
-            val msg = this.ratchetGroupSession.encrypt(data)
-            this.sessionStorage.storeSession(this)
-            return msg
+            return ratchetGroupSession.encrypt(data)
         }
     }
 
     /**
-     * Decrypts data from RatchetMessage. Updates session in storage.
+     * Decrypts data from RatchetMessage.
+     * This operation changes session state, so session should be updated in storage.
      *
      * @param message RatchetGroupMessage
+     * @param senderCardId Sender card id
      * @return Decrypted data
      */
-    fun decryptData(message: RatchetGroupMessage): ByteArray {
+    fun decryptData(message: RatchetGroupMessage, senderCardId: String): ByteArray {
+        if (message.type != GroupMsgType.REGULAR) {
+            throw SecureGroupSessionException(SecureGroupSessionException.INVALID_MESSAGE_TYPE, "Message should be a REGULAR type")
+        }
+        if (!senderCardId.equals(message.senderId.hexEncodedString())) {
+            throw SecureGroupSessionException(SecureGroupSessionException.WRONG_SENDER, "Sender id doesn't match")
+        }
         synchronized(syncObj) {
-            val data = this.ratchetGroupSession.decrypt(message)
-            this.sessionStorage.storeSession(this)
-            return data
+            return this.ratchetGroupSession.decrypt(message)
         }
     }
 
     /**
-     * Decrypts utf-8 string from RatchetMessage. Updates session in storage.
+     * Decrypts utf-8 string from RatchetMessage.
+     * This operation changes session state, so session should be updated in storage.
      *
      * @param message RatchetGroupMessage
+     * @param senderCardId Sender card id
      * @return Decrypted utf-8 string
      */
-    fun decryptString(message: RatchetGroupMessage): String {
-        if (message.type != GroupMsgType.REGULAR) {
-            throw SecureGroupSessionException(
-                SecureGroupSessionException.WRONG_MESSAGE_TYPE,
-                "Group message should be REGULAR"
-            )
-        }
-
-        val data = this.decryptData(message)
+    fun decryptString(message: RatchetGroupMessage, senderCardId: String): String {
+        val data = this.decryptData(message, senderCardId)
         return data.toString(StandardCharsets.UTF_8)
     }
 
-    fun createChangeMembersTicket(addCards: List<Card>, removeCardIds: List<String>): RatchetGroupMessage {
-        if (addCards.isEmpty() && removeCardIds.isEmpty()) {
-            throw SecureGroupSessionException(SecureGroupSessionException.CREATE_TICKET, "No cards to change set")
-        }
-
-        val ticket = if (addCards.isNotEmpty()) {
-            this.ratchetGroupSession.createGroupTicketForAddingParticipants()
-        } else {
-            this.ratchetGroupSession.createGroupTicketForAddingOrRemovingParticipants()
-        }
-
-        removeCardIds.forEach {
-            val idData = it.hexStringToByteArray()
-            ticket.removeParticipant(idData)
-        }
-
-        addCards.forEach {
-            val participantId = it.identifier.hexStringToByteArray()
-
-            val publicKey = if (it.publicKey is VirgilPublicKey) {
-                it.publicKey as VirgilPublicKey
-            } else {
-                throw SecureGroupSessionException(
-                    SecureGroupSessionException.KEY_TYPE_NOT_SUPPORTED,
-                    "Only VirgilPublicKey supported"
-                )
-            }
-
-            val publicKeyData = this.crypto.exportPublicKey(publicKey)
-            ticket.addNewParticipant(participantId, publicKeyData)
-        }
-        return ticket.ticketMessage
+    /**
+     * Creates ticket for adding/removing participants, or just to rotate secret.
+     */
+    fun createChangeParticipantsTicket(): RatchetGroupMessage {
+        return this.ratchetGroupSession.createGroupTicket().ticketMessage
     }
 
-    fun useChangeMembersTicket(ticket: RatchetGroupMessage, addCards: List<Card>, removeCardIds: List<String>) {
+    /**
+     * Set participants.
+     * NOTE: As this update is incremental, tickets should be applied strictly consequently
+     * NOTE: This operation changes session state, so session should be updated in storage.
+     * Otherwise, use setParticipants()
+     *
+     * @param ticket ticket
+     * @param cards participants to set
+     */
+    fun setParticipants(ticket: RatchetGroupMessage, cards: List<Card>) {
         if (ticket.type != GroupMsgType.GROUP_INFO) {
-            throw SecureGroupSessionException(
-                SecureGroupSessionException.WRONG_TICKET_TYPE,
-                "Ticket type should be GROUP_INFO"
-            )
-        }
-        if (addCards.isEmpty() && removeCardIds.isEmpty()) {
-            throw SecureGroupSessionException(SecureGroupSessionException.CHANGE_MEMBERS, "No cards to change set")
+            throw SecureGroupSessionException(SecureGroupSessionException.INVALID_MESSAGE_TYPE, "Ticket should be a GROUP_INFO type")
         }
 
-        if (ticket.pubKeyCount - 1 != this.participantsCount() + addCards.size - removeCardIds.size) {
-            throw SecureGroupSessionException(SecureGroupSessionException.CHANGE_MEMBERS, "Invalid cards count")
-        }
+        val info = RatchetGroupParticipantsInfo(cards.size.toLong())
 
-        val keyId = RatchetKeyId()
-
-        addCards.forEach {
-            val participantId = it.identifier.hexStringToByteArray()
-            val publicKey = if (it.publicKey is VirgilPublicKey) {
-                it.publicKey as VirgilPublicKey
-            } else {
-                throw SecureGroupSessionException(
-                    SecureGroupSessionException.KEY_TYPE_NOT_SUPPORTED,
-                    "Only VirgilPublicKey supported"
-                )
-            }
-
-            val publicKeyData = this.crypto.exportPublicKey(publicKey)
-            val cardPublicKeyId = keyId.computePublicKeyId(publicKeyData)
-            val msgPublicKeyId = ticket.getPubKeyId(participantId)
-
-            if (areEquals(msgPublicKeyId, cardPublicKeyId)) {
-                throw SecureGroupSessionException(
-                    SecureGroupSessionException.CHANGE_MEMBERS,
-                    "Wrong ticket public key"
-                )
-            }
-        }
-
-        removeCardIds.forEach {
-            val idData = it.hexStringToByteArray()
-            var pubKetIdIsAbsent = false
+        cards.forEach { card ->
             try {
-                ticket.getPubKeyId(idData)
-            } catch (e: RatchetException) {
-                pubKetIdIsAbsent = true
-            }
+                val participantId = card.identifier.hexStringToByteArray()
 
-            if (!pubKetIdIsAbsent) {
+                if (card.publicKey !is VirgilPublicKey) {
+                    throw SecureGroupSessionException(
+                        SecureGroupSessionException.PUBLIC_KEY_IS_NOT_VIRGIL,
+                        "Card public key should be a VirgilPublicKey"
+                    )
+                }
+                val publicKeyData = this.crypto.exportPublicKey(card.publicKey as VirgilPublicKey)
+
+                info.addParticipant(participantId, publicKeyData)
+            } catch (e: HexEncodingException) {
                 throw SecureGroupSessionException(
-                    SecureGroupSessionException.CHANGE_MEMBERS,
-                    "User doesn't present in a group message"
+                    SecureGroupSessionException.INVALID_CARD_ID,
+                    "Card identifier is not HEX encoded"
+                )
+            }
+        }
+        this.ratchetGroupSession.setupSessionState(ticket, info)
+    }
+
+    /**
+     * Updates participants incrementally.
+     * NOTE: As this update is incremental, tickets should be applied strictly consequently
+     * NOTE: This operation changes session state, so session should be updated in storage.
+     * Otherwise, use setParticipants()
+     *
+     * @param ticket ticket
+     * @param addCards participants to add
+     * @param removeCardIds participants to remove
+     *
+     */
+    fun updateParticipants(ticket: RatchetGroupMessage, addCards: List<Card>, removeCardIds: List<String>) {
+        if (ticket.type != GroupMsgType.GROUP_INFO) {
+            throw SecureGroupSessionException(SecureGroupSessionException.INVALID_MESSAGE_TYPE, "Ticket should be a GROUP_INFO type")
+        }
+        if (ticket.epoch != this.ratchetGroupSession.currentEpoch + 1) {
+            throw SecureGroupSessionException(SecureGroupSessionException.NOT_CONSEQUENT_TICKET, "Ticket is not consequent")
+        }
+
+        val addInfo = RatchetGroupParticipantsInfo(0, addCards.size.toLong())
+        val removeInfo = RatchetGroupParticipantsIds(0, removeCardIds.size.toLong())
+
+        addCards.forEach { card ->
+            try {
+                val participantId = card.identifier.hexStringToByteArray()
+
+                if (card.publicKey !is VirgilPublicKey) {
+                    throw SecureGroupSessionException(
+                        SecureGroupSessionException.PUBLIC_KEY_IS_NOT_VIRGIL,
+                        "Card public key should be a VirgilPublicKey"
+                    )
+                }
+                val publicKeyData = this.crypto.exportPublicKey(card.publicKey as VirgilPublicKey)
+                addInfo.addParticipant(participantId, publicKeyData)
+            } catch (e: HexEncodingException) {
+                throw SecureGroupSessionException(
+                    SecureGroupSessionException.INVALID_CARD_ID,
+                    "Card identifier is not HEX encoded"
                 )
             }
         }
 
-        this.ratchetGroupSession.setupSession(ticket)
+        removeCardIds.forEach { id ->
+            try {
+                val idData = id.hexStringToByteArray()
+                removeInfo.addId(idData)
+            } catch (e: HexEncodingException) {
+                throw SecureGroupSessionException(
+                    SecureGroupSessionException.INVALID_CARD_ID,
+                    "Card identifier is not HEX encoded"
+                )
+            }
+        }
+
+        this.ratchetGroupSession.updateSessionState(ticket, addInfo, removeInfo)
     }
 
     /**

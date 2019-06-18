@@ -171,7 +171,7 @@ class RatchetClient : RatchetClientInterface {
      * @param token auth token (JWT).
      */
     override fun deleteKeysEntity(token: String) {
-        execute("pfs/v2/keys", Method.DELETE, null, token)
+        execute("/pfs/v2/keys", Method.DELETE, null, token)
     }
 
     /**

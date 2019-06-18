@@ -109,7 +109,7 @@ class FileOneTimeKeysStorage : OneTimeKeysStorage {
                 KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "oneTimeKeys should not be nil")
             }
 
-            val existedKey = oneTimeKeys!!.oneTimeKeys.firstOrNull { it.identifier.equals(keyId) }
+            val existedKey = oneTimeKeys!!.oneTimeKeys.firstOrNull { it.identifier.contentEquals(keyId) }
             if (existedKey != null) {
                 throw KeyStorageException(KeyStorageException.KEY_ALREADY_EXISTS, "One time key already exists")
             }
@@ -126,10 +126,11 @@ class FileOneTimeKeysStorage : OneTimeKeysStorage {
             throw KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "oneTimeKeys should not be null")
         }
 
-        val oneTimeKey = oneTimeKeys!!.oneTimeKeys.firstOrNull { it.identifier.equals(keyId) }
-        if (oneTimeKey == null) {
-            throw KeyStorageException(KeyStorageException.KEY_NOT_FOUND, "One time key doesn't exist")
-        }
+        val oneTimeKey =
+            oneTimeKeys!!.oneTimeKeys.firstOrNull { it.identifier.contentEquals(keyId) } ?: throw KeyStorageException(
+                KeyStorageException.KEY_NOT_FOUND,
+                "One time key doesn't exist"
+            )
 
         return oneTimeKey
     }
@@ -139,7 +140,7 @@ class FileOneTimeKeysStorage : OneTimeKeysStorage {
             if (this.oneTimeKeys == null) {
                 throw KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "oneTimeKeys should not be null")
             }
-            val oneTimeKeyIndex = oneTimeKeys!!.oneTimeKeys.indexOfFirst { it.identifier.equals(keyId) }
+            val oneTimeKeyIndex = oneTimeKeys!!.oneTimeKeys.indexOfFirst { it.identifier.contentEquals(keyId) }
             if (oneTimeKeyIndex < 0) {
                 throw KeyStorageException(KeyStorageException.KEY_NOT_FOUND, "One time key doesn't exist")
             }
@@ -161,7 +162,7 @@ class FileOneTimeKeysStorage : OneTimeKeysStorage {
                 throw KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "oneTimeKeys should not be null")
             }
 
-            val oneTimeKeyIndex = oneTimeKeys!!.oneTimeKeys.indexOfFirst { it.identifier.equals(keyId) }
+            val oneTimeKeyIndex = oneTimeKeys!!.oneTimeKeys.indexOfFirst { it.identifier.contentEquals(keyId) }
             if (oneTimeKeyIndex < 0) {
                 throw KeyStorageException(KeyStorageException.KEY_NOT_FOUND, "One time key doesn't exist")
             }

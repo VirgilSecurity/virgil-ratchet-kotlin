@@ -60,11 +60,16 @@ class SecureGroupSessionException @JvmOverloads constructor(
     message: String? = "Unknown error"
 ) : Exception(message) {
     companion object {
-        val WRONG_MESSAGE_TYPE = 1
-        val WRONG_TICKET_TYPE = 2
-        val CREATE_TICKET = 3
-        val CHANGE_MEMBERS = 4
-        val KEY_TYPE_NOT_SUPPORTED = 5
+        val NOT_CONSEQUENT_TICKET = 2
+        val INVALID_MESSAGE_TYPE = 3
+        val INVALID_CARD_ID = 4
+        val PUBLIC_KEY_IS_NOT_VIRGIL = 5
+        val WRONG_SENDER = 6
+//        val WRONG_MESSAGE_TYPE = 1
+//        val WRONG_TICKET_TYPE = 2
+//        val CREATE_TICKET = 3
+//        val CHANGE_MEMBERS = 4
+//        val KEY_TYPE_NOT_SUPPORTED = 5
     }
 }
 
@@ -80,6 +85,9 @@ class SecureChatException @JvmOverloads constructor(
         val INVALID_MESSAGE_TYPE = 5
         val INVALID_KEY_TYPE = 6
         val PUBLIC_KEY_SETS_MISMATCH = 7
-        val CARD_KEY_DOESNT_MATCH = 8
+        val INVALID_SESSION_ID_LENGTH = 8
+        val INVALID_CARD_ID = 9
     }
 }
+
+class HexEncodingException(message: String? = "Hex encoding failed"): Exception(message) {}

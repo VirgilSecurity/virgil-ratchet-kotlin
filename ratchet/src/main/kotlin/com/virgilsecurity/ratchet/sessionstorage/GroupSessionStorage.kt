@@ -53,14 +53,14 @@ interface GroupSessionStorage {
      * @param identifier session identifier
      * @return Stored session if found, null otherwise
      */
-    fun retrieveSession(identifier: String): SecureGroupSession?
+    fun retrieveSession(identifier: ByteArray): SecureGroupSession?
 
     /**
      * Deletes session.
      *
      * @param identifier session identifier
      */
-    fun deleteSession(identifier: String)
+    fun deleteSession(identifier: ByteArray)
 
     /**
      * Removes all sessions.

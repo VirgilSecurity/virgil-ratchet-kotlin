@@ -68,6 +68,7 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    systemProperties=System.properties
 }
 
 task generateVersionVirgilAgent {

@@ -33,6 +33,7 @@
 
 package com.virgilsecurity.ratchet.utils
 
+import com.virgilsecurity.ratchet.exception.HexEncodingException
 import java.util.*
 import java.util.logging.Logger
 
@@ -65,8 +66,12 @@ fun String.hexStringToByteArray(): ByteArray {
         val firstIndex = HEX_CHARS.indexOf(this[i]);
         val secondIndex = HEX_CHARS.indexOf(this[i + 1]);
 
+        if (firstIndex < 0 || secondIndex < 0) {
+            throw HexEncodingException()
+        }
+
         val octet = firstIndex.shl(4).or(secondIndex)
-        result.set(i.shr(1), octet.toByte())
+        result[i.shr(1)] = octet.toByte()
     }
 
     return result

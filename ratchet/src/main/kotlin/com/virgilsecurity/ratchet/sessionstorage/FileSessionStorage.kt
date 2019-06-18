@@ -75,7 +75,7 @@ class FileSessionStorage : SessionStorage {
             return null
         }
 
-        return SecureSession(data, participantIdentity, name, this, this.crypto)
+        return SecureSession(data, participantIdentity, name, this.crypto)
     }
 
     override fun deleteSession(participantIdentity: String, name: String?) {

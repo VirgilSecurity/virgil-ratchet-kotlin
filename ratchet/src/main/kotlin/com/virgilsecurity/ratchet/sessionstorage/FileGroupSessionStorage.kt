@@ -35,6 +35,7 @@ package com.virgilsecurity.ratchet.sessionstorage
 
 import com.virgilsecurity.ratchet.securechat.SecureGroupSession
 import com.virgilsecurity.ratchet.utils.SecureFileSystem
+import com.virgilsecurity.ratchet.utils.hexEncodedString
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 import java.nio.file.Path
@@ -53,7 +54,7 @@ class FileGroupSessionStorage : GroupSessionStorage {
      *
      * @param identity identity of this user
      * @param crypto VirgilCrypto that will be forwarded to SecureSession
-     * @param identityKeyPair TBD
+     * @param identityKeyPair Key pair to encrypt session
      * @param rootPath TBD
      *
      */
@@ -68,23 +69,23 @@ class FileGroupSessionStorage : GroupSessionStorage {
     override fun storeSession(session: SecureGroupSession) {
         synchronized(this.fileSystem) {
             val data = session.serialize()
-            this.fileSystem.write(session.identifier(), data)
+            this.fileSystem.write(session.identifier().hexEncodedString(), data)
         }
     }
 
-    override fun retrieveSession(identifier: String): SecureGroupSession? {
-        val data = this.fileSystem.read(identifier)
+    override fun retrieveSession(identifier: ByteArray): SecureGroupSession? {
+        val data = this.fileSystem.read(identifier.hexEncodedString())
 
         if (data.isEmpty()) {
             return null
         }
 
-        return SecureGroupSession(data, privateKeyData, this, this.crypto)
+        return SecureGroupSession(data, privateKeyData, this.crypto)
     }
 
-    override fun deleteSession(identifier: String) {
+    override fun deleteSession(identifier: ByteArray) {
         synchronized(this.fileSystem) {
-            this.fileSystem.delete(identifier)
+            this.fileSystem.delete(identifier.hexEncodedString())
         }
     }
 

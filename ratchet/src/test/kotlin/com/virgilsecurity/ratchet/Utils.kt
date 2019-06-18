@@ -36,7 +36,7 @@ package com.virgilsecurity.ratchet
 import com.virgilsecurity.ratchet.securechat.SecureChat
 import com.virgilsecurity.ratchet.securechat.SecureGroupSession
 import com.virgilsecurity.ratchet.securechat.SecureSession
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions
 import kotlin.random.Random
 
 class Utils {
@@ -59,7 +59,7 @@ class Utils {
                 val message = sender.encrypt(plainText)
                 val decryptedMessage = receiver.decryptString(message)
 
-                assertEquals(plainText, decryptedMessage)
+                Assertions.assertEquals(plainText, decryptedMessage)
             }
         }
 
@@ -79,9 +79,9 @@ class Utils {
                     }
 
                     val receiver = groupSessions[j]
-                    val decryptedMessage = receiver.decryptString(message)
+                    val decryptedMessage = receiver.decryptString(message, sender.myIdentifier())
 
-                    assertEquals(plainText, decryptedMessage)
+                    Assertions.assertEquals(plainText, decryptedMessage)
                 }
             }
         }
@@ -110,7 +110,7 @@ class Utils {
 
                 val decryptedMessage = receiver.decryptString(message)
 
-                assertEquals(plainText, decryptedMessage)
+                Assertions.assertEquals(plainText, decryptedMessage)
 
             }
         }

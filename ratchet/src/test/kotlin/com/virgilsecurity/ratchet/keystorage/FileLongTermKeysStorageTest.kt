@@ -31,51 +31,65 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.ratchet.utils
+package com.virgilsecurity.ratchet.keystorage
 
+import com.virgilsecurity.ratchet.exception.KeyStorageException
+import com.virgilsecurity.ratchet.generateKeyId
+import com.virgilsecurity.ratchet.generatePublicKeyData
+import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import org.junit.jupiter.api.*
+import java.nio.file.Path
 import java.util.*
 
-class SecureFileSystemTest {
+class FileLongTermKeysStorageTest {
+
     val identity = UUID.randomUUID().toString()
-    val path = createTempDir().toPath()
-    lateinit var secureFileSystem: SecureFileSystem
+    private lateinit var path: Path
+    private lateinit var keyStorage: FileLongTermKeysStorage
 
     @BeforeEach
     fun setup() {
-        secureFileSystem = SecureFileSystem(identity, path, null)
+        val crypto = VirgilCrypto()
+        this.path = createTempDir().toPath()
+        this.keyStorage = FileLongTermKeysStorage(identity, crypto, crypto.generateKeyPair(), path)
     }
 
     @Test
-    fun write_then_read() {
-        val data = UUID.randomUUID().toString().toByteArray()
-        val name = UUID.randomUUID().toString()
+    fun store() {
+        val keyId = generateKeyId()
+        val keyData = generatePublicKeyData()
+        this.keyStorage.storeKey(keyData, keyId)
 
-        secureFileSystem.write(name, data)
-        val dataFromFile = secureFileSystem.read(name)
-        Assertions.assertNotNull(dataFromFile)
-        Assertions.assertArrayEquals(data, dataFromFile)
+        val key = this.keyStorage.retrieveKey(keyId)
+        Assertions.assertNotNull(key)
+        Assertions.assertArrayEquals(keyId, key.identifier)
+        Assertions.assertArrayEquals(keyData, key.key)
     }
 
     @Test
-    fun write_then_deleteFile() {
-        val data = UUID.randomUUID().toString().toByteArray()
-        val name = UUID.randomUUID().toString()
+    fun store_delete() {
+        val keyId = generateKeyId()
+        val keyData = generatePublicKeyData()
+        this.keyStorage.storeKey(keyData, keyId)
+        this.keyStorage.deleteKey(keyId)
 
-        secureFileSystem.write(name, data)
-        Assertions.assertTrue(secureFileSystem.read(name).isNotEmpty())
-        secureFileSystem.delete(name)
-        Assertions.assertTrue(secureFileSystem.read(name).isEmpty())
+        try {
+            this.keyStorage.retrieveKey(keyId)
+            Assertions.fail<String>("Key should be deleted")
+        }
+        catch (e : KeyStorageException) {
+            Assertions.assertEquals(KeyStorageException.KEY_NOT_FOUND, e.errorCode)
+        }
     }
 
     @Test
-    fun write_then_deleteDir() {
-        val data = UUID.randomUUID().toString().toByteArray()
-        val name = UUID.randomUUID().toString()
+    fun store_delete_retrieveAllKeys() {
+        val keyId = generateKeyId()
+        val keyData = generatePublicKeyData()
+        this.keyStorage.storeKey(keyData, keyId)
+        this.keyStorage.deleteKey(keyId)
 
-        secureFileSystem.write(name, data)
-        Assertions.assertTrue(secureFileSystem.read(name).isNotEmpty())
-        secureFileSystem.deleteDir()
-        Assertions.assertTrue(secureFileSystem.read(name).isEmpty())
+        Assertions.assertTrue(this.keyStorage.retrieveAllKeys().isEmpty())
     }
+
 }
