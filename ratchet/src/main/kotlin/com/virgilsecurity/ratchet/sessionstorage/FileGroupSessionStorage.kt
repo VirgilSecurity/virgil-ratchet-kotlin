@@ -58,12 +58,12 @@ class FileGroupSessionStorage : GroupSessionStorage {
      * @param rootPath TBD
      *
      */
-    constructor(identity: String, crypto: VirgilCrypto, identityKeyPair: VirgilKeyPair, rootPath: Path? = null) {
+    constructor(identity: String, crypto: VirgilCrypto, identityKeyPair: VirgilKeyPair, rootPath: String? = null) {
         this.crypto = crypto
         this.privateKeyData = crypto.exportPrivateKey(identityKeyPair.privateKey)
 
         val credentials = SecureFileSystem.Credentials(crypto, identityKeyPair)
-        this.fileSystem = SecureFileSystem(identity, rootPath, listOf<String>("GROUPS"), credentials)
+        this.fileSystem = SecureFileSystem(identity, rootPath, listOf("GROUPS"), credentials)
     }
 
     override fun storeSession(session: SecureGroupSession) {

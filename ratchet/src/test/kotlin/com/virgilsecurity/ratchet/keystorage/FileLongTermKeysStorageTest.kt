@@ -44,13 +44,13 @@ import java.util.*
 class FileLongTermKeysStorageTest {
 
     private val identity = UUID.randomUUID().toString()
-    private lateinit var path: Path
+    private lateinit var path: String
     private lateinit var keyStorage: FileLongTermKeysStorage
 
     @BeforeEach
     fun setup() {
         val crypto = VirgilCrypto()
-        this.path = createTempDir().toPath()
+        this.path = createTempDir().absolutePath
         this.keyStorage = FileLongTermKeysStorage(identity, crypto, crypto.generateKeyPair(), path)
     }
 

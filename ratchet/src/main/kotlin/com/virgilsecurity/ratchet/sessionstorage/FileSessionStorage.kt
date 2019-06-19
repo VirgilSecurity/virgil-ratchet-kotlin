@@ -49,16 +49,16 @@ class FileSessionStorage : SessionStorage {
     private val crypto: VirgilCrypto
 
     /**
-     * Create new intance.
+     * Create new instance.
      *
      * @param identity identity of this user
      * @param crypto VirgilCrypto that will be forwarded to SecureSession
      * @param identityKeyPair TBD
      * @param rootPath TBD
      */
-    constructor(identity: String, crypto: VirgilCrypto, identityKeyPair: VirgilKeyPair, rootPath: Path? = null) {
+    constructor(identity: String, crypto: VirgilCrypto, identityKeyPair: VirgilKeyPair, rootPath: String? = null) {
         val credentials = SecureFileSystem.Credentials(crypto, identityKeyPair)
-        this.fileSystem = SecureFileSystem(identity, rootPath, listOf<String>("SESSIONS"), credentials)
+        this.fileSystem = SecureFileSystem(identity, rootPath, listOf("SESSIONS"), credentials)
         this.crypto = crypto
     }
 

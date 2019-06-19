@@ -51,7 +51,7 @@ class FileOneTimeKeysStorage : OneTimeKeysStorage {
     private var oneTimeKeys: OneTimeKeys? = null
     private var interactionCounter = 0
 
-    constructor(identity: String, crypto: VirgilCrypto, identityKeyPair: VirgilKeyPair, rootPath: Path? = null) {
+    constructor(identity: String, crypto: VirgilCrypto, identityKeyPair: VirgilKeyPair, rootPath: String? = null) {
         val credentials = SecureFileSystem.Credentials(crypto, identityKeyPair)
         fileSystem = SecureFileSystem(identity, rootPath, listOf("otks"), credentials)
     }

@@ -38,7 +38,7 @@ import java.util.*
 
 class SecureFileSystemTest {
     val identity = UUID.randomUUID().toString()
-    val path = createTempDir().toPath()
+    val path = createTempDir().absolutePath
     lateinit var secureFileSystem: SecureFileSystem
 
     @BeforeEach

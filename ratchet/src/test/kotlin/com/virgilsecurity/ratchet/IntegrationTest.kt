@@ -52,6 +52,7 @@ import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
+import jdk.nashorn.internal.ir.annotations.Ignore
 import org.junit.jupiter.api.*
 import java.net.URL
 import java.util.concurrent.TimeUnit
@@ -294,7 +295,7 @@ class IntegrationTest {
                 senderIdentity,
                 this.crypto,
                 senderIdentityKeyPair,
-                createTempDir("testSender").toPath()
+                createTempDir("testSender").absolutePath
             )
         val senderOneTimeKeysStorage = FileOneTimeKeysStorage(senderIdentity, this.crypto, senderIdentityKeyPair)
         val senderKeysRotator = KeysRotator(
@@ -339,7 +340,7 @@ class IntegrationTest {
                 senderIdentity,
                 this.crypto,
                 senderIdentityKeyPair,
-                createTempDir("testReceiver").toPath()
+                createTempDir("testReceiver").absolutePath
             )
         val receiverOneTimeKeysStorage = FileOneTimeKeysStorage(senderIdentity, this.crypto, senderIdentityKeyPair)
         val receiverKeysRotator = KeysRotator(

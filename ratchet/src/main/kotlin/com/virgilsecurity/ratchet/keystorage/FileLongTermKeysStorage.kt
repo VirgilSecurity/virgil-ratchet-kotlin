@@ -47,7 +47,7 @@ class FileLongTermKeysStorage : LongTermKeysStorage {
 
     private val fileSystem: SecureFileSystem
 
-    constructor(identity: String, crypto: VirgilCrypto, identityKeyPair: VirgilKeyPair, rootPath: Path? = null) {
+    constructor(identity: String, crypto: VirgilCrypto, identityKeyPair: VirgilKeyPair, rootPath: String? = null) {
         val credentials = SecureFileSystem.Credentials(crypto, identityKeyPair)
         fileSystem = SecureFileSystem(identity, rootPath, listOf("ltks"), credentials)
     }
@@ -77,9 +77,8 @@ class FileLongTermKeysStorage : LongTermKeysStorage {
 
     override fun retrieveAllKeys(): List<LongTermKey> {
         val allKeyIds = fileSystem.list()
-        var allKeys = mutableListOf<LongTermKey>()
-        allKeyIds.forEach {
-            val keyIdHex = it.fileName.toString()
+        val allKeys = mutableListOf<LongTermKey>()
+        allKeyIds.forEach { keyIdHex ->
             val data = fileSystem.read(keyIdHex)
             allKeys.add(ConvertionUtils.getGson().fromJson(data.toString(StandardCharsets.UTF_8), LongTermKey::class.java))
         }

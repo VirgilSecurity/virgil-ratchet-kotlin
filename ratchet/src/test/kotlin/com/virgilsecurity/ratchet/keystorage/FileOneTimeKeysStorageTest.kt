@@ -43,7 +43,7 @@ import java.util.*
 class FileOneTimeKeysStorageTest {
 
     val identity = UUID.randomUUID().toString()
-    val path = createTempDir().toPath()
+    val path = createTempDir().absolutePath
     private lateinit var keyStorage: FileOneTimeKeysStorage
 
     @BeforeEach

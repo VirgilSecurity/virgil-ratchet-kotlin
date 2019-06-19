@@ -72,7 +72,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$versions.kotlin"
 
     // Android
-//    compileOnly "com.google.android:android:$versions.android"
+    compileOnly "com.google.android:android:$versions.android"
 
     // Test
     androidTestImplementation "org.junit.jupiter:junit-jupiter-api:$versions.junit"

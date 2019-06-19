@@ -97,7 +97,7 @@ class GroupIntegrationTest {
             val card = cardManager.publishCard(keyPair.privateKey, keyPair.publicKey)
 
             val longTermKeysStorage =
-                FileLongTermKeysStorage(identity, this.crypto, keyPair, createTempDir("test").toPath())
+                FileLongTermKeysStorage(identity, this.crypto, keyPair, createTempDir("test").absolutePath)
             val oneTimeKeysStorage = FileOneTimeKeysStorage(identity, this.crypto, keyPair)
 
             val keysRotator = KeysRotator(

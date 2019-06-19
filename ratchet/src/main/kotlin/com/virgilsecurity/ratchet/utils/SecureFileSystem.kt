@@ -33,20 +33,16 @@
 
 package com.virgilsecurity.ratchet.utils
 
-import com.google.gson.GsonBuilder
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
+import java.io.File
 import java.nio.file.Files
-import java.nio.file.NoSuchFileException
-import java.nio.file.Path
-import java.nio.file.Paths
-import kotlin.streams.toList
 
-class SecureFileSystem(
-    val userIdentifier: String,
-    val rootPath: Path?,
-    val pathComponents: List<String>?,
-    val credentials: Credentials? = null
+class SecureFileSystem constructor(
+        val userIdentifier: String,
+        val rootPath: String?,
+        val pathComponents: List<String>?,
+        val credentials: Credentials? = null
 ) {
 
     class Credentials(
@@ -64,48 +60,57 @@ class SecureFileSystem(
         return readFile(path)
     }
 
-    fun list(subDir: String? = null): List<Path> {
+    fun list(subDir: String? = null): List<String> {
         val path = getFullPath(null, subDir)
-        return Files.list(path).filter { it.toFile().isFile }.toList()
+        val file = File(path)
+        return file.listFiles().filter { it.isFile }.map { it.name }
     }
 
     fun delete(name: String, subDir: String? = null) {
         val filePath = getFullPath(name, subDir)
-        Files.deleteIfExists(filePath)
+        val file = File(filePath)
+        if (file.exists())
+            file.delete()
     }
 
     fun deleteDir(subDir: String? = null) {
         val path = getFullPath(null, subDir)
-        path.toFile().deleteRecursively()
+        val file = File(path)
+        file.deleteRecursively()
     }
 
-    private fun createRatchetDirectory(): Path {
-        val workDirectory = rootPath ?: Paths.get(System.getProperty("user.home"))
-        val dir = workDirectory.resolve("VIRGIL-RATCHET").resolve(userIdentifier)
-        if (Files.exists(dir) && Files.isDirectory(dir)) {
-            // It's OK, directory is already exists
+    private fun createRatchetDirectory(): String {
+        val workDirectory = StringBuilder(rootPath ?: System.getProperty("user.home"))
+        val dir = workDirectory.append('/').append("VIRGIL-RATCHET").append('/').append(userIdentifier).toString()
+        val file = File(dir)
+        if (file.exists() && file.isDirectory) {
+            // It's OK, directory already exists
         } else {
             // Create a directory
-            Files.createDirectories(dir)
+            file.mkdirs()
         }
         return dir
     }
 
-    private fun writeFile(path: Path, data: ByteArray) {
+    private fun writeFile(path: String, data: ByteArray) {
         val dataToWrite = if (credentials == null || data.isEmpty()) {
             data
         } else {
             credentials.crypto.signThenEncrypt(data, credentials.keyPair.privateKey, credentials.keyPair.publicKey)
         }
-        Files.write(path, dataToWrite)
+        val file = File(path)
+        if (!file.exists())
+            file.createNewFile()
+
+        file.writeBytes(dataToWrite)
     }
 
-    private fun readFile(path: Path): ByteArray {
-        var data = try {
-            Files.readAllBytes(path)
-        } catch (e: NoSuchFileException) {
+    private fun readFile(path: String): ByteArray {
+        val file = File(path)
+        val data = if (file.exists())
+            file.readBytes()
+        else
             byteArrayOf()
-        }
 
         return if (credentials == null || data.isEmpty()) {
             data
@@ -114,18 +119,19 @@ class SecureFileSystem(
         }
     }
 
-    private fun getFullPath(name: String?, subDir: String?): Path {
-        var path = createRatchetDirectory()
+    private fun getFullPath(name: String?, subDir: String?): String {
+        var path = StringBuilder(createRatchetDirectory())
         pathComponents?.forEach {
-            path = path.resolve(it)
+            path = path.append('/').append(it)
         }
         if (subDir != null) {
-            path = path.resolve(subDir)
+            path = path.append(subDir)
         }
-        Files.createDirectories(path)
+        val file = File(path.toString())
+        file.mkdirs()
         if (name != null) {
-            path = path.resolve(name)
+            path = path.append('/').append(name)
         }
-        return path
+        return path.toString()
     }
 }
