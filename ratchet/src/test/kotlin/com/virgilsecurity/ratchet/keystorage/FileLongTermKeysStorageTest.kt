@@ -43,7 +43,7 @@ import java.util.*
 
 class FileLongTermKeysStorageTest {
 
-    val identity = UUID.randomUUID().toString()
+    private val identity = UUID.randomUUID().toString()
     private lateinit var path: Path
     private lateinit var keyStorage: FileLongTermKeysStorage
 
@@ -83,13 +83,58 @@ class FileLongTermKeysStorageTest {
     }
 
     @Test
+    fun retrieveAllKeys() {
+        val keyId = generateKeyId()
+        val keyData = generatePublicKeyData()
+
+        Assertions.assertTrue(this.keyStorage.retrieveAllKeys().isEmpty())
+
+        this.keyStorage.storeKey(keyData, keyId)
+
+        val keys = this.keyStorage.retrieveAllKeys()
+        Assertions.assertEquals(1, keys.size)
+        Assertions.assertArrayEquals(keyId, keys.first().identifier)
+        Assertions.assertArrayEquals(keyData, keys.first().key)
+
+        this.keyStorage.storeKey(generatePublicKeyData(), generateKeyId())
+        this.keyStorage.storeKey(generatePublicKeyData(), generateKeyId())
+        Assertions.assertEquals(3, this.keyStorage.retrieveAllKeys().size)
+
+        this.keyStorage.deleteKey(keyId)
+        Assertions.assertEquals(2, this.keyStorage.retrieveAllKeys().size)
+    }
+
+    @Test
     fun store_delete_retrieveAllKeys() {
         val keyId = generateKeyId()
         val keyData = generatePublicKeyData()
         this.keyStorage.storeKey(keyData, keyId)
+        Assertions.assertEquals(1, this.keyStorage.retrieveAllKeys().size)
+        Assertions.assertArrayEquals(keyId, this.keyStorage.retrieveAllKeys().first().identifier)
+
         this.keyStorage.deleteKey(keyId)
 
         Assertions.assertTrue(this.keyStorage.retrieveAllKeys().isEmpty())
+    }
+
+    @Test
+    fun markKeyOutdated() {
+        val keyId = generateKeyId()
+        val keyData = generatePublicKeyData()
+
+        val cal = Calendar.getInstance()
+        cal.set(Calendar.MILLISECOND, 0)
+        val now = cal.time
+
+        this.keyStorage.storeKey(keyData, keyId)
+
+        this.keyStorage.markKeyOutdated(now, keyId)
+
+        val key = this.keyStorage.retrieveKey(keyId)
+        Assertions.assertNotNull(key)
+        Assertions.assertArrayEquals(keyId, key.identifier)
+        Assertions.assertArrayEquals(keyData, key.key)
+        Assertions.assertEquals(now, key.outdatedFrom)
     }
 
 }

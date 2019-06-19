@@ -36,9 +36,11 @@ package com.virgilsecurity.ratchet.keystorage
 import com.google.gson.annotations.SerializedName
 import com.virgilsecurity.ratchet.exception.KeyStorageException
 import com.virgilsecurity.ratchet.utils.SecureFileSystem
+import com.virgilsecurity.ratchet.utils.hexEncodedString
 import com.virgilsecurity.ratchet.utils.logger
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
+import com.virgilsecurity.sdk.utils.ConvertionUtils
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.util.*
@@ -55,7 +57,7 @@ class FileOneTimeKeysStorage : OneTimeKeysStorage {
     }
 
     override fun startInteraction() {
-        LOG.value.fine("startInteraction")
+        LOG.value.info("startInteraction")
         synchronized(interactionCounter) {
             if (interactionCounter > 0) {
                 interactionCounter++
@@ -69,7 +71,7 @@ class FileOneTimeKeysStorage : OneTimeKeysStorage {
             val data = fileSystem.read("OTK")
 
             oneTimeKeys = if (data.isNotEmpty()) {
-                SecureFileSystem.gson.fromJson(data.toString(StandardCharsets.UTF_8), OneTimeKeys::class.java)
+                ConvertionUtils.getGson().fromJson(data.toString(StandardCharsets.UTF_8), OneTimeKeys::class.java)
             } else {
                 OneTimeKeys()
             }
@@ -79,7 +81,7 @@ class FileOneTimeKeysStorage : OneTimeKeysStorage {
     }
 
     override fun stopInteraction() {
-        LOG.value.fine("stopInteraction")
+        LOG.value.info("stopInteraction")
         synchronized(interactionCounter) {
             if (interactionCounter <= 0) {
                 throw KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "interactionCounter should be > 0")
@@ -95,7 +97,7 @@ class FileOneTimeKeysStorage : OneTimeKeysStorage {
                 KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "oneTimeKeys should not be nil")
             }
 
-            val data = SecureFileSystem.gson.toJson(oneTimeKeys).toByteArray(StandardCharsets.UTF_8)
+            val data = ConvertionUtils.getGson().toJson(oneTimeKeys).toByteArray(StandardCharsets.UTF_8)
 
             fileSystem.write("OTK", data)
             oneTimeKeys = null
@@ -146,6 +148,7 @@ class FileOneTimeKeysStorage : OneTimeKeysStorage {
             }
 
             oneTimeKeys!!.oneTimeKeys.removeAt(oneTimeKeyIndex)
+            LOG.value.info("Key ${keyId.hexEncodedString()} removed")
         }
     }
 
@@ -153,7 +156,7 @@ class FileOneTimeKeysStorage : OneTimeKeysStorage {
         if (this.oneTimeKeys == null) {
             throw KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "oneTimeKeys should not be null")
         }
-        return oneTimeKeys!!.oneTimeKeys
+        return oneTimeKeys!!.oneTimeKeys.toList()
     }
 
     override fun markKeyOrphaned(date: Date, keyId: ByteArray) {

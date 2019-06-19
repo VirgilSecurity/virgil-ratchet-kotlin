@@ -199,4 +199,21 @@ class FileOneTimeKeysStorageTest {
             Assertions.assertEquals(KeyStorageException.ILLEGAL_STORAGE_STATE, e.errorCode)
         }
     }
+
+    @Test
+    fun store_stop_start_read() {
+        val keyId = generateKeyId()
+        val keyData = generatePublicKeyData()
+
+        this.keyStorage.startInteraction()
+        this.keyStorage.storeKey(keyData, keyId)
+        this.keyStorage.stopInteraction()
+
+        this.keyStorage.startInteraction()
+        val key = this.keyStorage.retrieveKey(keyId)
+        Assertions.assertNotNull(key)
+        Assertions.assertArrayEquals(keyId, key.identifier)
+        Assertions.assertArrayEquals(keyData, key.key)
+        this.keyStorage.stopInteraction()
+    }
 }

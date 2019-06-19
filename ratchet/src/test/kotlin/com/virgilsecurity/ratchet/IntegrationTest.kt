@@ -40,6 +40,7 @@ import com.virgilsecurity.ratchet.securechat.SecureChat
 import com.virgilsecurity.ratchet.securechat.keysrotation.KeysRotator
 import com.virgilsecurity.ratchet.sessionstorage.FileGroupSessionStorage
 import com.virgilsecurity.ratchet.sessionstorage.FileSessionStorage
+import com.virgilsecurity.ratchet.utils.logger
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -402,5 +403,6 @@ class IntegrationTest {
 
     companion object {
         val DESIRED_NUMBER_OF_KEYS = 5
+        val LOG = logger()
     }
 }

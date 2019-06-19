@@ -38,6 +38,7 @@ import com.virgilsecurity.ratchet.utils.SecureFileSystem
 import com.virgilsecurity.ratchet.utils.hexEncodedString
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
+import com.virgilsecurity.sdk.utils.ConvertionUtils
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.util.*
@@ -54,7 +55,7 @@ class FileLongTermKeysStorage : LongTermKeysStorage {
     override fun storeKey(key: ByteArray, keyId: ByteArray): LongTermKey {
         val keyIdHex = keyId.hexEncodedString()
         val longTermKey = LongTermKey(keyId, key, Date())
-        val data = SecureFileSystem.gson.toJson(longTermKey).toByteArray(StandardCharsets.UTF_8)
+        val data = ConvertionUtils.getGson().toJson(longTermKey).toByteArray(StandardCharsets.UTF_8)
         fileSystem.write(keyIdHex, data)
 
         return longTermKey
@@ -66,7 +67,7 @@ class FileLongTermKeysStorage : LongTermKeysStorage {
         if (data.isEmpty()) {
             throw KeyStorageException(KeyStorageException.KEY_NOT_FOUND, "Long-term key $keyIdHex not found")
         }
-        return SecureFileSystem.gson.fromJson(data.toString(StandardCharsets.UTF_8), LongTermKey::class.java)
+        return ConvertionUtils.getGson().fromJson(data.toString(StandardCharsets.UTF_8), LongTermKey::class.java)
     }
 
     override fun deleteKey(keyId: ByteArray) {
@@ -80,7 +81,7 @@ class FileLongTermKeysStorage : LongTermKeysStorage {
         allKeyIds.forEach {
             val keyIdHex = it.fileName.toString()
             val data = fileSystem.read(keyIdHex)
-            allKeys.add(SecureFileSystem.gson.fromJson(data.toString(StandardCharsets.UTF_8), LongTermKey::class.java))
+            allKeys.add(ConvertionUtils.getGson().fromJson(data.toString(StandardCharsets.UTF_8), LongTermKey::class.java))
         }
         return allKeys
     }
@@ -89,7 +90,7 @@ class FileLongTermKeysStorage : LongTermKeysStorage {
         val keyIdHex = keyId.hexEncodedString()
         val longTermKey = retrieveKey(keyId)
         val newLongTermKey = LongTermKey(longTermKey.identifier, longTermKey.key, longTermKey.creationDate, Date())
-        val data = SecureFileSystem.gson.toJson(longTermKey).toByteArray(StandardCharsets.UTF_8)
+        val data = ConvertionUtils.getGson().toJson(newLongTermKey).toByteArray(StandardCharsets.UTF_8)
         fileSystem.write(keyIdHex, data)
     }
 

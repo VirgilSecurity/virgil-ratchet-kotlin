@@ -64,16 +64,16 @@ import kotlin.math.max
  * @param client RatchetClient
  */
 class KeysRotator(
-    private val crypto: VirgilCrypto,
-    private val identityPrivateKey: VirgilPrivateKey,
-    private val identityCardId: String,
-    private val orphanedOneTimeKeyTtl: Int,
-    private val longTermKeyTtl: Int,
-    private val outdatedLongTermKeyTtl: Int,
-    private val desiredNumberOfOneTimeKeys: Int,
-    private val longTermKeysStorage: LongTermKeysStorage,
-    private val oneTimeKeysStorage: OneTimeKeysStorage,
-    private val client: RatchetClientInterface
+        private val crypto: VirgilCrypto,
+        private val identityPrivateKey: VirgilPrivateKey,
+        private val identityCardId: String,
+        private val orphanedOneTimeKeyTtl: Int,
+        private val longTermKeyTtl: Int,
+        private val outdatedLongTermKeyTtl: Int,
+        private val desiredNumberOfOneTimeKeys: Int,
+        private val longTermKeysStorage: LongTermKeysStorage,
+        private val oneTimeKeysStorage: OneTimeKeysStorage,
+        private val client: RatchetClientInterface
 ) : KeysRotatorInterface {
 
     private val keyId = RatchetKeyId()
@@ -105,127 +105,132 @@ class KeysRotator(
         val rotationLog = RotationLog()
 
         this.oneTimeKeysStorage.startInteraction()
+        try {
 
-        val oneTimeKeys = this.oneTimeKeysStorage.retrieveAllKeys()
-        var oneTimeKeysIds = mutableListOf<ByteArray>()
+            val oneTimeKeys = this.oneTimeKeysStorage.retrieveAllKeys()
+            var oneTimeKeysIds = mutableListOf<ByteArray>()
 
-        oneTimeKeys.forEach {
-            val orphanedFrom = it.orphanedFrom
-            if (orphanedFrom != null) {
-                if (addSeconds(orphanedFrom, this.orphanedOneTimeKeyTtl) < now) {
-                    LOG.value.fine("Removing orphaned one-time key ${it.identifier.hexEncodedString()}")
-                    this.oneTimeKeysStorage.deleteKey(it.identifier)
-                    rotationLog.oneTimeKeysDeleted += 1
-                } else {
-                    rotationLog.oneTimeKeysOrphaned += 1
-                }
-            } else {
-                oneTimeKeysIds.add(it.identifier)
-            }
-        }
-
-        var numOfRelevantLongTermKeys = 0
-        val longTermKeys = this.longTermKeysStorage.retrieveAllKeys()
-        var lastLongTermKey: LongTermKey? = null
-        longTermKeys.forEach {
-            val oudatedFrom = it.outdatedFrom
-            if (oudatedFrom != null) {
-                if (addSeconds(oudatedFrom, this.outdatedLongTermKeyTtl) < now) {
-                    LOG.value.fine("Removing outdated long-term key ${it.identifier.hexEncodedString()}")
-                    this.longTermKeysStorage.deleteKey(it.identifier)
-                    rotationLog.longTermKeysDeleted += 1
-                } else {
-                    rotationLog.longTermKeysOutdated += 1
-                }
-            } else {
-                if (addSeconds(it.creationDate, this.longTermKeyTtl) < now) {
-                    LOG.value.fine("Marking long-term key as outdated ${it.identifier.hexEncodedString()}")
-                    this.longTermKeysStorage.markKeyOutdated(now, it.identifier)
-                    rotationLog.longTermKeysMarkedOutdated += 1
-                    rotationLog.longTermKeysOutdated += 1
-                } else {
-                    if (lastLongTermKey != null && lastLongTermKey!!.creationDate < it.creationDate) {
-                        lastLongTermKey = it
+            oneTimeKeys.forEach {
+                val orphanedFrom = it.orphanedFrom
+                if (orphanedFrom != null) {
+                    if (addSeconds(orphanedFrom, this.orphanedOneTimeKeyTtl) < now) {
+                        LOG.value.fine("Removing orphaned one-time key ${it.identifier.hexEncodedString()}")
+                        this.oneTimeKeysStorage.deleteKey(it.identifier)
+                        rotationLog.oneTimeKeysDeleted += 1
+                    } else {
+                        rotationLog.oneTimeKeysOrphaned += 1
                     }
-                    if (lastLongTermKey == null) {
-                        lastLongTermKey = it
-                    }
-                    numOfRelevantLongTermKeys += 1
+                } else {
+                    oneTimeKeysIds.add(it.identifier)
                 }
             }
-        }
 
-        LOG.value.fine("Validating local keys")
-        val validateResponse = this.client.validatePublicKeys(
-            lastLongTermKey?.identifier,
-            oneTimeKeysIds,
-            token.stringRepresentation()
-        )
-
-        validateResponse.usedOneTimeKeysIds.forEach {
-            LOG.value.fine("Marking one-time key as orphaned ${it.hexEncodedString()}")
-            this.oneTimeKeysStorage.markKeyOrphaned(now, it)
-            rotationLog.oneTimeKeysMarkedOrphaned += 1
-            rotationLog.oneTimeKeysOrphaned += 1
-        }
-
-        var rotateLongTermKey = false
-        if (validateResponse.usedLongTermKeyId != null || lastLongTermKey == null) {
-            rotateLongTermKey = true
-        }
-        if (lastLongTermKey != null && addSeconds(lastLongTermKey!!.creationDate, this.longTermKeyTtl) < now) {
-            rotateLongTermKey = true
-        }
-
-        var longTermSignedPublicKey: SignedPublicKey? = null
-        if (rotateLongTermKey) {
-            LOG.value.fine("Rotating long-term key")
-            val longTermKeyPair = this.crypto.generateKeyPair(KeyType.CURVE25519)
-            val longTermPrivateKey = this.crypto.exportPrivateKey(longTermKeyPair.privateKey)
-            val longTermPublicKey = this.crypto.exportPublicKey(longTermKeyPair.publicKey)
-            val longTermKeyId = this.keyId.computePublicKeyId(longTermPublicKey)
-
-            this.longTermKeysStorage.storeKey(longTermPrivateKey, longTermKeyId)
-            val longTermKeySignature = this.crypto.generateSignature(longTermPublicKey, this.identityPrivateKey)
-            longTermSignedPublicKey = SignedPublicKey(longTermPublicKey, longTermKeySignature)
-        } else {
-            longTermSignedPublicKey = null
-        }
-
-        val numOfRelevantOneTimeKeys = oneTimeKeysIds.size - validateResponse.usedOneTimeKeysIds.size
-        val numbOfOneTimeKeysToGen = max(this.desiredNumberOfOneTimeKeys - numOfRelevantOneTimeKeys, 0)
-
-        LOG.value.fine("Generating $numbOfOneTimeKeysToGen one-time keys")
-        var oneTimePublicKeys: MutableList<ByteArray>
-        if (numbOfOneTimeKeysToGen > 0) {
-            var publicKeys = mutableListOf<ByteArray>()
-            for (i in 1..numbOfOneTimeKeysToGen) {
-                LOG.value.fine("Generation $i key of $numbOfOneTimeKeysToGen")
-                val keyPair = this.crypto.generateKeyPair(KeyType.CURVE25519)
-                val oneTimePrivateKey = this.crypto.exportPrivateKey(keyPair.privateKey)
-                val oneTimePublicKey = this.crypto.exportPublicKey(keyPair.publicKey)
-                val keyId = this.keyId.computePublicKeyId(oneTimePublicKey)
-
-                this.oneTimeKeysStorage.storeKey(oneTimePrivateKey, keyId)
-                publicKeys.add(oneTimePublicKey)
+            var numOfRelevantLongTermKeys = 0
+            val longTermKeys = this.longTermKeysStorage.retrieveAllKeys()
+            var lastLongTermKey: LongTermKey? = null
+            longTermKeys.forEach {
+                val oudatedFrom = it.outdatedFrom
+                if (oudatedFrom != null) {
+                    LOG.value.fine("LT key ${it.identifier.hexEncodedString()} is outdated")
+                    if (addSeconds(oudatedFrom, this.outdatedLongTermKeyTtl) < now) {
+                        LOG.value.fine("Removing outdated long-term key ${it.identifier.hexEncodedString()}")
+                        this.longTermKeysStorage.deleteKey(it.identifier)
+                        rotationLog.longTermKeysDeleted += 1
+                    } else {
+                        rotationLog.longTermKeysOutdated += 1
+                    }
+                } else {
+                    if (addSeconds(it.creationDate, this.longTermKeyTtl) < now) {
+                        LOG.value.fine("Marking long-term key as outdated ${it.identifier.hexEncodedString()}")
+                        this.longTermKeysStorage.markKeyOutdated(now, it.identifier)
+                        rotationLog.longTermKeysMarkedOutdated += 1
+                        rotationLog.longTermKeysOutdated += 1
+                    } else {
+                        if (lastLongTermKey != null && lastLongTermKey!!.creationDate < it.creationDate) {
+                            lastLongTermKey = it
+                        }
+                        if (lastLongTermKey == null) {
+                            lastLongTermKey = it
+                        }
+                        numOfRelevantLongTermKeys += 1
+                    }
+                }
             }
 
-            oneTimePublicKeys = publicKeys
-        } else {
-            oneTimePublicKeys = mutableListOf()
+            LOG.value.fine("Validating local keys")
+            val validateResponse = this.client.validatePublicKeys(
+                    lastLongTermKey?.identifier,
+                    oneTimeKeysIds,
+                    token.stringRepresentation()
+            )
+
+            validateResponse.usedOneTimeKeysIds.forEach {
+                LOG.value.fine("Marking one-time key as orphaned ${it.hexEncodedString()}")
+                this.oneTimeKeysStorage.markKeyOrphaned(now, it)
+                rotationLog.oneTimeKeysMarkedOrphaned += 1
+                rotationLog.oneTimeKeysOrphaned += 1
+            }
+
+            var rotateLongTermKey = false
+            if (validateResponse.usedLongTermKeyId != null || lastLongTermKey == null) {
+                rotateLongTermKey = true
+            }
+            if (lastLongTermKey != null && addSeconds(lastLongTermKey!!.creationDate, this.longTermKeyTtl) < now) {
+                rotateLongTermKey = true
+            }
+
+            var longTermSignedPublicKey: SignedPublicKey? = null
+            if (rotateLongTermKey) {
+                LOG.value.fine("Rotating long-term key")
+                val longTermKeyPair = this.crypto.generateKeyPair(KeyType.CURVE25519)
+                val longTermPrivateKey = this.crypto.exportPrivateKey(longTermKeyPair.privateKey)
+                val longTermPublicKey = this.crypto.exportPublicKey(longTermKeyPair.publicKey)
+                val longTermKeyId = this.keyId.computePublicKeyId(longTermPublicKey)
+
+                this.longTermKeysStorage.storeKey(longTermPrivateKey, longTermKeyId)
+                val longTermKeySignature = this.crypto.generateSignature(longTermPublicKey, this.identityPrivateKey)
+                longTermSignedPublicKey = SignedPublicKey(longTermPublicKey, longTermKeySignature)
+            } else {
+                longTermSignedPublicKey = null
+            }
+
+            val numOfRelevantOneTimeKeys = oneTimeKeysIds.size - validateResponse.usedOneTimeKeysIds.size
+            val numbOfOneTimeKeysToGen = max(this.desiredNumberOfOneTimeKeys - numOfRelevantOneTimeKeys, 0)
+
+            LOG.value.fine("Generating $numbOfOneTimeKeysToGen one-time keys")
+            var oneTimePublicKeys: MutableList<ByteArray>
+            if (numbOfOneTimeKeysToGen > 0) {
+                var publicKeys = mutableListOf<ByteArray>()
+                for (i in 1..numbOfOneTimeKeysToGen) {
+                    LOG.value.fine("Generation $i key of $numbOfOneTimeKeysToGen")
+                    val keyPair = this.crypto.generateKeyPair(KeyType.CURVE25519)
+                    val oneTimePrivateKey = this.crypto.exportPrivateKey(keyPair.privateKey)
+                    val oneTimePublicKey = this.crypto.exportPublicKey(keyPair.publicKey)
+                    val keyId = this.keyId.computePublicKeyId(oneTimePublicKey)
+
+                    this.oneTimeKeysStorage.storeKey(oneTimePrivateKey, keyId)
+                    publicKeys.add(oneTimePublicKey)
+                }
+
+                oneTimePublicKeys = publicKeys
+            } else {
+                oneTimePublicKeys = mutableListOf()
+            }
+
+            LOG.value.fine("Uploading keys")
+            this.client.uploadPublicKeys(
+                    this.identityCardId, longTermSignedPublicKey, oneTimePublicKeys,
+                    token.stringRepresentation()
+            )
+
+            rotationLog.oneTimeKeysAdded = oneTimePublicKeys.size
+            rotationLog.oneTimeKeysRelevant = numOfRelevantOneTimeKeys + oneTimePublicKeys.size
+            rotationLog.longTermKeysRelevant = numOfRelevantLongTermKeys + (if (longTermSignedPublicKey == null) 0 else 1)
+            rotationLog.longTermKeysAdded = if (longTermSignedPublicKey == null) 0 else 1
+
+        } finally {
+//            this.oneTimeKeysStorage.stopInteraction()
         }
-
-        LOG.value.fine("Uploading keys")
-        this.client.uploadPublicKeys(
-            this.identityCardId, longTermSignedPublicKey, oneTimePublicKeys,
-            token.stringRepresentation()
-        )
-
-        rotationLog.oneTimeKeysAdded = oneTimePublicKeys.size
-        rotationLog.oneTimeKeysRelevant = numOfRelevantOneTimeKeys + oneTimePublicKeys.size
-        rotationLog.longTermKeysRelevant = numOfRelevantLongTermKeys + (if (longTermSignedPublicKey == null) 0 else 1)
-        rotationLog.longTermKeysAdded = if (longTermSignedPublicKey == null) 0 else 1
-
         return rotationLog
     }
 

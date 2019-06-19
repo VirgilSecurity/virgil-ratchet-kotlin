@@ -66,7 +66,7 @@ class SecureFileSystem(
 
     fun list(subDir: String? = null): List<Path> {
         val path = getFullPath(null, subDir)
-        return Files.list(path).filter { it.toFile().isDirectory }.toList()
+        return Files.list(path).filter { it.toFile().isFile }.toList()
     }
 
     fun delete(name: String, subDir: String? = null) {
@@ -128,9 +128,4 @@ class SecureFileSystem(
         }
         return path
     }
-
-    companion object {
-        val gson = GsonBuilder().create()
-    }
-
 }
