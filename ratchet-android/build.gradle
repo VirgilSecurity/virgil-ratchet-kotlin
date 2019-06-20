@@ -77,6 +77,8 @@ dependencies {
     // Test
     androidTestImplementation "org.junit.jupiter:junit-jupiter-api:$versions.junit"
     androidTestRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$versions.junit"
+    androidTestImplementation "com.android.support.test:runner:$versions.testsRunner"
+    androidTestImplementation "com.android.support.test.espresso:espresso-core:$versions.espresso"
 }
 
 task generateVersionVirgilAgent {

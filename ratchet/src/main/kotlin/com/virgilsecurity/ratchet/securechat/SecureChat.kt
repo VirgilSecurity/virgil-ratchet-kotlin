@@ -84,10 +84,14 @@ class SecureChat {
         this.identityPrivateKey = context.identityKeyPair.privateKey
         this.identityCard = context.identityCard
 
-        this.longTermKeysStorage = FileLongTermKeysStorage(context.identity, this.crypto, context.identityKeyPair)
-        this.oneTimeKeysStorage = FileOneTimeKeysStorage(context.identity, this.crypto, context.identityKeyPair)
-        this.sessionStorage = FileSessionStorage(context.identity, crypto, context.identityKeyPair)
-        this.groupSessionStorage = FileGroupSessionStorage(context.identity, crypto, context.identityKeyPair)
+        this.longTermKeysStorage =
+                FileLongTermKeysStorage(context.identity, this.crypto, context.identityKeyPair, context.rootPath)
+        this.oneTimeKeysStorage =
+                FileOneTimeKeysStorage(context.identity, this.crypto, context.identityKeyPair, context.rootPath)
+        this.sessionStorage =
+                FileSessionStorage(context.identity, crypto, context.identityKeyPair, context.rootPath)
+        this.groupSessionStorage =
+                FileGroupSessionStorage(context.identity, crypto, context.identityKeyPair, context.rootPath)
         this.keysRotator = KeysRotator(
             crypto, context.identityKeyPair.privateKey, context.identityCard.identifier,
             context.orphanedOneTimeKeyTtl, context.longTermKeyTtl, context.outdatedLongTermKeyTtl,

@@ -42,7 +42,9 @@ buildscript {
             junitPlugin       : '1.0.0',
             dokka             : '0.9.17',
             gradle            : '3.4.1',
-            mavenPublishPlugin: '3.6.2'
+            mavenPublishPlugin: '3.6.2',
+            testsRunner       : '1.0.2',
+            espresso          : '3.0.2',
     ]
 
     repositories {

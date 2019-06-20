@@ -58,6 +58,7 @@ import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.CardVerifier
 import com.virgilsecurity.sdk.client.VirgilCardClient
 import com.virgilsecurity.sdk.crypto.HashAlgorithm
+import com.virgilsecurity.sdk.crypto.KeyType
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import com.virgilsecurity.sdk.jwt.Jwt
@@ -89,15 +90,16 @@ class InMemoryGroupSessionStorage : GroupSessionStorage {
     val map = mutableMapOf<String, SecureGroupSession>()
 
     override fun storeSession(session: SecureGroupSession) {
-        this.map[session.identifier()] = session
+        this.map[session.identifier().hexEncodedString()] = session
     }
 
-    override fun retrieveSession(identifier: String): SecureGroupSession? {
-        return this.map[identifier]
+    override fun retrieveSession(identifier: ByteArray): SecureGroupSession? {
+        return this.map[identifier.hexEncodedString()]
     }
 
-    override fun deleteSession(identifier: String) {
-        this.map.remove(identifier)
+    override fun deleteSession(identifier: ByteArray) {
+        val hexId = identifier.hexEncodedString()
+        val removedSession = this.map.remove(hexId) ?: throw RuntimeException("Session $hexId not found")
     }
 
     override fun reset() {
@@ -329,7 +331,7 @@ class InMemoryRatchetClient(private val cardManager: CardManager) : RatchetClien
     }
 }
 
-class InMemoryCardClient : VirgilCardClient(TestConfig.serviceURL + "/cards/v5/") {
+class InMemoryCardClient : VirgilCardClient(TestConfig.cardsServiceURL) {
     private val crypto = VirgilCrypto()
     private val cards = mutableMapOf<String, RawSignedModel>()
 
@@ -377,4 +379,22 @@ fun generateIdentity(): String {
 
 fun generateText(): String {
     return UUID.randomUUID().toString()
+}
+
+fun generateKeyId(): ByteArray {
+    val crypto = VirgilCrypto()
+    val keyPair = crypto.generateKeyPair(KeyType.CURVE25519)
+    return keyPair.publicKey.identifier
+}
+
+fun generatePrivateKeyData(): ByteArray {
+    val crypto = VirgilCrypto()
+    val keyPair = crypto.generateKeyPair(KeyType.CURVE25519)
+    return keyPair.privateKey.privateKey.exportPrivateKey()
+}
+
+fun generatePublicKeyData(): ByteArray {
+    val crypto = VirgilCrypto()
+    val keyPair = crypto.generateKeyPair(KeyType.CURVE25519)
+    return keyPair.publicKey.publicKey.exportPublicKey()
 }
