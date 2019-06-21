@@ -34,12 +34,14 @@
 package com.virgilsecurity.android.ratchet.keystorage
 
 import com.virgilsecurity.android.ratchet.TestConfig
-import com.virgilsecurity.ratchet.exception.KeyStorageException
 import com.virgilsecurity.android.ratchet.generateKeyId
 import com.virgilsecurity.android.ratchet.generatePublicKeyData
+import com.virgilsecurity.ratchet.exception.KeyStorageException
 import com.virgilsecurity.ratchet.keystorage.FileLongTermKeysStorage
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
-import org.junit.jupiter.api.*
+import org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test
 import java.util.*
 
 class FileLongTermKeysStorageTest {
@@ -48,7 +50,7 @@ class FileLongTermKeysStorageTest {
     private val path = TestConfig.context.filesDir.absolutePath
     private lateinit var keyStorage: FileLongTermKeysStorage
 
-    @BeforeEach
+    @Before
     fun setup() {
         val crypto = VirgilCrypto()
         this.keyStorage = FileLongTermKeysStorage(identity, crypto, crypto.generateKeyPair(), path)
@@ -61,9 +63,9 @@ class FileLongTermKeysStorageTest {
         this.keyStorage.storeKey(keyData, keyId)
 
         val key = this.keyStorage.retrieveKey(keyId)
-        Assertions.assertNotNull(key)
-        Assertions.assertArrayEquals(keyId, key.identifier)
-        Assertions.assertArrayEquals(keyData, key.key)
+        assertNotNull(key)
+        assertArrayEquals(keyId, key.identifier)
+        assertArrayEquals(keyData, key.key)
     }
 
     @Test
@@ -75,10 +77,10 @@ class FileLongTermKeysStorageTest {
 
         try {
             this.keyStorage.retrieveKey(keyId)
-            Assertions.fail<String>("Key should be deleted")
+            fail("Key should be deleted")
         }
         catch (e : KeyStorageException) {
-            Assertions.assertEquals(KeyStorageException.KEY_NOT_FOUND, e.errorCode)
+            assertEquals(KeyStorageException.KEY_NOT_FOUND, e.errorCode)
         }
     }
 
@@ -87,21 +89,23 @@ class FileLongTermKeysStorageTest {
         val keyId = generateKeyId()
         val keyData = generatePublicKeyData()
 
-        Assertions.assertTrue(this.keyStorage.retrieveAllKeys().isEmpty())
+        assertTrue(this.keyStorage.retrieveAllKeys().isEmpty())
 
         this.keyStorage.storeKey(keyData, keyId)
 
         val keys = this.keyStorage.retrieveAllKeys()
-        Assertions.assertEquals(1, keys.size)
-        Assertions.assertArrayEquals(keyId, keys.first().identifier)
-        Assertions.assertArrayEquals(keyData, keys.first().key)
+        assertEquals(1, keys.size)
+        assertArrayEquals(keyId, keys.first().identifier)
+        assertArrayEquals(keyData, keys.first().key)
 
-        this.keyStorage.storeKey(generatePublicKeyData(), generateKeyId())
-        this.keyStorage.storeKey(generatePublicKeyData(), generateKeyId())
-        Assertions.assertEquals(3, this.keyStorage.retrieveAllKeys().size)
+        this.keyStorage.storeKey(generatePublicKeyData(),
+                                 generateKeyId())
+        this.keyStorage.storeKey(generatePublicKeyData(),
+                                 generateKeyId())
+        assertEquals(3, this.keyStorage.retrieveAllKeys().size)
 
         this.keyStorage.deleteKey(keyId)
-        Assertions.assertEquals(2, this.keyStorage.retrieveAllKeys().size)
+        assertEquals(2, this.keyStorage.retrieveAllKeys().size)
     }
 
     @Test
@@ -109,12 +113,12 @@ class FileLongTermKeysStorageTest {
         val keyId = generateKeyId()
         val keyData = generatePublicKeyData()
         this.keyStorage.storeKey(keyData, keyId)
-        Assertions.assertEquals(1, this.keyStorage.retrieveAllKeys().size)
-        Assertions.assertArrayEquals(keyId, this.keyStorage.retrieveAllKeys().first().identifier)
+        assertEquals(1, this.keyStorage.retrieveAllKeys().size)
+        assertArrayEquals(keyId, this.keyStorage.retrieveAllKeys().first().identifier)
 
         this.keyStorage.deleteKey(keyId)
 
-        Assertions.assertTrue(this.keyStorage.retrieveAllKeys().isEmpty())
+        assertTrue(this.keyStorage.retrieveAllKeys().isEmpty())
     }
 
     @Test
@@ -131,10 +135,10 @@ class FileLongTermKeysStorageTest {
         this.keyStorage.markKeyOutdated(now, keyId)
 
         val key = this.keyStorage.retrieveKey(keyId)
-        Assertions.assertNotNull(key)
-        Assertions.assertArrayEquals(keyId, key.identifier)
-        Assertions.assertArrayEquals(keyData, key.key)
-        Assertions.assertEquals(now, key.outdatedFrom)
+        assertNotNull(key)
+        assertArrayEquals(keyId, key.identifier)
+        assertArrayEquals(keyData, key.key)
+        assertEquals(now, key.outdatedFrom)
     }
 
 }

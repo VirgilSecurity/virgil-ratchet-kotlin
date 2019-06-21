@@ -1,1 +1,1 @@
-include ':ratchet', ':ratchet-android'
+include ':ratchet', ':ratchet-android', ':ratchet-android-tests'

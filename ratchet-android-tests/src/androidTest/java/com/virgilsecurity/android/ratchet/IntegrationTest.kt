@@ -52,7 +52,9 @@ import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
-import org.junit.jupiter.api.*
+import org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
@@ -64,7 +66,7 @@ class IntegrationTest {
     private lateinit var senderSecureChat: SecureChat
     private lateinit var receiverSecureChat: SecureChat
 
-    @BeforeEach
+    @Before
     fun setup() {
         this.crypto = VirgilCrypto()
 
@@ -82,7 +84,7 @@ class IntegrationTest {
         val receiverSession = this.receiverSecureChat.startNewSessionAsReceiver(this.senderCard, cipherText)
 
         val decryptedMessage = receiverSession.decryptString(cipherText)
-        Assertions.assertEquals(plainText, decryptedMessage)
+        assertEquals(plainText, decryptedMessage)
 
         Utils.encryptDecrypt100Times(senderSession, receiverSession)
     }
@@ -93,7 +95,7 @@ class IntegrationTest {
 
         val senderSession = this.senderSecureChat.startNewSessionAsSender(this.receiverCard)
         this.senderSecureChat.storeSession(senderSession)
-        Assertions.assertNotNull(this.senderSecureChat.existingSession(this.receiverCard.identity))
+        assertNotNull(this.senderSecureChat.existingSession(this.receiverCard.identity))
 
         val plainText = generateText()
         val cipherText = senderSession.encrypt(plainText)
@@ -102,14 +104,16 @@ class IntegrationTest {
 
         val receiverSession = this.receiverSecureChat.startNewSessionAsReceiver(this.senderCard, cipherText)
         this.receiverSecureChat.storeSession(receiverSession)
-        Assertions.assertNotNull(this.receiverSecureChat.existingSession(this.senderCard.identity))
+        assertNotNull(this.receiverSecureChat.existingSession(this.senderCard.identity))
 
         val decryptedMessage = receiverSession.decryptString(cipherText)
         this.receiverSecureChat.storeSession(receiverSession)
-        Assertions.assertEquals(plainText, decryptedMessage)
+        assertEquals(plainText, decryptedMessage)
 
-        Utils.encryptDecrypt100TimesRestored(this.senderSecureChat, this.senderCard.identity,
-                                             this.receiverSecureChat, this.receiverCard.identity)
+        Utils.encryptDecrypt100TimesRestored(this.senderSecureChat,
+                                                                                          this.senderCard.identity,
+                                                                                          this.receiverSecureChat,
+                                                                                          this.receiverCard.identity)
     }
 
     @Test
@@ -117,30 +121,30 @@ class IntegrationTest {
         this.receiverSecureChat.rotateKeys()
 
         val senderSession = this.senderSecureChat.startNewSessionAsSender(this.receiverCard)
-        Assertions.assertNull(this.senderSecureChat.existingSession(this.receiverCard.identity))
+        assertNull(this.senderSecureChat.existingSession(this.receiverCard.identity))
 
         senderSecureChat.storeSession(senderSession)
-        Assertions.assertNotNull(this.senderSecureChat.existingSession(this.receiverCard.identity))
+        assertNotNull(this.senderSecureChat.existingSession(this.receiverCard.identity))
 
         val plainText = generateText()
         val cipherText = senderSession.encrypt(plainText)
 
         val receiverSession = this.receiverSecureChat.startNewSessionAsReceiver(this.senderCard, cipherText)
-        Assertions.assertNull(this.receiverSecureChat.existingSession(senderCard.identity))
+        assertNull(this.receiverSecureChat.existingSession(senderCard.identity))
 
         this.receiverSecureChat.storeSession(receiverSession)
-        Assertions.assertNotNull(this.receiverSecureChat.existingSession(senderCard.identity))
+        assertNotNull(this.receiverSecureChat.existingSession(senderCard.identity))
 
         val decryptedMessage = receiverSession.decryptString(cipherText)
-        Assertions.assertEquals(plainText, decryptedMessage)
+        assertEquals(plainText, decryptedMessage)
 
         Utils.encryptDecrypt100Times(senderSession, receiverSession)
 
         this.senderSecureChat.deleteSession(receiverCard.identity)
         this.receiverSecureChat.deleteSession(senderCard.identity)
 
-        Assertions.assertNull(this.senderSecureChat.existingSession(this.receiverCard.identity))
-        Assertions.assertNull(this.receiverSecureChat.existingSession(this.senderCard.identity))
+        assertNull(this.senderSecureChat.existingSession(this.receiverCard.identity))
+        assertNull(this.receiverSecureChat.existingSession(this.senderCard.identity))
     }
 
     @Test
@@ -158,31 +162,31 @@ class IntegrationTest {
         this.receiverSecureChat.storeSession(receiverSession)
 
         val decryptedMessage = receiverSession.decryptString(cipherText)
-        Assertions.assertEquals(plainText, decryptedMessage)
+        assertEquals(plainText, decryptedMessage)
 
         Utils.encryptDecrypt100Times(senderSession, receiverSession)
 
         Thread.sleep(3000)
 
         this.senderSecureChat.reset()
-        Assertions.assertNull(this.senderSecureChat.existingSession(this.receiverCard.identity))
-        Assertions.assertTrue(this.senderSecureChat.longTermKeysStorage.retrieveAllKeys().isEmpty())
+        assertNull(this.senderSecureChat.existingSession(this.receiverCard.identity))
+        assertTrue(this.senderSecureChat.longTermKeysStorage.retrieveAllKeys().isEmpty())
 
         this.senderSecureChat.oneTimeKeysStorage.startInteraction()
-        Assertions.assertTrue(this.senderSecureChat.oneTimeKeysStorage.retrieveAllKeys().isEmpty())
+        assertTrue(this.senderSecureChat.oneTimeKeysStorage.retrieveAllKeys().isEmpty())
         this.senderSecureChat.oneTimeKeysStorage.stopInteraction()
 
         // Check that reset haven't affecter receivers
-        Assertions.assertNotNull(this.receiverSecureChat.existingSession(this.senderCard.identity))
+        assertNotNull(this.receiverSecureChat.existingSession(this.senderCard.identity))
 
         Thread.sleep(5000)
 
         this.receiverSecureChat.reset()
-        Assertions.assertNull(this.receiverSecureChat.existingSession(this.senderCard.identity))
-        Assertions.assertTrue(this.receiverSecureChat.longTermKeysStorage.retrieveAllKeys().isEmpty())
+        assertNull(this.receiverSecureChat.existingSession(this.senderCard.identity))
+        assertTrue(this.receiverSecureChat.longTermKeysStorage.retrieveAllKeys().isEmpty())
 
         receiverSecureChat.oneTimeKeysStorage.startInteraction()
-        Assertions.assertTrue(this.receiverSecureChat.oneTimeKeysStorage.retrieveAllKeys().isEmpty())
+        assertTrue(this.receiverSecureChat.oneTimeKeysStorage.retrieveAllKeys().isEmpty())
         this.receiverSecureChat.oneTimeKeysStorage.stopInteraction()
     }
 
@@ -192,7 +196,7 @@ class IntegrationTest {
         this.senderSecureChat.rotateKeys()
 
         this.receiverSecureChat.oneTimeKeysStorage.startInteraction()
-        Assertions.assertEquals(DESIRED_NUMBER_OF_KEYS, this.receiverSecureChat.oneTimeKeysStorage.retrieveAllKeys().size)
+        assertEquals(DESIRED_NUMBER_OF_KEYS, this.receiverSecureChat.oneTimeKeysStorage.retrieveAllKeys().size)
 
         val senderSession = this.senderSecureChat.startNewSessionAsSender(this.receiverCard)
 
@@ -200,11 +204,11 @@ class IntegrationTest {
         val cipherText = senderSession.encrypt(plainText)
 
         this.receiverSecureChat.startNewSessionAsReceiver(this.senderCard, cipherText)
-        Assertions.assertEquals(DESIRED_NUMBER_OF_KEYS - 1, receiverSecureChat.oneTimeKeysStorage.retrieveAllKeys().size)
+        assertEquals(DESIRED_NUMBER_OF_KEYS - 1, receiverSecureChat.oneTimeKeysStorage.retrieveAllKeys().size)
 
         Thread.sleep(5000)
 
-        Assertions.assertEquals(DESIRED_NUMBER_OF_KEYS, receiverSecureChat.oneTimeKeysStorage.retrieveAllKeys().size)
+        assertEquals(DESIRED_NUMBER_OF_KEYS, receiverSecureChat.oneTimeKeysStorage.retrieveAllKeys().size)
 
         this.receiverSecureChat.oneTimeKeysStorage.stopInteraction()
     }
@@ -221,7 +225,7 @@ class IntegrationTest {
         this.senderSecureChat.rotateKeys()
 
         this.receiverSecureChat.oneTimeKeysStorage.startInteraction()
-        Assertions.assertEquals(DESIRED_NUMBER_OF_KEYS, receiverSecureChat.oneTimeKeysStorage.retrieveAllKeys().size)
+        assertEquals(DESIRED_NUMBER_OF_KEYS, receiverSecureChat.oneTimeKeysStorage.retrieveAllKeys().size)
 
         val senderSession = this.senderSecureChat.startNewSessionAsSender(this.receiverCard)
 
@@ -229,18 +233,18 @@ class IntegrationTest {
         val cipherText = senderSession.encrypt(plainText)
 
         this.receiverSecureChat.rotateKeys()
-        Assertions.assertEquals(DESIRED_NUMBER_OF_KEYS + 1, receiverSecureChat.oneTimeKeysStorage.retrieveAllKeys().size)
+        assertEquals(DESIRED_NUMBER_OF_KEYS + 1, receiverSecureChat.oneTimeKeysStorage.retrieveAllKeys().size)
 
         Thread.sleep(6000)
 
         this.receiverSecureChat.rotateKeys()
-        Assertions.assertEquals(DESIRED_NUMBER_OF_KEYS, receiverSecureChat.oneTimeKeysStorage.retrieveAllKeys().size)
+        assertEquals(DESIRED_NUMBER_OF_KEYS, receiverSecureChat.oneTimeKeysStorage.retrieveAllKeys().size)
 
         this.receiverSecureChat.oneTimeKeysStorage.stopInteraction()
 
         try {
             this.receiverSecureChat.startNewSessionAsReceiver(this.senderCard, cipherText)
-            Assertions.fail<String>()
+            fail()
         }
         catch(e: Exception) { }
     }
@@ -248,17 +252,17 @@ class IntegrationTest {
     @Test
     fun rotate__ltk_outdated__should_outdate_and_delete_ltk() {
         this.receiverSecureChat.rotateKeys()
-        Assertions.assertEquals(1, receiverSecureChat.longTermKeysStorage.retrieveAllKeys().size)
+        assertEquals(1, receiverSecureChat.longTermKeysStorage.retrieveAllKeys().size)
 
         Thread.sleep(11000)
 
         this.receiverSecureChat.rotateKeys()
-        Assertions.assertEquals(2, receiverSecureChat.longTermKeysStorage.retrieveAllKeys().size)
+        assertEquals(2, receiverSecureChat.longTermKeysStorage.retrieveAllKeys().size)
 
         Thread.sleep(5000)
 
         this.receiverSecureChat.rotateKeys()
-        Assertions.assertEquals(1, receiverSecureChat.longTermKeysStorage.retrieveAllKeys().size)
+        assertEquals(1, receiverSecureChat.longTermKeysStorage.retrieveAllKeys().size)
     }
 
     private fun init() {
@@ -392,9 +396,9 @@ class IntegrationTest {
         val decryptedMessage3 = receiverSession3.decryptString(cipherText3)
         val decryptedMessage4 = receiverSession4.decryptString(cipherText4)
 
-        Assertions.assertEquals(plainText2, decryptedMessage2)
-        Assertions.assertEquals(plainText3, decryptedMessage3)
-        Assertions.assertEquals(plainText4, decryptedMessage4)
+        assertEquals(plainText2, decryptedMessage2)
+        assertEquals(plainText3, decryptedMessage3)
+        assertEquals(plainText4, decryptedMessage4)
 
         Utils.encryptDecrypt100Times(sessions[0], receiverSession2)
         Utils.encryptDecrypt100Times(sessions[1], receiverSession3)
