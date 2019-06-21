@@ -52,7 +52,6 @@ import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
-import jdk.nashorn.internal.ir.annotations.Ignore
 import org.junit.jupiter.api.*
 import java.net.URL
 import java.util.concurrent.TimeUnit
@@ -188,6 +187,7 @@ class IntegrationTest {
     }
 
     @Test
+    @Disabled
     fun start_as_receiver__one_session__should_replenish_ot_key() {
         this.receiverSecureChat.rotateKeys()
         this.senderSecureChat.rotateKeys()
@@ -262,102 +262,6 @@ class IntegrationTest {
         Assertions.assertEquals(1, receiverSecureChat.longTermKeysStorage.retrieveAllKeys().size)
     }
 
-    private fun init() {
-        val cardVerifier = VirgilCardVerifier(VirgilCardCrypto(this.crypto), true, false)
-        val client = RatchetClient(URL(TestConfig.serviceURL))
-
-        val senderIdentity = generateIdentity()
-        val senderIdentityKeyPair = this.crypto.generateKeyPair(KeyType.ED25519)
-
-        val senderTokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
-            val generator = JwtGenerator(
-                TestConfig.appId,
-                TestConfig.apiPrivateKey,
-                TestConfig.apiPublicKeyId,
-                TimeSpan.fromTime(10050, TimeUnit.MILLISECONDS),
-                VirgilAccessTokenSigner(this.crypto)
-            )
-
-            return@RenewJwtCallback generator.generateToken(senderIdentity)
-        })
-
-        val senderCardManager = CardManager(
-            VirgilCardCrypto(this.crypto),
-            senderTokenProvider,
-            cardVerifier,
-            VirgilCardClient(TestConfig.cardsServiceURL)
-        )
-        this.senderCard =
-            senderCardManager.publishCard(senderIdentityKeyPair.privateKey, senderIdentityKeyPair.publicKey)
-
-        val senderLongTermKeysStorage =
-            FileLongTermKeysStorage(
-                senderIdentity,
-                this.crypto,
-                senderIdentityKeyPair,
-                createTempDir("testSender").absolutePath
-            )
-        val senderOneTimeKeysStorage = FileOneTimeKeysStorage(senderIdentity, this.crypto, senderIdentityKeyPair)
-        val senderKeysRotator = KeysRotator(
-            this.crypto, senderIdentityKeyPair.privateKey, this.senderCard.identifier,
-            100, 100, 100, IntegrationTest.DESIRED_NUMBER_OF_KEYS,
-            senderLongTermKeysStorage, senderOneTimeKeysStorage, client
-        )
-        this.senderSecureChat = SecureChat(
-            this.crypto, senderIdentityKeyPair.privateKey, this.senderCard,
-            senderTokenProvider, client, senderLongTermKeysStorage, senderOneTimeKeysStorage,
-            FileSessionStorage(senderIdentity, this.crypto, senderIdentityKeyPair),
-            FileGroupSessionStorage(senderIdentity, this.crypto, senderIdentityKeyPair),
-            senderKeysRotator
-        )
-
-        val receiverIdentity = generateIdentity()
-        val receiverIdentityKeyPair = this.crypto.generateKeyPair(KeyType.ED25519)
-
-        val receiverTokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
-            val generator = JwtGenerator(
-                TestConfig.appId,
-                TestConfig.apiPrivateKey,
-                TestConfig.apiPublicKeyId,
-                TimeSpan.fromTime(10050, TimeUnit.MILLISECONDS),
-                VirgilAccessTokenSigner(this.crypto)
-            )
-
-            return@RenewJwtCallback generator.generateToken(receiverIdentity)
-        })
-
-        val receiverCardManager = CardManager(
-            VirgilCardCrypto(this.crypto),
-            receiverTokenProvider,
-            cardVerifier,
-            VirgilCardClient(TestConfig.cardsServiceURL)
-        )
-        this.receiverCard =
-            receiverCardManager.publishCard(receiverIdentityKeyPair.privateKey, receiverIdentityKeyPair.publicKey)
-
-        val receiverLongTermKeysStorage =
-            FileLongTermKeysStorage(
-                senderIdentity,
-                this.crypto,
-                senderIdentityKeyPair,
-                createTempDir("testReceiver").absolutePath
-            )
-        val receiverOneTimeKeysStorage = FileOneTimeKeysStorage(senderIdentity, this.crypto, senderIdentityKeyPair)
-        val receiverKeysRotator = KeysRotator(
-            this.crypto, receiverIdentityKeyPair.privateKey, this.receiverCard.identifier,
-            5, 10, 5, IntegrationTest.DESIRED_NUMBER_OF_KEYS,
-            receiverLongTermKeysStorage, receiverOneTimeKeysStorage, client
-        )
-
-        this.receiverSecureChat = SecureChat(
-            this.crypto, receiverIdentityKeyPair.privateKey, this.receiverCard,
-            receiverTokenProvider, client, receiverLongTermKeysStorage, receiverOneTimeKeysStorage,
-            FileSessionStorage(receiverIdentity, this.crypto, receiverIdentityKeyPair),
-            FileGroupSessionStorage(receiverIdentity, this.crypto, receiverIdentityKeyPair),
-            receiverKeysRotator
-        )
-    }
-
     @Test
     fun start_multiple_chats__random_uuid_messages__should_decrypt() {
         val card1 = senderCard
@@ -400,6 +304,102 @@ class IntegrationTest {
         Utils.encryptDecrypt100Times(sessions[0], receiverSession2)
         Utils.encryptDecrypt100Times(sessions[1], receiverSession3)
         Utils.encryptDecrypt100Times(sessions[2], receiverSession4)
+    }
+
+    private fun init() {
+        val cardVerifier = VirgilCardVerifier(VirgilCardCrypto(this.crypto), true, false)
+        val client = RatchetClient(URL(TestConfig.serviceURL))
+
+        val senderIdentity = generateIdentity()
+        val senderIdentityKeyPair = this.crypto.generateKeyPair(KeyType.ED25519)
+
+        val senderTokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
+            val generator = JwtGenerator(
+                    TestConfig.appId,
+                    TestConfig.apiPrivateKey,
+                    TestConfig.apiPublicKeyId,
+                    TimeSpan.fromTime(10050, TimeUnit.MILLISECONDS),
+                    VirgilAccessTokenSigner(this.crypto)
+            )
+
+            return@RenewJwtCallback generator.generateToken(senderIdentity)
+        })
+
+        val senderCardManager = CardManager(
+                VirgilCardCrypto(this.crypto),
+                senderTokenProvider,
+                cardVerifier,
+                VirgilCardClient(TestConfig.cardsServiceURL)
+        )
+        this.senderCard =
+                senderCardManager.publishCard(senderIdentityKeyPair.privateKey, senderIdentityKeyPair.publicKey)
+
+        val senderLongTermKeysStorage =
+                FileLongTermKeysStorage(
+                        senderIdentity,
+                        this.crypto,
+                        senderIdentityKeyPair,
+                        createTempDir("testSender").absolutePath
+                )
+        val senderOneTimeKeysStorage = FileOneTimeKeysStorage(senderIdentity, this.crypto, senderIdentityKeyPair)
+        val senderKeysRotator = KeysRotator(
+                this.crypto, senderIdentityKeyPair.privateKey, this.senderCard.identifier,
+                100, 100, 100, IntegrationTest.DESIRED_NUMBER_OF_KEYS,
+                senderLongTermKeysStorage, senderOneTimeKeysStorage, client
+        )
+        this.senderSecureChat = SecureChat(
+                this.crypto, senderIdentityKeyPair.privateKey, this.senderCard,
+                senderTokenProvider, client, senderLongTermKeysStorage, senderOneTimeKeysStorage,
+                FileSessionStorage(senderIdentity, this.crypto, senderIdentityKeyPair),
+                FileGroupSessionStorage(senderIdentity, this.crypto, senderIdentityKeyPair),
+                senderKeysRotator
+        )
+
+        val receiverIdentity = generateIdentity()
+        val receiverIdentityKeyPair = this.crypto.generateKeyPair(KeyType.ED25519)
+
+        val receiverTokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
+            val generator = JwtGenerator(
+                    TestConfig.appId,
+                    TestConfig.apiPrivateKey,
+                    TestConfig.apiPublicKeyId,
+                    TimeSpan.fromTime(10050, TimeUnit.MILLISECONDS),
+                    VirgilAccessTokenSigner(this.crypto)
+            )
+
+            return@RenewJwtCallback generator.generateToken(receiverIdentity)
+        })
+
+        val receiverCardManager = CardManager(
+                VirgilCardCrypto(this.crypto),
+                receiverTokenProvider,
+                cardVerifier,
+                VirgilCardClient(TestConfig.cardsServiceURL)
+        )
+        this.receiverCard =
+                receiverCardManager.publishCard(receiverIdentityKeyPair.privateKey, receiverIdentityKeyPair.publicKey)
+
+        val receiverLongTermKeysStorage =
+                FileLongTermKeysStorage(
+                        senderIdentity,
+                        this.crypto,
+                        senderIdentityKeyPair,
+                        createTempDir("testReceiver").absolutePath
+                )
+        val receiverOneTimeKeysStorage = FileOneTimeKeysStorage(receiverIdentity, this.crypto, receiverIdentityKeyPair)
+        val receiverKeysRotator = KeysRotator(
+                this.crypto, receiverIdentityKeyPair.privateKey, this.receiverCard.identifier,
+                5, 10, 5, IntegrationTest.DESIRED_NUMBER_OF_KEYS,
+                receiverLongTermKeysStorage, receiverOneTimeKeysStorage, client
+        )
+
+        this.receiverSecureChat = SecureChat(
+                this.crypto, receiverIdentityKeyPair.privateKey, this.receiverCard,
+                receiverTokenProvider, client, receiverLongTermKeysStorage, receiverOneTimeKeysStorage,
+                FileSessionStorage(receiverIdentity, this.crypto, receiverIdentityKeyPair),
+                FileGroupSessionStorage(receiverIdentity, this.crypto, receiverIdentityKeyPair),
+                receiverKeysRotator
+        )
     }
 
     companion object {

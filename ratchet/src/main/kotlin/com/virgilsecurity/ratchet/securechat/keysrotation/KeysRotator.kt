@@ -179,7 +179,7 @@ class KeysRotator(
                 rotateLongTermKey = true
             }
 
-            var longTermSignedPublicKey: SignedPublicKey? = null
+            var longTermSignedPublicKey: SignedPublicKey?
             if (rotateLongTermKey) {
                 LOG.value.fine("Rotating long-term key")
                 val longTermKeyPair = this.crypto.generateKeyPair(KeyType.CURVE25519)
@@ -229,7 +229,7 @@ class KeysRotator(
             rotationLog.longTermKeysAdded = if (longTermSignedPublicKey == null) 0 else 1
 
         } finally {
-//            this.oneTimeKeysStorage.stopInteraction()
+            this.oneTimeKeysStorage.stopInteraction()
         }
         return rotationLog
     }

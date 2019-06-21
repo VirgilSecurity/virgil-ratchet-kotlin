@@ -64,7 +64,7 @@ class SecureGroupSession {
         this.ratchetGroupSession.setPrivateKey(privateKeyData)
         this.ratchetGroupSession.myId = myId
 
-        val info = RatchetGroupParticipantsInfo(0, cards.size.toLong())
+        val info = RatchetGroupParticipantsInfo(cards.size.toLong())
 
         cards.forEach { card ->
             val participantId = card.identifier.hexStringToByteArray()
@@ -239,8 +239,8 @@ class SecureGroupSession {
             throw SecureGroupSessionException(SecureGroupSessionException.NOT_CONSEQUENT_TICKET, "Ticket is not consequent")
         }
 
-        val addInfo = RatchetGroupParticipantsInfo(0, addCards.size.toLong())
-        val removeInfo = RatchetGroupParticipantsIds(0, removeCardIds.size.toLong())
+        val addInfo = RatchetGroupParticipantsInfo(addCards.size.toLong())
+        val removeInfo = RatchetGroupParticipantsIds(removeCardIds.size.toLong())
 
         addCards.forEach { card ->
             try {

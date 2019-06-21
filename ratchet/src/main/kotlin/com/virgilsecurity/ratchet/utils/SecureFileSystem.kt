@@ -75,6 +75,7 @@ class SecureFileSystem constructor(
 
     fun deleteDir(subDir: String? = null) {
         val path = getFullPath(null, subDir)
+        LOG.value.fine("Deleting directory $path")
         val file = File(path)
         file.deleteRecursively()
     }
@@ -87,6 +88,7 @@ class SecureFileSystem constructor(
             // It's OK, directory already exists
         } else {
             // Create a directory
+            LOG.value.fine("Creating directory ${file.absolutePath}")
             file.mkdirs()
         }
         return dir
@@ -99,18 +101,21 @@ class SecureFileSystem constructor(
             credentials.crypto.signThenEncrypt(data, credentials.keyPair.privateKey, credentials.keyPair.publicKey)
         }
         val file = File(path)
-        if (!file.exists())
+        if (!file.exists()) {
             file.createNewFile()
-
+        }
+        LOG.value.fine("Writing to file ${file.absolutePath}")
         file.writeBytes(dataToWrite)
     }
 
     private fun readFile(path: String): ByteArray {
         val file = File(path)
-        val data = if (file.exists())
+        val data = if (file.exists()) {
+            LOG.value.fine("Reading file ${file.absolutePath}")
             file.readBytes()
-        else
+        } else {
             byteArrayOf()
+        }
 
         return if (credentials == null || data.isEmpty()) {
             data
@@ -122,16 +127,20 @@ class SecureFileSystem constructor(
     private fun getFullPath(name: String?, subDir: String?): String {
         var path = StringBuilder(createRatchetDirectory())
         pathComponents?.forEach {
-            path = path.append('/').append(it)
+            path = path.append(File.separator).append(it)
         }
         if (subDir != null) {
-            path = path.append(subDir)
+            path = path.append(File.separator).append(subDir)
         }
         val file = File(path.toString())
         file.mkdirs()
         if (name != null) {
-            path = path.append('/').append(name)
+            path = path.append(File.separator).append(name)
         }
         return path.toString()
+    }
+
+    companion object {
+        val LOG = logger()
     }
 }

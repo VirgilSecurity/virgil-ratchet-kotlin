@@ -77,10 +77,6 @@ fun String.hexStringToByteArray(): ByteArray {
     return result
 }
 
-fun areEquals(first: ByteArray, second: ByteArray): Boolean {
-    return first?.equals(second) ?: (second == null)
-}
-
 fun addSeconds(date: Date, seconds: Int): Date {
     val cal = Calendar.getInstance()
     cal.time = date

@@ -71,7 +71,7 @@ class FileSessionStorage : SessionStorage {
 
     override fun retrieveSession(participantIdentity: String, name: String): SecureSession? {
         val data = this.fileSystem.read(name, participantIdentity)
-        if (data == null || data.isEmpty()) {
+        if (data.isEmpty()) {
             return null
         }
 

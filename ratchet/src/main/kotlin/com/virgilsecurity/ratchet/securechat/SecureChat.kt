@@ -89,10 +89,10 @@ class SecureChat {
         this.sessionStorage = FileSessionStorage(context.identity, crypto, context.identityKeyPair)
         this.groupSessionStorage = FileGroupSessionStorage(context.identity, crypto, context.identityKeyPair)
         this.keysRotator = KeysRotator(
-            crypto, context.identityKeyPair.privateKey, context.identityCard.identifier,
-            context.orphanedOneTimeKeyTtl, context.longTermKeyTtl, context.outdatedLongTermKeyTtl,
-            context.desiredNumberOfOneTimeKeys, this.longTermKeysStorage, this.oneTimeKeysStorage,
-            this.client
+                crypto, context.identityKeyPair.privateKey, context.identityCard.identifier,
+                context.orphanedOneTimeKeyTtl, context.longTermKeyTtl, context.outdatedLongTermKeyTtl,
+                context.desiredNumberOfOneTimeKeys, this.longTermKeysStorage, this.oneTimeKeysStorage,
+                this.client
         )
     }
 
@@ -111,16 +111,16 @@ class SecureChat {
      * @param keysRotator keys rotation
      */
     constructor(
-        crypto: VirgilCrypto,
-        identityPrivateKey: VirgilPrivateKey,
-        identityCard: Card,
-        accessTokenProvider: AccessTokenProvider,
-        client: RatchetClientInterface,
-        longTermKeysStorage: LongTermKeysStorage,
-        oneTimeKeysStorage: OneTimeKeysStorage,
-        sessionStorage: SessionStorage,
-        groupSessionStorage: GroupSessionStorage,
-        keysRotator: KeysRotatorInterface
+            crypto: VirgilCrypto,
+            identityPrivateKey: VirgilPrivateKey,
+            identityCard: Card,
+            accessTokenProvider: AccessTokenProvider,
+            client: RatchetClientInterface,
+            longTermKeysStorage: LongTermKeysStorage,
+            oneTimeKeysStorage: OneTimeKeysStorage,
+            sessionStorage: SessionStorage,
+            groupSessionStorage: GroupSessionStorage,
+            keysRotator: KeysRotatorInterface
     ) {
         this.crypto = crypto
         this.identityPrivateKey = identityPrivateKey
@@ -192,7 +192,8 @@ class SecureChat {
      * @return SecureSession if exists
      */
     fun existingSession(particpantIdentity: String, name: String? = null): SecureSession? {
-        val session = this.sessionStorage.retrieveSession(particpantIdentity, name ?: SecureChat.DEFAULT_SESSION_NAME)
+        val session = this.sessionStorage.retrieveSession(particpantIdentity, name
+                ?: SecureChat.DEFAULT_SESSION_NAME)
         if (session != null) {
             LOG.value.fine("Found existing session with $particpantIdentity")
             return session
@@ -211,7 +212,8 @@ class SecureChat {
     fun deleteSession(particpantIdentity: String, name: String? = null) {
         LOG.value.fine("Deleting session with $particpantIdentity")
 
-        this.sessionStorage.deleteSession(particpantIdentity, name ?: SecureChat.DEFAULT_SESSION_NAME)
+        this.sessionStorage.deleteSession(particpantIdentity, name
+                ?: SecureChat.DEFAULT_SESSION_NAME)
     }
 
     /**
@@ -236,17 +238,18 @@ class SecureChat {
         LOG.value.fine("Starting new session with ${receiverCard.identity}")
 
         if (this.existingSession(
-                receiverCard.identity,
-                name ?: SecureChat.DEFAULT_SESSION_NAME
-            ) != null
+                        receiverCard.identity,
+                        name ?: SecureChat.DEFAULT_SESSION_NAME
+                ) != null
         ) {
             throw SecureChatException(SecureChatException.SESSION_ALREADY_EXISTS, "Session is already exists")
         }
 
-        val identityPublicKey = receiverCard.publicKey as? VirgilPublicKey ?: throw SecureChatException(
-            SecureChatException.WRONG_IDENTIRY_PUBLIC_KEY_CRYPTO,
-            "Public key should be a VirgilPublicKey"
-        )
+        val identityPublicKey = receiverCard.publicKey as? VirgilPublicKey
+                ?: throw SecureChatException(
+                        SecureChatException.WRONG_IDENTIRY_PUBLIC_KEY_CRYPTO,
+                        "Public key should be a VirgilPublicKey"
+                )
 
         if (identityPublicKey.keyType != KeyType.ED25519) {
             throw SecureChatException(SecureChatException.INVALID_KEY_TYPE, "Key type should be ED25519")
@@ -257,8 +260,8 @@ class SecureChat {
         val publicKeySet = this.client.getPublicKeySet(receiverCard.identity, token.stringRepresentation())
 
         val session = this.startNewSessionAsSender(
-            receiverCard.identity, identityPublicKey, name,
-            publicKeySet.identityPublicKey, publicKeySet.longTermPublicKey, publicKeySet.oneTimePublicKey
+                receiverCard.identity, identityPublicKey, name,
+                publicKeySet.identityPublicKey, publicKeySet.longTermPublicKey, publicKeySet.oneTimePublicKey
         )
 
         return session
@@ -275,10 +278,11 @@ class SecureChat {
         LOG.value.fine("Starting new session with ${receiverCards.map { it.identity }}")
 
         receiverCards.forEach {
-            if (this.existingSession(it.identity, name ?: SecureChat.DEFAULT_SESSION_NAME) != null) {
+            if (this.existingSession(it.identity, name
+                            ?: SecureChat.DEFAULT_SESSION_NAME) != null) {
                 throw SecureChatException(
-                    SecureChatException.SESSION_ALREADY_EXISTS,
-                    "Session with ${it.identity} already exists"
+                        SecureChatException.SESSION_ALREADY_EXISTS,
+                        "Session with ${it.identity} already exists"
                 )
             }
             if (it.publicKey is VirgilPublicKey) {
@@ -288,8 +292,8 @@ class SecureChat {
                 }
             } else {
                 throw SecureChatException(
-                    SecureChatException.WRONG_IDENTIRY_PUBLIC_KEY_CRYPTO,
-                    "Public key should be a VirgilPublicKey"
+                        SecureChatException.WRONG_IDENTIRY_PUBLIC_KEY_CRYPTO,
+                        "Public key should be a VirgilPublicKey"
                 )
             }
         }
@@ -297,16 +301,17 @@ class SecureChat {
         val tokenContext = TokenContext("get", false, "ratchet")
         val token = this.accessTokenProvider.getToken(tokenContext)
         val publicKeysSets =
-            this.client.getMultiplePublicKeysSets(receiverCards.map { it.identity }, token.stringRepresentation())
+                this.client.getMultiplePublicKeysSets(receiverCards.map { it.identity }, token.stringRepresentation())
         if (publicKeysSets.size != receiverCards.size) {
             throw SecureChatException(SecureChatException.PUBLIC_KEY_SETS_MISMATCH, "Wrong public keys count")
         }
         var sessions = mutableListOf<SecureSession>()
         receiverCards.forEach { card ->
-            val publicKeySet = publicKeysSets.firstOrNull { it.identity == card.identity } ?: throw SecureChatException(
-                SecureChatException.PUBLIC_KEY_SETS_MISMATCH,
-                "Wrong public keys count"
-            )
+            val publicKeySet = publicKeysSets.firstOrNull { it.identity == card.identity }
+                    ?: throw SecureChatException(
+                            SecureChatException.PUBLIC_KEY_SETS_MISMATCH,
+                            "Wrong public keys count"
+                    )
 
             if (card.publicKey !is VirgilPublicKey) {
                 throw SecureChatException(SecureChatException.WRONG_IDENTIRY_PUBLIC_KEY_CRYPTO, "Wrong card public key")
@@ -314,8 +319,8 @@ class SecureChat {
             val identityPublicKey = card.publicKey as VirgilPublicKey
 
             val session = this.startNewSessionAsSender(
-                card.identity, identityPublicKey,
-                name, publicKeySet.identityPublicKey, publicKeySet.longTermPublicKey, publicKeySet.oneTimePublicKey
+                    card.identity, identityPublicKey,
+                    name, publicKeySet.identityPublicKey, publicKeySet.longTermPublicKey, publicKeySet.oneTimePublicKey
             )
 
             sessions.add(session)
@@ -324,16 +329,16 @@ class SecureChat {
     }
 
     private fun startNewSessionAsSender(
-        identity: String, identityPublicKey: VirgilPublicKey, name: String?,
-        identityPublicKeyData: ByteArray, longTermPublicKey: SignedPublicKey, oneTimePublicKey: ByteArray?
+            identity: String, identityPublicKey: VirgilPublicKey, name: String?,
+            identityPublicKeyData: ByteArray, longTermPublicKey: SignedPublicKey, oneTimePublicKey: ByteArray?
     ): SecureSession {
         if (!this.keyId.computePublicKeyId(identityPublicKeyData)!!.contentEquals(this.keyId.computePublicKeyId(this.crypto.exportPublicKey(identityPublicKey)))) {
             throw SecureChatException(SecureChatException.IDENTITY_KEY_DOESNT_MATCH, "Wrong identity public key")
         }
         if (!this.crypto.verifySignature(longTermPublicKey.signature, longTermPublicKey.publicKey, identityPublicKey)) {
             throw SecureChatException(
-                SecureChatException.INVALID_LONG_TERM_KEY_SIGNATURE,
-                "Long term key signature is invalid"
+                    SecureChatException.INVALID_LONG_TERM_KEY_SIGNATURE,
+                    "Long term key signature is invalid"
             )
         }
         if (oneTimePublicKey == null) {
@@ -341,8 +346,8 @@ class SecureChat {
         }
         val privateKeyData = this.crypto.exportPrivateKey(this.identityPrivateKey)
         return SecureSession(
-            crypto, identity, name ?: DEFAULT_SESSION_NAME,
-            privateKeyData, identityPublicKeyData, longTermPublicKey.publicKey, oneTimePublicKey
+                crypto, identity, name ?: DEFAULT_SESSION_NAME,
+                privateKeyData, identityPublicKeyData, longTermPublicKey.publicKey, oneTimePublicKey
         )
     }
 
@@ -372,8 +377,8 @@ class SecureChat {
                 val token = this.accessTokenProvider.getToken(tokenContext)
 
                 this.client.uploadPublicKeys(
-                    null, null, mutableListOf(oneTimePublicKey),
-                    token.stringRepresentation()
+                        null, null, mutableListOf(oneTimePublicKey),
+                        token.stringRepresentation()
                 )
 
                 LOG.value.fine("Added one-time key successfully")
@@ -413,30 +418,30 @@ class SecureChat {
 
         if (this.existingSession(senderCard.identity, name) != null) {
             throw SecureChatException(
-                SecureChatException.SESSION_ALREADY_EXISTS,
-                "Session already exists"
+                    SecureChatException.SESSION_ALREADY_EXISTS,
+                    "Session already exists"
             )
         }
 
         if (senderCard.publicKey !is VirgilPublicKey) {
             throw SecureChatException(
-                SecureChatException.WRONG_IDENTIRY_PUBLIC_KEY_CRYPTO,
-                "Identity public key should be a VirgilPublicKey"
+                    SecureChatException.WRONG_IDENTIRY_PUBLIC_KEY_CRYPTO,
+                    "Identity public key should be a VirgilPublicKey"
             )
         }
         val senderIdentityPublicKey = senderCard.publicKey as VirgilPublicKey
 
         if (senderIdentityPublicKey.keyType != KeyType.ED25519) {
             throw SecureChatException(
-                SecureChatException.INVALID_KEY_TYPE,
-                "Identity public key should be a ED25519 type"
+                    SecureChatException.INVALID_KEY_TYPE,
+                    "Identity public key should be a ED25519 type"
             )
         }
 
         if (ratchetMessage.type != MsgType.PREKEY) {
             throw SecureChatException(
-                SecureChatException.INVALID_MESSAGE_TYPE,
-                "Ratchet message should be PREKEY type"
+                    SecureChatException.INVALID_MESSAGE_TYPE,
+                    "Ratchet message should be PREKEY type"
             )
         }
 
@@ -453,35 +458,37 @@ class SecureChat {
             receiverOneTimeKeyId = this.keyId.computePublicKeyId(receiverOneTimePublicKey)
         }
         val receiverOneTimePrivateKey: OneTimeKey?
-
-        if (receiverOneTimeKeyId == null) {
-            receiverOneTimePrivateKey = null
-        } else {
-            try {
+        var interactionStarted = false
+        try {
+            if (receiverOneTimeKeyId == null) {
+                receiverOneTimePrivateKey = null
+            } else {
                 this.oneTimeKeysStorage.startInteraction()
+                interactionStarted = true
                 receiverOneTimePrivateKey = this.oneTimeKeysStorage.retrieveKey(receiverOneTimeKeyId)
-            } finally {
+            }
+
+            val session = SecureSession(
+                    this.crypto,
+                    senderCard.identity,
+                    name ?: SecureChat.DEFAULT_SESSION_NAME,
+                    this.identityPrivateKey,
+                    receiverLongTermPrivateKey,
+                    receiverOneTimePrivateKey,
+                    this.crypto.exportPublicKey(senderIdentityPublicKey),
+                    ratchetMessage
+            )
+
+            if (receiverOneTimeKeyId != null) {
+                this.oneTimeKeysStorage.deleteKey(receiverOneTimeKeyId)
+                this.replaceOneTimeKey()
+            }
+            return session
+        } finally {
+            if (interactionStarted) {
                 this.oneTimeKeysStorage.stopInteraction()
             }
         }
-
-        val session = SecureSession(
-            this.crypto,
-            senderCard.identity,
-            name ?: SecureChat.DEFAULT_SESSION_NAME,
-            this.identityPrivateKey,
-            receiverLongTermPrivateKey,
-            receiverOneTimePrivateKey,
-            this.crypto.exportPublicKey(senderIdentityPublicKey),
-            ratchetMessage
-        )
-
-        if (receiverOneTimeKeyId != null) {
-            this.oneTimeKeysStorage.deleteKey(receiverOneTimeKeyId)
-            this.replaceOneTimeKey()
-        }
-
-        return session
     }
 
     /**
@@ -520,8 +527,8 @@ class SecureChat {
     fun startGroupSession(receiversCards: List<Card>, ratchetMessage: RatchetGroupMessage): SecureGroupSession {
         if (ratchetMessage.type != GroupMsgType.GROUP_INFO) {
             throw SecureChatException(
-                SecureChatException.INVALID_MESSAGE_TYPE,
-                "Ratchet message should be GROUP_INFO type"
+                    SecureChatException.INVALID_MESSAGE_TYPE,
+                    "Ratchet message should be GROUP_INFO type"
             )
         }
 
@@ -531,13 +538,12 @@ class SecureChat {
             val myId = this.identityCard.identifier.hexStringToByteArray()
 
             return SecureGroupSession(this.crypto, privateKeyData, myId,
-                ratchetMessage,
-                receiversCards)
-        }
-        catch (e : HexEncodingException) {
+                    ratchetMessage,
+                    receiversCards)
+        } catch (e: HexEncodingException) {
             throw SecureChatException(
-                SecureChatException.INVALID_CARD_ID,
-                "Card ID is not HEX encoded"
+                    SecureChatException.INVALID_CARD_ID,
+                    "Card ID is not HEX encoded"
             )
         }
     }
