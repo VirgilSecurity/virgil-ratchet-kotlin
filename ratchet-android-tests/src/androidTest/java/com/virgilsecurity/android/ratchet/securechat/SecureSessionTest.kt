@@ -33,16 +33,7 @@
 
 package com.virgilsecurity.android.ratchet.securechat
 
-import com.virgilsecurity.android.ratchet.FakeKeysRotator
-import com.virgilsecurity.android.ratchet.InMemoryCardClient
-import com.virgilsecurity.android.ratchet.InMemoryGroupSessionStorage
-import com.virgilsecurity.android.ratchet.InMemoryLongTermKeysStorage
-import com.virgilsecurity.android.ratchet.InMemoryOneTimeKeysStorage
-import com.virgilsecurity.android.ratchet.InMemoryRatchetClient
-import com.virgilsecurity.android.ratchet.InMemorySessionStorage
-import com.virgilsecurity.android.ratchet.TestConfig
-import com.virgilsecurity.android.ratchet.TrustAllCardVerifier
-import com.virgilsecurity.android.ratchet.Utils
+import com.virgilsecurity.android.ratchet.*
 import com.virgilsecurity.ratchet.exception.SecureChatException
 import com.virgilsecurity.ratchet.securechat.SecureChat
 import com.virgilsecurity.ratchet.securechat.keysrotation.KeysRotator
@@ -54,7 +45,9 @@ import com.virgilsecurity.sdk.crypto.VirgilAccessTokenSigner
 import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
 import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.accessProviders.CallbackJwtProvider
-import org.junit.jupiter.api.*
+import org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test
 import java.util.concurrent.TimeUnit
 
 class SecureSessionTest {
@@ -64,14 +57,14 @@ class SecureSessionTest {
     lateinit var senderSecureChat: SecureChat
     lateinit var receiverSecureChat: SecureChat
 
-    @BeforeEach
+    @Before
     fun setup() {
         val crypto = TestConfig.virgilCrypto
         val receiverIdentityKeyPair = crypto.generateKeyPair(KeyType.ED25519)
         val senderIdentityKeyPair = crypto.generateKeyPair(KeyType.ED25519)
 
-        val senderIdentity = com.virgilsecurity.android.ratchet.generateIdentity()
-        val receiverIdentity = com.virgilsecurity.android.ratchet.generateIdentity()
+        val senderIdentity = generateIdentity()
+        val receiverIdentity = generateIdentity()
 
         val receiverTokenProvider = CallbackJwtProvider(
             CallbackJwtProvider.GetTokenCallback {
@@ -113,8 +106,11 @@ class SecureSessionTest {
 
         this.senderSecureChat = SecureChat(
                 crypto, senderIdentityKeyPair.privateKey, senderCard,
-                senderTokenProvider, fakeClient, InMemoryLongTermKeysStorage(),
-                InMemoryOneTimeKeysStorage(), InMemorySessionStorage(), InMemoryGroupSessionStorage(),
+                senderTokenProvider, fakeClient,
+                InMemoryLongTermKeysStorage(),
+                InMemoryOneTimeKeysStorage(),
+                InMemorySessionStorage(),
+                InMemoryGroupSessionStorage(),
                 FakeKeysRotator()
         )
 
@@ -137,13 +133,13 @@ class SecureSessionTest {
         this.receiverSecureChat.rotateKeys()
         val senderSession = this.senderSecureChat.startNewSessionAsSender(receiverCard)
 
-        val plainText = com.virgilsecurity.android.ratchet.generateText()
+        val plainText = generateText()
         val cipherText = senderSession.encrypt(plainText)
 
         val receiverSession = this.receiverSecureChat.startNewSessionAsReceiver(senderCard, cipherText)
         val decryptedMessage = receiverSession.decryptString(cipherText)
 
-        Assertions.assertEquals(plainText, decryptedMessage)
+        assertEquals(plainText, decryptedMessage)
 
         Utils.encryptDecrypt100Times(senderSession, receiverSession)
     }
@@ -155,19 +151,19 @@ class SecureSessionTest {
         val senderSession = this.senderSecureChat.startNewSessionAsSender(this.receiverCard)
         this.senderSecureChat.storeSession(senderSession)
 
-        Assertions.assertNotNull(this.senderSecureChat.existingSession(this.receiverCard.identity))
+        assertNotNull(this.senderSecureChat.existingSession(this.receiverCard.identity))
 
-        val plainText = com.virgilsecurity.android.ratchet.generateText()
+        val plainText = generateText()
         val cipherText = senderSession.encrypt(plainText)
 
         val receiverSession = this.receiverSecureChat.startNewSessionAsReceiver(this.senderCard, cipherText)
         this.receiverSecureChat.storeSession(receiverSession)
 
-        Assertions.assertNotNull(this.receiverSecureChat.existingSession(this.senderCard.identity))
+        assertNotNull(this.receiverSecureChat.existingSession(this.senderCard.identity))
 
         val decryptedMessage = receiverSession.decryptString(cipherText)
 
-        Assertions.assertEquals(plainText, decryptedMessage)
+        assertEquals(plainText, decryptedMessage)
 
         Utils.encryptDecrypt100TimesRestored(
             this.senderSecureChat,
@@ -183,7 +179,7 @@ class SecureSessionTest {
         val senderSession = senderSecureChat.startNewSessionAsSender(receiverCard)
         this.senderSecureChat.storeSession(senderSession)
 
-        val plainText = com.virgilsecurity.android.ratchet.generateText()
+        val plainText = generateText()
         val cipherText = senderSession.encrypt(plainText)
 
         val receiverSession = this.receiverSecureChat.startNewSessionAsReceiver(senderCard, cipherText)
@@ -191,37 +187,37 @@ class SecureSessionTest {
 
         try {
             this.senderSecureChat.startNewSessionAsSender(receiverCard)
-            Assertions.fail<String>()
+            fail()
         } catch (e: SecureChatException) {
-            Assertions.assertEquals(SecureChatException.SESSION_ALREADY_EXISTS, e.errorCode)
+            assertEquals(SecureChatException.SESSION_ALREADY_EXISTS, e.errorCode)
         } catch (e: Exception) {
-            Assertions.fail<String>()
+            fail()
         }
 
         try {
             this.senderSecureChat.startNewSessionAsReceiver(receiverCard, cipherText)
-            Assertions.fail<String>()
+            fail()
         } catch (e: SecureChatException) {
-            Assertions.assertEquals(SecureChatException.SESSION_ALREADY_EXISTS, e.errorCode)
+            assertEquals(SecureChatException.SESSION_ALREADY_EXISTS, e.errorCode)
         } catch (e: Exception) {
-            Assertions.fail<String>()
+            fail()
         }
 
         try {
             this.receiverSecureChat.startNewSessionAsSender(senderCard)
-            Assertions.fail<String>()
+            fail()
         } catch (e: SecureChatException) {
-            Assertions.assertEquals(SecureChatException.SESSION_ALREADY_EXISTS, e.errorCode)
+            assertEquals(SecureChatException.SESSION_ALREADY_EXISTS, e.errorCode)
         } catch (e: Exception) {
-            Assertions.fail<String>()
+            fail()
         }
         try {
             this.receiverSecureChat.startNewSessionAsReceiver(senderCard, cipherText)
-            Assertions.fail<String>()
+            fail()
         } catch (e: SecureChatException) {
-            Assertions.assertEquals(SecureChatException.SESSION_ALREADY_EXISTS, e.errorCode)
+            assertEquals(SecureChatException.SESSION_ALREADY_EXISTS, e.errorCode)
         } catch (e: Exception) {
-            Assertions.fail<String>()
+            fail()
         }
     }
 }

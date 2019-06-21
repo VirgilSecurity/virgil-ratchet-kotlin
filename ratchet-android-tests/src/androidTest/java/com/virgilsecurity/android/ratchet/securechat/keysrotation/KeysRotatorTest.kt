@@ -33,10 +33,7 @@
 
 package com.virgilsecurity.android.ratchet.securechat.keysrotation
 
-import com.virgilsecurity.android.ratchet.InMemoryLongTermKeysStorage
-import com.virgilsecurity.android.ratchet.InMemoryOneTimeKeysStorage
-import com.virgilsecurity.android.ratchet.InMemoryRatchetClient
-import com.virgilsecurity.android.ratchet.TestConfig
+import com.virgilsecurity.android.ratchet.*
 import com.virgilsecurity.crypto.ratchet.RatchetKeyId
 import com.virgilsecurity.ratchet.securechat.keysrotation.KeysRotator
 import com.virgilsecurity.ratchet.securechat.keysrotation.RotationLog
@@ -51,7 +48,10 @@ import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.TokenContext
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
-import org.junit.jupiter.api.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
 import java.util.concurrent.TimeUnit
 import java.util.logging.Level
 
@@ -66,13 +66,13 @@ class KeysRotatorTest {
     private lateinit var privateKey: VirgilPrivateKey
     private lateinit var card: Card
 
-    @BeforeEach
+    @Before
     fun setup() {
         this.keyId = RatchetKeyId()
         this.crypto = VirgilCrypto()
 
         val identityKeyPair = this.crypto.generateKeyPair(KeyType.ED25519)
-        this.identity = com.virgilsecurity.android.ratchet.generateIdentity()
+        this.identity = generateIdentity()
         this.privateKey = TestConfig.apiPrivateKey
         this.generator = JwtGenerator(
                 TestConfig.appId,
@@ -113,23 +113,23 @@ class KeysRotatorTest {
 
         val log = rotate(rotator, this.tokenProvider)
 
-        Assertions.assertEquals(1, log.longTermKeysRelevant)
-        Assertions.assertEquals(1, log.longTermKeysAdded)
-        Assertions.assertEquals(0, log.longTermKeysDeleted)
-        Assertions.assertEquals(0, log.longTermKeysMarkedOutdated)
-        Assertions.assertEquals(0, log.longTermKeysOutdated)
-        Assertions.assertEquals(numberOfOneTimeKeys, log.oneTimeKeysRelevant)
-        Assertions.assertEquals(numberOfOneTimeKeys, log.oneTimeKeysAdded)
-        Assertions.assertEquals(0, log.oneTimeKeysDeleted)
-        Assertions.assertEquals(0, log.oneTimeKeysMarkedOrphaned)
-        Assertions.assertEquals(0, log.oneTimeKeysOrphaned)
-        Assertions.assertEquals(numberOfOneTimeKeys, fakeOneTimeKeysStorage.map.size)
-        Assertions.assertEquals(1, fakeLongTermKeysStorage.map.size)
-        Assertions.assertEquals(1, fakeClient.users.size)
+        assertEquals(1, log.longTermKeysRelevant)
+        assertEquals(1, log.longTermKeysAdded)
+        assertEquals(0, log.longTermKeysDeleted)
+        assertEquals(0, log.longTermKeysMarkedOutdated)
+        assertEquals(0, log.longTermKeysOutdated)
+        assertEquals(numberOfOneTimeKeys, log.oneTimeKeysRelevant)
+        assertEquals(numberOfOneTimeKeys, log.oneTimeKeysAdded)
+        assertEquals(0, log.oneTimeKeysDeleted)
+        assertEquals(0, log.oneTimeKeysMarkedOrphaned)
+        assertEquals(0, log.oneTimeKeysOrphaned)
+        assertEquals(numberOfOneTimeKeys, fakeOneTimeKeysStorage.map.size)
+        assertEquals(1, fakeLongTermKeysStorage.map.size)
+        assertEquals(1, fakeClient.users.size)
 
         val user = fakeClient.users.entries.first()
-        Assertions.assertEquals(this.identity, user.key)
-        Assertions.assertTrue(compareCloudAndStorage(user.value, fakeLongTermKeysStorage, fakeOneTimeKeysStorage))
+        assertEquals(this.identity, user.key)
+        assertTrue(compareCloudAndStorage(user.value, fakeLongTermKeysStorage, fakeOneTimeKeysStorage))
     }
 
     @Test
@@ -151,36 +151,36 @@ class KeysRotatorTest {
 
         val log1 = rotate(rotator, this.tokenProvider)
 
-        Assertions.assertEquals(1, log1.longTermKeysRelevant)
-        Assertions.assertEquals(1, log1.longTermKeysAdded)
-        Assertions.assertEquals(0, log1.longTermKeysDeleted)
-        Assertions.assertEquals(1, log1.longTermKeysMarkedOutdated)
-        Assertions.assertEquals(1, log1.longTermKeysOutdated)
+        assertEquals(1, log1.longTermKeysRelevant)
+        assertEquals(1, log1.longTermKeysAdded)
+        assertEquals(0, log1.longTermKeysDeleted)
+        assertEquals(1, log1.longTermKeysMarkedOutdated)
+        assertEquals(1, log1.longTermKeysOutdated)
 
-        Assertions.assertEquals(numberOfOneTimeKeys, fakeOneTimeKeysStorage.map.size)
-        Assertions.assertEquals(2, fakeLongTermKeysStorage.map.size)
-        Assertions.assertEquals(1, fakeClient.users.size)
+        assertEquals(numberOfOneTimeKeys, fakeOneTimeKeysStorage.map.size)
+        assertEquals(2, fakeLongTermKeysStorage.map.size)
+        assertEquals(1, fakeClient.users.size)
 
         val user = fakeClient.users.entries.first()
-        Assertions.assertEquals(identity, user.key)
+        assertEquals(identity, user.key)
 
-        Assertions.assertTrue(compareCloudAndStorage(user.value, fakeLongTermKeysStorage, fakeOneTimeKeysStorage))
+        assertTrue(compareCloudAndStorage(user.value, fakeLongTermKeysStorage, fakeOneTimeKeysStorage))
 
         Thread.sleep(2000)
 
         val log2 = rotate(rotator, this.tokenProvider)
 
-        Assertions.assertEquals(1, log2.longTermKeysRelevant)
-        Assertions.assertEquals(0, log2.longTermKeysAdded)
-        Assertions.assertEquals(1, log2.longTermKeysDeleted)
-        Assertions.assertEquals(0, log2.longTermKeysMarkedOutdated)
-        Assertions.assertEquals(0, log2.longTermKeysOutdated)
+        assertEquals(1, log2.longTermKeysRelevant)
+        assertEquals(0, log2.longTermKeysAdded)
+        assertEquals(1, log2.longTermKeysDeleted)
+        assertEquals(0, log2.longTermKeysMarkedOutdated)
+        assertEquals(0, log2.longTermKeysOutdated)
 
-        Assertions.assertEquals(numberOfOneTimeKeys, fakeOneTimeKeysStorage.map.size)
-        Assertions.assertEquals(1, fakeLongTermKeysStorage.map.size)
-        Assertions.assertEquals(1, fakeClient.users.size)
+        assertEquals(numberOfOneTimeKeys, fakeOneTimeKeysStorage.map.size)
+        assertEquals(1, fakeLongTermKeysStorage.map.size)
+        assertEquals(1, fakeClient.users.size)
 
-        Assertions.assertTrue(compareCloudAndStorage(user.value, fakeLongTermKeysStorage, fakeOneTimeKeysStorage))
+        assertTrue(compareCloudAndStorage(user.value, fakeLongTermKeysStorage, fakeOneTimeKeysStorage))
     }
 
     @Test
@@ -205,37 +205,37 @@ class KeysRotatorTest {
 
         val log1 = rotate(rotator, tokenProvider)
 
-        Assertions.assertEquals(numberOfOneTimeKeys, log1.oneTimeKeysRelevant)
-        Assertions.assertEquals(1, log1.oneTimeKeysAdded)
-        Assertions.assertEquals(0, log1.oneTimeKeysDeleted)
-        Assertions.assertEquals(1, log1.oneTimeKeysMarkedOrphaned)
-        Assertions.assertEquals(1, log1.oneTimeKeysOrphaned)
+        assertEquals(numberOfOneTimeKeys, log1.oneTimeKeysRelevant)
+        assertEquals(1, log1.oneTimeKeysAdded)
+        assertEquals(0, log1.oneTimeKeysDeleted)
+        assertEquals(1, log1.oneTimeKeysMarkedOrphaned)
+        assertEquals(1, log1.oneTimeKeysOrphaned)
 
-        Assertions.assertEquals(numberOfOneTimeKeys + 1, fakeOneTimeKeysStorage.map.size)
-        Assertions.assertEquals(1, fakeLongTermKeysStorage.map.size)
+        assertEquals(numberOfOneTimeKeys + 1, fakeOneTimeKeysStorage.map.size)
+        assertEquals(1, fakeLongTermKeysStorage.map.size)
 
         Thread.sleep(6000)
 
         val log2 = rotate(rotator, this.tokenProvider)
 
-        Assertions.assertEquals(numberOfOneTimeKeys, log2.oneTimeKeysRelevant)
-        Assertions.assertEquals(0, log2.oneTimeKeysAdded)
-        Assertions.assertEquals(1, log2.oneTimeKeysDeleted)
-        Assertions.assertEquals(0, log2.oneTimeKeysMarkedOrphaned)
-        Assertions.assertEquals(0, log2.oneTimeKeysOrphaned)
+        assertEquals(numberOfOneTimeKeys, log2.oneTimeKeysRelevant)
+        assertEquals(0, log2.oneTimeKeysAdded)
+        assertEquals(1, log2.oneTimeKeysDeleted)
+        assertEquals(0, log2.oneTimeKeysMarkedOrphaned)
+        assertEquals(0, log2.oneTimeKeysOrphaned)
 
-        Assertions.assertEquals(numberOfOneTimeKeys, fakeOneTimeKeysStorage.map.size)
-        Assertions.assertEquals(1, fakeLongTermKeysStorage.map.size)
-        Assertions.assertEquals(1, fakeClient.users.size)
+        assertEquals(numberOfOneTimeKeys, fakeOneTimeKeysStorage.map.size)
+        assertEquals(1, fakeLongTermKeysStorage.map.size)
+        assertEquals(1, fakeClient.users.size)
 
         val user = fakeClient.users.entries.first()
-        Assertions.assertEquals(this.identity, user.key)
+        assertEquals(this.identity, user.key)
 
-        Assertions.assertTrue(compareCloudAndStorage(user.value, fakeLongTermKeysStorage, fakeOneTimeKeysStorage))
+        assertTrue(compareCloudAndStorage(user.value, fakeLongTermKeysStorage, fakeOneTimeKeysStorage))
     }
 
     private fun rotate(rotator: KeysRotator, tokenProvider: AccessTokenProvider): RotationLog {
-        val tokenContext = TokenContext("ratchet", false, "rotate")
+        val tokenContext = TokenContext("", false, "rotate")
         val jwt = tokenProvider.getToken(tokenContext)
 
         return rotator.rotateKeys(jwt)

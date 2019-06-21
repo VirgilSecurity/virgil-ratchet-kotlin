@@ -52,8 +52,8 @@ import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
+import org.junit.Before
+import org.junit.Test
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
@@ -63,7 +63,7 @@ class GroupIntegrationTest {
     private lateinit var cards: MutableList<Card>
     private lateinit var chats: MutableList<SecureChat>
 
-    @BeforeEach
+    @Before
     fun setup() {
         this.crypto = VirgilCrypto()
     }
@@ -80,7 +80,9 @@ class GroupIntegrationTest {
             val keyPair = this.crypto.generateKeyPair(KeyType.ED25519)
             val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
                 val generator = JwtGenerator(
-                        TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
+                        TestConfig.appId,
+                        TestConfig.apiPrivateKey,
+                        TestConfig.apiPublicKeyId,
                         TimeSpan.fromTime(10050, TimeUnit.MILLISECONDS), VirgilAccessTokenSigner(this.crypto)
                 )
 

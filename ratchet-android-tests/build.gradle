@@ -31,53 +31,35 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ratchet.utils
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
 
-import com.virgilsecurity.android.ratchet.TestConfig
-import com.virgilsecurity.ratchet.utils.SecureFileSystem
-import org.junit.jupiter.api.*
-import java.util.*
-
-class SecureFileSystemTest {
-    val identity = UUID.randomUUID().toString()
-    val path = TestConfig.context.filesDir.absolutePath
-    lateinit var secureFileSystem: SecureFileSystem
-
-    @BeforeEach
-    fun setup() {
-        secureFileSystem = SecureFileSystem(identity, path, null)
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        applicationId "com.virgilsecurity.ratchet_android_tests"
+        minSdkVersion 21
+        targetSdkVersion 28
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+}
 
-    @Test
-    fun write_then_read() {
-        val data = UUID.randomUUID().toString().toByteArray()
-        val name = UUID.randomUUID().toString()
+dependencies {
+    // Internal
+    implementation project(':ratchet-android')
 
-        secureFileSystem.write(name, data)
-        val dataFromFile = secureFileSystem.read(name)
-        Assertions.assertNotNull(dataFromFile)
-        Assertions.assertArrayEquals(data, dataFromFile)
-    }
+    // Kotlin
+    androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$versions.kotlinVersion"
+    implementation 'com.android.support:appcompat-v7:28.0.0'
 
-    @Test
-    fun write_then_deleteFile() {
-        val data = UUID.randomUUID().toString().toByteArray()
-        val name = UUID.randomUUID().toString()
+    // Virgil
+    androidTestImplementation "com.virgilsecurity.crypto:common-android:$versions.virgilCrypto"
+    androidTestImplementation "com.virgilsecurity.crypto:foundation-android:$versions.virgilCrypto"
+    androidTestImplementation "com.virgilsecurity.crypto:ratchet-android:$versions.virgilCrypto"
 
-        secureFileSystem.write(name, data)
-        Assertions.assertTrue(secureFileSystem.read(name).isNotEmpty())
-        secureFileSystem.delete(name)
-        Assertions.assertTrue(secureFileSystem.read(name).isEmpty())
-    }
-
-    @Test
-    fun write_then_deleteDir() {
-        val data = UUID.randomUUID().toString().toByteArray()
-        val name = UUID.randomUUID().toString()
-
-        secureFileSystem.write(name, data)
-        Assertions.assertTrue(secureFileSystem.read(name).isNotEmpty())
-        secureFileSystem.deleteDir()
-        Assertions.assertTrue(secureFileSystem.read(name).isEmpty())
-    }
+    // Test
+    testImplementation "junit:junit:$versions.junitOld"
+    androidTestImplementation "com.android.support.test:runner:$versions.testsRunner"
+    androidTestImplementation "com.android.support.test.espresso:espresso-core:$versions.espresso"
 }

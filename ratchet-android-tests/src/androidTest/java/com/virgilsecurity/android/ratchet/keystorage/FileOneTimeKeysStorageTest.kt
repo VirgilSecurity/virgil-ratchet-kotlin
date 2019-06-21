@@ -34,12 +34,14 @@
 package com.virgilsecurity.android.ratchet.keystorage
 
 import com.virgilsecurity.android.ratchet.TestConfig
-import com.virgilsecurity.ratchet.exception.KeyStorageException
 import com.virgilsecurity.android.ratchet.generateKeyId
 import com.virgilsecurity.android.ratchet.generatePublicKeyData
+import com.virgilsecurity.ratchet.exception.KeyStorageException
 import com.virgilsecurity.ratchet.keystorage.FileOneTimeKeysStorage
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
-import org.junit.jupiter.api.*
+import org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test
 import java.util.*
 
 class FileOneTimeKeysStorageTest {
@@ -48,7 +50,7 @@ class FileOneTimeKeysStorageTest {
     private val path = TestConfig.context.filesDir.absolutePath
     private lateinit var keyStorage: FileOneTimeKeysStorage
 
-    @BeforeEach
+    @Before
     fun setup() {
         val crypto = VirgilCrypto()
         this.keyStorage = FileOneTimeKeysStorage(identity, crypto, crypto.generateKeyPair(), path)
@@ -64,7 +66,7 @@ class FileOneTimeKeysStorageTest {
         try {
             this.keyStorage.stopInteraction()
         } catch (e: KeyStorageException) {
-            Assertions.assertEquals(KeyStorageException.ILLEGAL_STORAGE_STATE, e.errorCode)
+            assertEquals(KeyStorageException.ILLEGAL_STORAGE_STATE, e.errorCode)
         }
     }
 
@@ -83,9 +85,9 @@ class FileOneTimeKeysStorageTest {
         this.keyStorage.storeKey(keyData, keyId)
 
         val key = this.keyStorage.retrieveKey(keyId)
-        Assertions.assertNotNull(key)
-        Assertions.assertArrayEquals(keyId, key.identifier)
-        Assertions.assertArrayEquals(keyData, key.key)
+        assertNotNull(key)
+        assertArrayEquals(keyId, key.identifier)
+        assertArrayEquals(keyData, key.key)
         this.keyStorage.stopInteraction()
     }
 
@@ -105,9 +107,9 @@ class FileOneTimeKeysStorageTest {
         // Store keys
         keys.forEach { (keyId, keyData) ->
             val key = this.keyStorage.retrieveKey(keyId)
-            Assertions.assertNotNull(key)
-            Assertions.assertArrayEquals(keyId, key.identifier)
-            Assertions.assertArrayEquals(keyData, key.key)
+            assertNotNull(key)
+            assertArrayEquals(keyId, key.identifier)
+            assertArrayEquals(keyData, key.key)
         }
 
         // Remove first and last keys
@@ -120,10 +122,10 @@ class FileOneTimeKeysStorageTest {
         removedKeyIds.forEach { keyId ->
             try {
                 this.keyStorage.retrieveKey(keyId)
-                Assertions.fail("Key should be deleted")
+                fail("Key should be deleted")
             }
             catch (e: KeyStorageException) {
-                Assertions.assertEquals(KeyStorageException.KEY_NOT_FOUND, e.errorCode)
+                assertEquals(KeyStorageException.KEY_NOT_FOUND, e.errorCode)
             }
         }
 
@@ -132,15 +134,15 @@ class FileOneTimeKeysStorageTest {
         keys.forEach { (keyId, keyData) ->
             try {
                 val key = this.keyStorage.retrieveKey(keyId)
-                Assertions.assertNotNull(key)
-                Assertions.assertArrayEquals(keyId, key.identifier)
-                Assertions.assertArrayEquals(keyData, key.key)
+                assertNotNull(key)
+                assertArrayEquals(keyId, key.identifier)
+                assertArrayEquals(keyData, key.key)
             }
             catch (e: KeyStorageException) {
                 cnt++
             }
         }
-        Assertions.assertEquals(2, cnt)
+        assertEquals(2, cnt)
 
         this.keyStorage.stopInteraction()
     }
@@ -156,10 +158,10 @@ class FileOneTimeKeysStorageTest {
 
         try {
             this.keyStorage.retrieveKey(keyId)
-            Assertions.fail<String>("Key should be deleted")
+            fail("Key should be deleted")
         }
         catch (e: KeyStorageException) {
-            Assertions.assertEquals(KeyStorageException.KEY_NOT_FOUND, e.errorCode)
+            assertEquals(KeyStorageException.KEY_NOT_FOUND, e.errorCode)
         }
         this.keyStorage.stopInteraction()
     }
@@ -172,7 +174,7 @@ class FileOneTimeKeysStorageTest {
         this.keyStorage.startInteraction()
         this.keyStorage.storeKey(keyData, keyId)
         this.keyStorage.deleteKey(keyId)
-        Assertions.assertTrue(this.keyStorage.retrieveAllKeys().isEmpty())
+        assertTrue(this.keyStorage.retrieveAllKeys().isEmpty())
         this.keyStorage.stopInteraction()
     }
 
@@ -182,10 +184,10 @@ class FileOneTimeKeysStorageTest {
         val keyId = generateKeyId()
         try {
             this.keyStorage.retrieveKey(keyId)
-            Assertions.fail<String>("Key should be deleted")
+            fail("Key should be deleted")
         }
         catch (e: KeyStorageException) {
-            Assertions.assertEquals(KeyStorageException.KEY_NOT_FOUND, e.errorCode)
+            assertEquals(KeyStorageException.KEY_NOT_FOUND, e.errorCode)
         }
         this.keyStorage.stopInteraction()
     }
@@ -195,10 +197,10 @@ class FileOneTimeKeysStorageTest {
         val keyId = generateKeyId()
         try {
             this.keyStorage.retrieveKey(keyId)
-            Assertions.fail<String>("Key should be deleted")
+            fail("Key should be deleted")
         }
         catch (e: KeyStorageException) {
-            Assertions.assertEquals(KeyStorageException.ILLEGAL_STORAGE_STATE, e.errorCode)
+            assertEquals(KeyStorageException.ILLEGAL_STORAGE_STATE, e.errorCode)
         }
     }
 
@@ -213,9 +215,9 @@ class FileOneTimeKeysStorageTest {
 
         this.keyStorage.startInteraction()
         val key = this.keyStorage.retrieveKey(keyId)
-        Assertions.assertNotNull(key)
-        Assertions.assertArrayEquals(keyId, key.identifier)
-        Assertions.assertArrayEquals(keyData, key.key)
+        assertNotNull(key)
+        assertArrayEquals(keyId, key.identifier)
+        assertArrayEquals(keyData, key.key)
         this.keyStorage.stopInteraction()
     }
 }

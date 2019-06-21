@@ -52,6 +52,15 @@ android {
         targetSdkVersion 28
         consumerProguardFiles 'proguard-rules.txt'
     }
+
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
+    packagingOptions {
+        exclude 'META-INF/LICENSE.md'
+        exclude 'META-INF/LICENSE-notice.md'
+    }
 }
 
 group 'com.virgilsecurity'
@@ -73,12 +82,6 @@ dependencies {
 
     // Android
     compileOnly "com.google.android:android:$versions.android"
-
-    // Test
-    androidTestImplementation "org.junit.jupiter:junit-jupiter-api:$versions.junit"
-    androidTestRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$versions.junit"
-    androidTestImplementation "com.android.support.test:runner:$versions.testsRunner"
-    androidTestImplementation "com.android.support.test.espresso:espresso-core:$versions.espresso"
 }
 
 task generateVersionVirgilAgent {
