@@ -114,5 +114,36 @@ class Utils {
 
             }
         }
+
+        fun encryptDecrypt100TimesRestored(secureChats: List<SecureChat>, sessionId: ByteArray) {
+            for (j in 0 until 100) {
+                val senderNum = Random.nextInt(0, secureChats.size)
+
+                val sender = secureChats[senderNum].existingGroupSession(sessionId)
+                Assertions.assertNotNull(sender)
+                sender!!
+
+                val plainText = generateText()
+                val message = sender.encrypt(plainText)
+
+                secureChats[senderNum].storeGroupSession(sender)
+
+                for (i in 0 until secureChats.size) {
+                    if (i == senderNum) {
+                        continue
+                    }
+
+                    val receiver = secureChats[i].existingGroupSession(sessionId)
+                    Assertions.assertNotNull(receiver)
+                    receiver!!
+
+                    val decryptedMessage = receiver.decryptString(message, sender.myIdentifier())
+                    Assertions.assertEquals(plainText, decryptedMessage)
+
+                    secureChats[i].storeGroupSession(receiver)
+                }
+            }
+        }
     }
+
 }

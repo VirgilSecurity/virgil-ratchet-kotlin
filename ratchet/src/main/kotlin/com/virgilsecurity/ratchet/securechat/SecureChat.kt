@@ -499,20 +499,18 @@ class SecureChat {
      * Creates RatchetGroupMessage that starts new group chat.
      * NOTE: Other participants should receive this message using encrypted channel (SecureSession).
      *
-     * @param customSessionId optional session Id. Should be 32 byte. If null passed random value will be generated
+     * @param sessionId session Id. Should be 32 byte.
      *
      * @return RatchetGroupMessage that should be then passed to startGroupSession()
      */
-    fun startNewGroupSession(customSessionId: ByteArray? = null): RatchetGroupMessage {
+    fun startNewGroupSession(sessionId: ByteArray): RatchetGroupMessage {
         val ticket = RatchetGroupTicket()
         ticket.setRng(this.crypto.rng)
 
-        if (customSessionId != null) {
-            if (customSessionId.size != RatchetCommon().sessionIdLen) {
-                throw SecureChatException(SecureChatException.INVALID_SESSION_ID_LENGTH, "Session ID should be 32 byte length")
-            }
-            ticket.setupTicketAsNew(customSessionId)
+        if (sessionId.size != RatchetCommon().sessionIdLen) {
+            throw SecureChatException(SecureChatException.INVALID_SESSION_ID_LENGTH, "Session ID should be 32 byte length")
         }
+        ticket.setupTicketAsNew(sessionId)
 
         return ticket.ticketMessage
     }

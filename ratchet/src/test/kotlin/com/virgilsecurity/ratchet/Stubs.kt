@@ -99,7 +99,7 @@ class InMemoryGroupSessionStorage : GroupSessionStorage {
 
     override fun deleteSession(identifier: ByteArray) {
         val hexId = identifier.hexEncodedString()
-        val removedSession = this.map.remove(hexId) ?: throw RuntimeException("Session $hexId not found")
+        this.map.remove(hexId) ?: throw RuntimeException("Session $hexId not found")
     }
 
     override fun reset() {
