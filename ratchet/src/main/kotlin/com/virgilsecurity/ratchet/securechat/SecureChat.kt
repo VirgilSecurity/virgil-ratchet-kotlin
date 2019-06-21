@@ -506,13 +506,12 @@ class SecureChat {
     fun startNewGroupSession(customSessionId: ByteArray? = null): RatchetGroupMessage {
         val ticket = RatchetGroupTicket()
         ticket.setRng(this.crypto.rng)
-        ticket.setupTicketAsNew()
 
         if (customSessionId != null) {
             if (customSessionId.size != RatchetCommon().sessionIdLen) {
                 throw SecureChatException(SecureChatException.INVALID_SESSION_ID_LENGTH, "Session ID should be 32 byte length")
             }
-            ticket.setSessionId(customSessionId)
+            ticket.setupTicketAsNew(customSessionId)
         }
 
         return ticket.ticketMessage
