@@ -69,7 +69,7 @@ dependencies {
     implementation "com.virgilsecurity.crypto:ratchet-android:$versions.virgilCrypto"
 
     // Kotlin
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$versions.kotlin"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$versions.kotlinVersion"
 
     // Android
     compileOnly "com.google.android:android:$versions.android"
