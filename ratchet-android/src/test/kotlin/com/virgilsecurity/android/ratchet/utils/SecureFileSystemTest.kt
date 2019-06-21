@@ -33,18 +33,17 @@
 
 package com.virgilsecurity.android.ratchet.utils
 
+import com.virgilsecurity.android.ratchet.TestConfig
 import com.virgilsecurity.ratchet.utils.SecureFileSystem
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.*
 import java.util.*
 
 class SecureFileSystemTest {
     val identity = UUID.randomUUID().toString()
-    val path = createTempDir().toPath()
+    val path = TestConfig.context.filesDir.absolutePath
     lateinit var secureFileSystem: SecureFileSystem
 
-    @BeforeAll
+    @BeforeEach
     fun setup() {
         secureFileSystem = SecureFileSystem(identity, path, null)
     }
@@ -56,8 +55,8 @@ class SecureFileSystemTest {
 
         secureFileSystem.write(name, data)
         val dataFromFile = secureFileSystem.read(name)
-        assertNotNull(dataFromFile)
-        assertArrayEquals(data, dataFromFile)
+        Assertions.assertNotNull(dataFromFile)
+        Assertions.assertArrayEquals(data, dataFromFile)
     }
 
     @Test
@@ -66,9 +65,9 @@ class SecureFileSystemTest {
         val name = UUID.randomUUID().toString()
 
         secureFileSystem.write(name, data)
-        assertTrue(secureFileSystem.read(name).isNotEmpty())
+        Assertions.assertTrue(secureFileSystem.read(name).isNotEmpty())
         secureFileSystem.delete(name)
-        assertTrue(secureFileSystem.read(name).isEmpty())
+        Assertions.assertTrue(secureFileSystem.read(name).isEmpty())
     }
 
     @Test
@@ -77,8 +76,8 @@ class SecureFileSystemTest {
         val name = UUID.randomUUID().toString()
 
         secureFileSystem.write(name, data)
-        assertTrue(secureFileSystem.read(name).isNotEmpty())
+        Assertions.assertTrue(secureFileSystem.read(name).isNotEmpty())
         secureFileSystem.deleteDir()
-        assertTrue(secureFileSystem.read(name).isEmpty())
+        Assertions.assertTrue(secureFileSystem.read(name).isEmpty())
     }
 }

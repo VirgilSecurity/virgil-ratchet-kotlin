@@ -33,16 +33,34 @@
 
 buildscript {
     ext.versions = [
-            kotlinVersion     : '1.3.31',
+            // Kotlin
+            kotlinVersion     : '1.3.40',
+
+            // Gradle
+            gradle            : '3.4.1',
+
+            // Virgil
             virgilSdk         : '5.1.1',
             virgilCrypto      : '0.8.0-SNAPSHOT',
+
+            // Serializer
             gson              : '2.8.5',
+
+            // Network
             fuel              : '1.15.1',
+
+            // Android
+            android           : '4.1.1.4',
+
+            // Publish
+            mavenPublishPlugin: '3.6.2',
+            dokka             : '0.9.17',
+
+            // Tests
+            testsRunner       : '1.0.2',
+            espresso          : '3.0.2',
             junit             : '5.3.1',
             junitPlugin       : '1.0.0',
-            dokka             : '0.9.17',
-            gradle            : '3.4.1',
-            mavenPublishPlugin: '3.6.2'
     ]
 
     repositories {

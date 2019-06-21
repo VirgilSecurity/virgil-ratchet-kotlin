@@ -69,7 +69,7 @@ dependencies {
     implementation "com.virgilsecurity.crypto:ratchet-android:$versions.virgilCrypto"
 
     // Kotlin
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$versions.kotlin"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$versions.kotlinVersion"
 
     // Android
     compileOnly "com.google.android:android:$versions.android"
@@ -77,6 +77,8 @@ dependencies {
     // Test
     androidTestImplementation "org.junit.jupiter:junit-jupiter-api:$versions.junit"
     androidTestRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$versions.junit"
+    androidTestImplementation "com.android.support.test:runner:$versions.testsRunner"
+    androidTestImplementation "com.android.support.test.espresso:espresso-core:$versions.espresso"
 }
 
 task generateVersionVirgilAgent {

@@ -33,6 +33,7 @@
 
 package com.virgilsecurity.android.ratchet
 
+import android.support.test.InstrumentationRegistry
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
 import java.util.*
@@ -68,5 +69,9 @@ class TestConfig {
                 else -> "https://api.virgilsecurity.com"
             }
         }
+        val cardsServiceURL: String by lazy {
+            "$serviceURL/card/v5/"
+        }
+        val context = InstrumentationRegistry.getTargetContext()
     }
 }
