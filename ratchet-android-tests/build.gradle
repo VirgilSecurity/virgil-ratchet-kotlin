@@ -35,10 +35,22 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
-def APP_ID = hasProperty('APP_ID') ? "\"$APP_ID\"" : System.getenv('APP_ID')
-def API_PRIVATE_KEY = hasProperty('API_PRIVATE_KEY') ? "\"$API_PRIVATE_KEY\"" : System.getenv('API_PRIVATE_KEY')
-def API_PUBLIC_KEY_ID = hasProperty('API_PUBLIC_KEY_ID') ? "\"$API_PUBLIC_KEY_ID\"" : System.getenv('API_PUBLIC_KEY_ID')
-def SERVICE_URL = hasProperty('SERVICE_URL') ? "\"$SERVICE_URL\"" : System.getenv('SERVICE_URL')
+static def getEnvironmentValue(String name) {
+    if (System.getenv(name) != null) {
+        def value = System.getenv(name)
+        return "\"$value\""
+    } else if (System.getProperty(name) != null) {
+        def value = System.getProperty(name)
+        return "\"$value\""
+    } else {
+        System.out.println("Please, provide argument: " + name)
+    }
+}
+
+def APP_ID = hasProperty('APP_ID') ? "\"$APP_ID\"" : getEnvironmentValue('APP_ID')
+def API_PRIVATE_KEY = hasProperty('API_PRIVATE_KEY') ? "\"$API_PRIVATE_KEY\"" : getEnvironmentValue('API_PRIVATE_KEY')
+def API_PUBLIC_KEY_ID = hasProperty('API_PUBLIC_KEY_ID') ? "\"$API_PUBLIC_KEY_ID\"" : getEnvironmentValue('API_PUBLIC_KEY_ID')
+def SERVICE_URL = hasProperty('SERVICE_URL') ? "\"$SERVICE_URL\"" : getEnvironmentValue('SERVICE_URL')
 
 android {
     compileSdkVersion 28
