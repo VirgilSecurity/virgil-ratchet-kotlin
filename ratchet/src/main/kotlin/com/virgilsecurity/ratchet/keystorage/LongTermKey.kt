@@ -44,8 +44,8 @@ import java.util.*
  * @param outdatedFrom Date from which this key started to be outdated.
  */
 class LongTermKey(
-    val identifier: ByteArray,
-    val key: ByteArray,
-    val creationDate: Date,
-    val outdatedFrom: Date? = null
+        val identifier: ByteArray,
+        val key: ByteArray,
+        val creationDate: Date,
+        val outdatedFrom: Date? = null
 )

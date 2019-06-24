@@ -34,38 +34,23 @@
 package com.virgilsecurity.android.ratchet
 
 import android.support.test.InstrumentationRegistry
+import android.util.Base64
+import com.virgilsecurity.ratchet_android_tests.BuildConfig
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
-import java.util.*
 
 class TestConfig {
 
     companion object {
         val virgilCrypto = VirgilCrypto(false)
-        val appId: String by lazy {
-            if (System.getProperty("APP_ID") != null)
-                System.getProperty("APP_ID")
-            else
-                System.getenv("APP_ID")
-        }
+        val appId: String = BuildConfig.APP_ID
         val apiPrivateKey: VirgilPrivateKey by lazy {
-            (if (System.getProperty("API_PRIVATE_KEY") != null)
-                System.getProperty("API_PRIVATE_KEY")
-            else
-                System.getenv("API_PRIVATE_KEY")).let {
-                virgilCrypto.importPrivateKey(Base64.getDecoder().decode(it)).privateKey
-            }
+            virgilCrypto.importPrivateKey(Base64.decode(BuildConfig.API_PRIVATE_KEY, Base64.NO_WRAP)).privateKey
         }
-        val apiPublicKeyId: String by lazy {
-            if (System.getProperty("API_PUBLIC_KEY_ID") != null)
-                System.getProperty("API_PUBLIC_KEY_ID")
-            else
-                System.getenv("API_PUBLIC_KEY_ID")
-        }
+        val apiPublicKeyId: String = BuildConfig.API_PUBLIC_KEY_ID
         val serviceURL: String by lazy {
             when {
-                System.getProperty("SERVICE_URL") != null -> System.getProperty("SERVICE_URL")
-                System.getenv("SERVICE_URL") != null -> System.getenv("SERVICE_URL")
+                BuildConfig.SERVICE_URL != null -> BuildConfig.SERVICE_URL
                 else -> "https://api.virgilsecurity.com"
             }
         }

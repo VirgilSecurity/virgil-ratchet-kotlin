@@ -39,13 +39,13 @@ class Exceptions(message: String?) : Exception(message)
  * Exception that is thrown when Ratchet service answers with some error.
  */
 class ProtocolException @JvmOverloads constructor(
-    val errorCode: Int = -1,
-    message: String? = "Unknown error"
+        val errorCode: Int = -1,
+        message: String? = "Unknown error"
 ) : Exception(message)
 
 class KeyStorageException @JvmOverloads constructor(
-    val errorCode: Int = -1,
-    message: String? = "Unknown error"
+        val errorCode: Int = -1,
+        message: String? = "Unknown error"
 ) : Exception(message) {
     companion object {
         val KEY_ALREADY_EXISTS = 1
@@ -56,8 +56,8 @@ class KeyStorageException @JvmOverloads constructor(
 }
 
 class SecureGroupSessionException @JvmOverloads constructor(
-    val errorCode: Int = -1,
-    message: String? = "Unknown error"
+        val errorCode: Int = -1,
+        message: String? = "Unknown error"
 ) : Exception(message) {
     companion object {
         val NOT_CONSEQUENT_TICKET = 2
@@ -74,8 +74,8 @@ class SecureGroupSessionException @JvmOverloads constructor(
 }
 
 class SecureChatException @JvmOverloads constructor(
-    val errorCode: Int = -1,
-    message: String? = "Unknown error"
+        val errorCode: Int = -1,
+        message: String? = "Unknown error"
 ) : Exception(message) {
     companion object {
         val SESSION_ALREADY_EXISTS = 1
@@ -90,4 +90,4 @@ class SecureChatException @JvmOverloads constructor(
     }
 }
 
-class HexEncodingException(message: String? = "Hex encoding failed"): Exception(message) {}
+class HexEncodingException(message: String? = "Hex encoding failed") : Exception(message) {}

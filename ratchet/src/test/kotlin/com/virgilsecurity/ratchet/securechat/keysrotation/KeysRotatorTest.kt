@@ -46,7 +46,9 @@ import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.TokenContext
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.util.concurrent.TimeUnit
 import java.util.logging.Level
 
@@ -70,11 +72,11 @@ class KeysRotatorTest {
         this.identity = generateIdentity()
         this.privateKey = TestConfig.apiPrivateKey
         this.generator = JwtGenerator(
-            TestConfig.appId,
-            this.privateKey,
-            TestConfig.apiPublicKeyId,
-            TimeSpan.fromTime(10050, TimeUnit.MILLISECONDS),
-            VirgilAccessTokenSigner(this.crypto)
+                TestConfig.appId,
+                this.privateKey,
+                TestConfig.apiPublicKeyId,
+                TimeSpan.fromTime(10050, TimeUnit.MILLISECONDS),
+                VirgilAccessTokenSigner(this.crypto)
         )
 
         this.tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
@@ -83,10 +85,10 @@ class KeysRotatorTest {
         val cardVerifier = VirgilCardVerifier(VirgilCardCrypto(crypto), true, false)
 
         this.cardManager = CardManager(
-            VirgilCardCrypto(this.crypto),
-            this.tokenProvider,
-            cardVerifier,
-            VirgilCardClient(TestConfig.cardsServiceURL)
+                VirgilCardCrypto(this.crypto),
+                this.tokenProvider,
+                cardVerifier,
+                VirgilCardClient(TestConfig.cardsServiceURL)
         )
 
         this.card = this.cardManager.publishCard(identityKeyPair.privateKey, identityKeyPair.publicKey)
@@ -101,9 +103,9 @@ class KeysRotatorTest {
         val fakeClient = InMemoryRatchetClient(this.cardManager)
 
         val rotator = KeysRotator(
-            this.crypto, this.privateKey, this.card.identifier,
-            100, 100, 100, numberOfOneTimeKeys,
-            fakeLongTermKeysStorage, fakeOneTimeKeysStorage, fakeClient
+                this.crypto, this.privateKey, this.card.identifier,
+                100, 100, 100, numberOfOneTimeKeys,
+                fakeLongTermKeysStorage, fakeOneTimeKeysStorage, fakeClient
         )
 
         val log = rotate(rotator, this.tokenProvider)
@@ -135,9 +137,9 @@ class KeysRotatorTest {
         val fakeClient = InMemoryRatchetClient(cardManager)
 
         val rotator = KeysRotator(
-            this.crypto, this.privateKey, this.card.identifier,
-            100, 5, 2, numberOfOneTimeKeys,
-            fakeLongTermKeysStorage, fakeOneTimeKeysStorage, fakeClient
+                this.crypto, this.privateKey, this.card.identifier,
+                100, 5, 2, numberOfOneTimeKeys,
+                fakeLongTermKeysStorage, fakeOneTimeKeysStorage, fakeClient
         )
 
         rotate(rotator, this.tokenProvider)
@@ -187,9 +189,9 @@ class KeysRotatorTest {
         val fakeClient = InMemoryRatchetClient(this.cardManager)
 
         val rotator = KeysRotator(
-            this.crypto, this.privateKey, this.card.identifier,
-            5, 100, 100, numberOfOneTimeKeys,
-            fakeLongTermKeysStorage, fakeOneTimeKeysStorage, fakeClient
+                this.crypto, this.privateKey, this.card.identifier,
+                5, 100, 100, numberOfOneTimeKeys,
+                fakeLongTermKeysStorage, fakeOneTimeKeysStorage, fakeClient
         )
 
         rotate(rotator, this.tokenProvider)
@@ -237,9 +239,9 @@ class KeysRotatorTest {
     }
 
     private fun compareCloudAndStorage(
-        userStore: InMemoryRatchetClient.UserStore,
-        longTermStorage: InMemoryLongTermKeysStorage,
-        oneTimeStorage: InMemoryOneTimeKeysStorage
+            userStore: InMemoryRatchetClient.UserStore,
+            longTermStorage: InMemoryLongTermKeysStorage,
+            oneTimeStorage: InMemoryOneTimeKeysStorage
     ): Boolean {
 
         val longTermKey = userStore.longTermPublicKey?.publicKey

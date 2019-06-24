@@ -35,6 +35,11 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
+def APP_ID = hasProperty('APP_ID') ? "\"$APP_ID\"" : System.getenv('APP_ID')
+def API_PRIVATE_KEY = hasProperty('API_PRIVATE_KEY') ? "\"$API_PRIVATE_KEY\"" : System.getenv('API_PRIVATE_KEY')
+def API_PUBLIC_KEY_ID = hasProperty('API_PUBLIC_KEY_ID') ? "\"$API_PUBLIC_KEY_ID\"" : System.getenv('API_PUBLIC_KEY_ID')
+def SERVICE_URL = hasProperty('SERVICE_URL') ? "\"$SERVICE_URL\"" : System.getenv('SERVICE_URL')
+
 android {
     compileSdkVersion 28
     defaultConfig {
@@ -42,6 +47,14 @@ android {
         minSdkVersion 21
         targetSdkVersion 28
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        buildTypes.each {
+            it.buildConfigField "String", "APP_ID", "$APP_ID"
+            it.buildConfigField "String", "API_PRIVATE_KEY", "$API_PRIVATE_KEY"
+            it.buildConfigField "String", "API_PUBLIC_KEY_ID", "$API_PUBLIC_KEY_ID"
+            it.buildConfigField "String", "SERVICE_URL", "$SERVICE_URL"
+        }
     }
 }
 

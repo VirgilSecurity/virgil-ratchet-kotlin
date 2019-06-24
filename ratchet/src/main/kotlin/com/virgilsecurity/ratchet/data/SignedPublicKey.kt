@@ -41,6 +41,6 @@ import com.google.gson.annotations.SerializedName
  * @param signature Signature.
  */
 class SignedPublicKey(
-    @SerializedName("public_key") val publicKey: ByteArray,
-    @SerializedName("signature") val signature: ByteArray
+        @SerializedName("public_key") val publicKey: ByteArray,
+        @SerializedName("signature") val signature: ByteArray
 )

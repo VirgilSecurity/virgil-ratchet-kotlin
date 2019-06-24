@@ -44,7 +44,9 @@ import com.virgilsecurity.sdk.crypto.VirgilAccessTokenSigner
 import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
 import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.accessProviders.CallbackJwtProvider
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.util.concurrent.TimeUnit
 
 class SecureSessionTest {
@@ -64,24 +66,24 @@ class SecureSessionTest {
         val receiverIdentity = generateIdentity()
 
         val receiverTokenProvider = CallbackJwtProvider(
-            CallbackJwtProvider.GetTokenCallback {
-                val generator = JwtGenerator(
-                    TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
-                    TimeSpan.fromTime(10050, TimeUnit.SECONDS), VirgilAccessTokenSigner(crypto)
-                )
+                CallbackJwtProvider.GetTokenCallback {
+                    val generator = JwtGenerator(
+                            TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
+                            TimeSpan.fromTime(10050, TimeUnit.SECONDS), VirgilAccessTokenSigner(crypto)
+                    )
 
-                return@GetTokenCallback generator.generateToken(receiverIdentity).stringRepresentation()
-            })
+                    return@GetTokenCallback generator.generateToken(receiverIdentity).stringRepresentation()
+                })
 
         val senderTokenProvider = CallbackJwtProvider(
-            CallbackJwtProvider.GetTokenCallback {
-                val generator = JwtGenerator(
-                    TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
-                    TimeSpan.fromTime(10050, TimeUnit.SECONDS), VirgilAccessTokenSigner(crypto)
-                )
+                CallbackJwtProvider.GetTokenCallback {
+                    val generator = JwtGenerator(
+                            TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
+                            TimeSpan.fromTime(10050, TimeUnit.SECONDS), VirgilAccessTokenSigner(crypto)
+                    )
 
-                return@GetTokenCallback generator.generateToken(senderIdentity).stringRepresentation()
-            })
+                    return@GetTokenCallback generator.generateToken(senderIdentity).stringRepresentation()
+                })
 
         var cardVerifier = TrustAllCardVerifier()
         var ramCardClient = InMemoryCardClient()
@@ -89,12 +91,12 @@ class SecureSessionTest {
         val senderCardManager = CardManager(VirgilCardCrypto(crypto), senderTokenProvider, cardVerifier, ramCardClient)
 
         val receiverCardManager =
-            CardManager(VirgilCardCrypto(crypto), receiverTokenProvider, cardVerifier, ramCardClient)
+                CardManager(VirgilCardCrypto(crypto), receiverTokenProvider, cardVerifier, ramCardClient)
 
         this.receiverCard =
-            receiverCardManager.publishCard(receiverIdentityKeyPair.privateKey, receiverIdentityKeyPair.publicKey)
+                receiverCardManager.publishCard(receiverIdentityKeyPair.privateKey, receiverIdentityKeyPair.publicKey)
         this.senderCard =
-            senderCardManager.publishCard(senderIdentityKeyPair.privateKey, senderIdentityKeyPair.publicKey)
+                senderCardManager.publishCard(senderIdentityKeyPair.privateKey, senderIdentityKeyPair.publicKey)
 
         val receiverLongTermKeysStorage = InMemoryLongTermKeysStorage()
         val receiverOneTimeKeysStorage = InMemoryOneTimeKeysStorage()
@@ -102,23 +104,23 @@ class SecureSessionTest {
         val fakeClient = InMemoryRatchetClient(receiverCardManager)
 
         this.senderSecureChat = SecureChat(
-            crypto, senderIdentityKeyPair.privateKey, senderCard,
-            senderTokenProvider, fakeClient, InMemoryLongTermKeysStorage(),
-            InMemoryOneTimeKeysStorage(), InMemorySessionStorage(), InMemoryGroupSessionStorage(),
-            FakeKeysRotator()
+                crypto, senderIdentityKeyPair.privateKey, senderCard,
+                senderTokenProvider, fakeClient, InMemoryLongTermKeysStorage(),
+                InMemoryOneTimeKeysStorage(), InMemorySessionStorage(), InMemoryGroupSessionStorage(),
+                FakeKeysRotator()
         )
 
         val receiverKeysRotator = KeysRotator(
-            crypto, receiverIdentityKeyPair.privateKey, receiverCard.identifier, 100,
-            100, 100, 10, receiverLongTermKeysStorage,
-            receiverOneTimeKeysStorage, fakeClient
+                crypto, receiverIdentityKeyPair.privateKey, receiverCard.identifier, 100,
+                100, 100, 10, receiverLongTermKeysStorage,
+                receiverOneTimeKeysStorage, fakeClient
         )
 
         this.receiverSecureChat = SecureChat(
-            crypto, receiverIdentityKeyPair.privateKey,
-            receiverCard, receiverTokenProvider, fakeClient, receiverLongTermKeysStorage,
-            receiverOneTimeKeysStorage, InMemorySessionStorage(),
-            InMemoryGroupSessionStorage(), receiverKeysRotator
+                crypto, receiverIdentityKeyPair.privateKey,
+                receiverCard, receiverTokenProvider, fakeClient, receiverLongTermKeysStorage,
+                receiverOneTimeKeysStorage, InMemorySessionStorage(),
+                InMemoryGroupSessionStorage(), receiverKeysRotator
         )
     }
 
@@ -160,10 +162,10 @@ class SecureSessionTest {
         Assertions.assertEquals(plainText, decryptedMessage)
 
         Utils.encryptDecrypt100TimesRestored(
-            this.senderSecureChat,
-            this.senderCard.identity,
-            this.receiverSecureChat,
-            this.receiverCard.identity
+                this.senderSecureChat,
+                this.senderCard.identity,
+                this.receiverSecureChat,
+                this.receiverCard.identity
         )
     }
 

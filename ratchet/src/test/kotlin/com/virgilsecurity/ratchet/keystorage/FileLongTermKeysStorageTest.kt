@@ -37,8 +37,9 @@ import com.virgilsecurity.ratchet.exception.KeyStorageException
 import com.virgilsecurity.ratchet.generateKeyId
 import com.virgilsecurity.ratchet.generatePublicKeyData
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
-import org.junit.jupiter.api.*
-import java.nio.file.Path
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.util.*
 
 class FileLongTermKeysStorageTest {
@@ -76,8 +77,7 @@ class FileLongTermKeysStorageTest {
         try {
             this.keyStorage.retrieveKey(keyId)
             Assertions.fail<String>("Key should be deleted")
-        }
-        catch (e : KeyStorageException) {
+        } catch (e: KeyStorageException) {
             Assertions.assertEquals(KeyStorageException.KEY_NOT_FOUND, e.errorCode)
         }
     }

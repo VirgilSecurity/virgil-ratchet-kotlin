@@ -172,21 +172,21 @@ class RatchetClientTest {
             val token = this.generator.generateToken(this.identity).stringRepresentation()
 
             this.client.uploadPublicKeys(
-                this.card.identifier,
-                signedLongTermKey,
-                listOf(oneTimeKey1, oneTimeKey2),
-                token
+                    this.card.identifier,
+                    signedLongTermKey,
+                    listOf(oneTimeKey1, oneTimeKey2),
+                    token
             )
 
             val entry = Entry(
-                this.identity,
-                token,
-                this.client,
-                this.crypto.exportPublicKey(this.crypto.extractPublicKey(identityPrivateKey)),
-                longTermPublicKey,
-                signature,
-                oneTimeKey1,
-                oneTimeKey2
+                    this.identity,
+                    token,
+                    this.client,
+                    this.crypto.exportPublicKey(this.crypto.extractPublicKey(identityPrivateKey)),
+                    longTermPublicKey,
+                    signature,
+                    oneTimeKey1,
+                    oneTimeKey2
             )
             entries.add(entry)
 
@@ -207,9 +207,9 @@ class RatchetClientTest {
             assertArrayEquals(entry.longTermKeySignature, cloudEntry.longTermPublicKey.signature)
 
             assertTrue(
-                entry.oneTimeKey1.contentEquals(cloudEntry.oneTimePublicKey!!) || entry.oneTimeKey2.contentEquals(
-                    cloudEntry.oneTimePublicKey!!
-                )
+                    entry.oneTimeKey1.contentEquals(cloudEntry.oneTimePublicKey!!) || entry.oneTimeKey2.contentEquals(
+                            cloudEntry.oneTimePublicKey!!
+                    )
             )
         }
     }
@@ -233,8 +233,8 @@ class RatchetClientTest {
         try {
             this.client.getPublicKeySet(this.identity, token)
             fail()
+        } catch (e: Exception) {
         }
-        catch(e: Exception) {}
 
         this.client.uploadPublicKeys(this.card.identifier, signedLongTermKey, listOf(oneTimeKey), token)
 

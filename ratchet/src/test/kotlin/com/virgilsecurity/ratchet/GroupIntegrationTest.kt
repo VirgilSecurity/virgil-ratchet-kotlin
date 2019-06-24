@@ -55,7 +55,9 @@ import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
@@ -82,41 +84,41 @@ class GroupIntegrationTest {
             val keyPair = this.crypto.generateKeyPair(KeyType.ED25519)
             val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
                 val generator = JwtGenerator(
-                    TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
-                    TimeSpan.fromTime(10050, TimeUnit.MILLISECONDS), VirgilAccessTokenSigner(this.crypto)
+                        TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
+                        TimeSpan.fromTime(10050, TimeUnit.MILLISECONDS), VirgilAccessTokenSigner(this.crypto)
                 )
 
                 return@RenewJwtCallback generator.generateToken(identity)
             })
             val cardManager = CardManager(
-                VirgilCardCrypto(this.crypto),
-                tokenProvider,
-                cardVerifier,
-                VirgilCardClient(TestConfig.cardsServiceURL)
+                    VirgilCardCrypto(this.crypto),
+                    tokenProvider,
+                    cardVerifier,
+                    VirgilCardClient(TestConfig.cardsServiceURL)
             )
             val card = cardManager.publishCard(keyPair.privateKey, keyPair.publicKey)
 
             val longTermKeysStorage =
-                FileLongTermKeysStorage(identity, this.crypto, keyPair, createTempDir("test").absolutePath)
+                    FileLongTermKeysStorage(identity, this.crypto, keyPair, createTempDir("test").absolutePath)
             val oneTimeKeysStorage = FileOneTimeKeysStorage(identity, this.crypto, keyPair)
 
             val keysRotator = KeysRotator(
-                this.crypto, keyPair.privateKey, card.identifier,
-                5, 10, 5, IntegrationTest.DESIRED_NUMBER_OF_KEYS,
-                longTermKeysStorage, oneTimeKeysStorage, client
+                    this.crypto, keyPair.privateKey, card.identifier,
+                    5, 10, 5, IntegrationTest.DESIRED_NUMBER_OF_KEYS,
+                    longTermKeysStorage, oneTimeKeysStorage, client
             )
 
             val secureChat = SecureChat(
-                this.crypto,
-                keyPair.privateKey,
-                card,
-                tokenProvider,
-                client,
-                longTermKeysStorage,
-                oneTimeKeysStorage,
-                FileSessionStorage(identity, this.crypto, keyPair),
-                FileGroupSessionStorage(identity, this.crypto, keyPair),
-                keysRotator
+                    this.crypto,
+                    keyPair.privateKey,
+                    card,
+                    tokenProvider,
+                    client,
+                    longTermKeysStorage,
+                    oneTimeKeysStorage,
+                    FileSessionStorage(identity, this.crypto, keyPair),
+                    FileGroupSessionStorage(identity, this.crypto, keyPair),
+                    keysRotator
             )
 
             this.cards.add(card)
@@ -222,14 +224,14 @@ class GroupIntegrationTest {
         val removeTicket = sessions.first().createChangeParticipantsTicket()
         sessions.removeAt(sessions.size - 1)
 
-        sessions.forEach {session ->
+        sessions.forEach { session ->
             session.updateParticipants(removeTicket, listOf(), removeCardIds)
         }
 
         // Return user
         val addTicket = sessions.first().createChangeParticipantsTicket()
 
-        sessions.forEach {session ->
+        sessions.forEach { session ->
             session.updateParticipants(addTicket, listOf(experimentalCard), listOf())
         }
 
@@ -239,8 +241,7 @@ class GroupIntegrationTest {
         // Decrypt with new session message, encrypted for old session
         try {
             sessions.last().decryptString(message, cards[0].identifier)
-        }
-        catch (e: RatchetException) {
+        } catch (e: RatchetException) {
             Assertions.assertEquals(RatchetException.ERROR_EPOCH_NOT_FOUND, e.statusCode)
         }
     }
@@ -272,14 +273,14 @@ class GroupIntegrationTest {
 
             sessions.removeAt(sessions.size - 1)
 
-            sessions.forEach {session ->
+            sessions.forEach { session ->
                 session.updateParticipants(removeTicket, listOf(), removeCardIds)
             }
 
             // Return user
             val addTicket = sessions.first().createChangeParticipantsTicket()
 
-            sessions.forEach {session->
+            sessions.forEach { session ->
                 session.updateParticipants(addTicket, listOf(experimentalCard), listOf())
             }
 
@@ -317,8 +318,7 @@ class GroupIntegrationTest {
         try {
             sessions[1].decryptString(message, sessions[1].myIdentifier())
             Assertions.fail<String>()
-        }
-        catch (e: SecureGroupSessionException) {
+        } catch (e: SecureGroupSessionException) {
             Assertions.assertEquals(SecureGroupSessionException.WRONG_SENDER, e.errorCode)
         }
 
@@ -326,8 +326,7 @@ class GroupIntegrationTest {
             val randomCardId = crypto.generateRandomData(32).hexEncodedString()
             sessions[1].decryptString(message, randomCardId)
             Assertions.fail<String>()
-        }
-        catch (e: SecureGroupSessionException) {
+        } catch (e: SecureGroupSessionException) {
             Assertions.assertEquals(SecureGroupSessionException.WRONG_SENDER, e.errorCode)
         }
     }

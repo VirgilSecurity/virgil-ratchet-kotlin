@@ -56,10 +56,10 @@ interface RatchetClientInterface {
      * @param token auth token (JWT)
      */
     fun uploadPublicKeys(
-        identityCardId: String?,
-        longTermPublicKey: SignedPublicKey?,
-        oneTimePublicKeys: List<ByteArray>,
-        token: String
+            identityCardId: String?,
+            longTermPublicKey: SignedPublicKey?,
+            oneTimePublicKeys: List<ByteArray>,
+            token: String
     )
 
     /**
@@ -74,9 +74,9 @@ interface RatchetClientInterface {
      * @return Object with used keys ids.
      */
     fun validatePublicKeys(
-        longTermKeyId: ByteArray?,
-        oneTimeKeysIds: List<ByteArray>,
-        token: String
+            longTermKeyId: ByteArray?,
+            oneTimeKeysIds: List<ByteArray>,
+            token: String
     ): ValidatePublicKeysResponse
 
     /**

@@ -40,7 +40,6 @@ import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 import com.virgilsecurity.sdk.utils.ConvertionUtils
 import java.nio.charset.StandardCharsets
-import java.nio.file.Path
 import java.util.*
 
 class FileLongTermKeysStorage : LongTermKeysStorage {

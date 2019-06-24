@@ -39,8 +39,8 @@ import com.google.gson.annotations.SerializedName
  * Set of public keys for some receiver.
  */
 class IdentityPublicKeySet(
-    @SerializedName("identity") val identity: String,
-    @SerializedName("identity_key") val identityPublicKey: ByteArray,
-    @SerializedName("long_term_key") val longTermPublicKey: SignedPublicKey,
-    @SerializedName("one_time_key") val oneTimePublicKey: ByteArray?
+        @SerializedName("identity") val identity: String,
+        @SerializedName("identity_key") val identityPublicKey: ByteArray,
+        @SerializedName("long_term_key") val longTermPublicKey: SignedPublicKey,
+        @SerializedName("one_time_key") val oneTimePublicKey: ByteArray?
 )

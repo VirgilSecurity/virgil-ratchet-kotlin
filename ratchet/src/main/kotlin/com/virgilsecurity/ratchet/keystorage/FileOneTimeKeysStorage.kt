@@ -42,7 +42,6 @@ import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 import com.virgilsecurity.sdk.utils.ConvertionUtils
 import java.nio.charset.StandardCharsets
-import java.nio.file.Path
 import java.util.*
 
 class FileOneTimeKeysStorage : OneTimeKeysStorage {
@@ -129,10 +128,11 @@ class FileOneTimeKeysStorage : OneTimeKeysStorage {
         }
 
         val oneTimeKey =
-            oneTimeKeys!!.oneTimeKeys.firstOrNull { it.identifier.contentEquals(keyId) } ?: throw KeyStorageException(
-                KeyStorageException.KEY_NOT_FOUND,
-                "One time key doesn't exist"
-            )
+                oneTimeKeys!!.oneTimeKeys.firstOrNull { it.identifier.contentEquals(keyId) }
+                        ?: throw KeyStorageException(
+                                KeyStorageException.KEY_NOT_FOUND,
+                                "One time key doesn't exist"
+                        )
 
         return oneTimeKey
     }

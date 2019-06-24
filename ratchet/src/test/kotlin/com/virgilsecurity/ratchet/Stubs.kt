@@ -233,10 +233,10 @@ class InMemoryRatchetClient(private val cardManager: CardManager) : RatchetClien
     var users = mutableMapOf<String, UserStore>()
 
     override fun uploadPublicKeys(
-        identityCardId: String?,
-        longTermPublicKey: SignedPublicKey?,
-        oneTimePublicKeys: List<ByteArray>,
-        token: String
+            identityCardId: String?,
+            longTermPublicKey: SignedPublicKey?,
+            oneTimePublicKeys: List<ByteArray>,
+            token: String
     ) {
         val jwt = Jwt(token)
         val userStore = this.users[jwt.identity] ?: UserStore()
@@ -280,9 +280,9 @@ class InMemoryRatchetClient(private val cardManager: CardManager) : RatchetClien
     }
 
     override fun validatePublicKeys(
-        longTermKeyId: ByteArray?,
-        oneTimeKeysIds: List<ByteArray>,
-        token: String
+            longTermKeyId: ByteArray?,
+            oneTimeKeysIds: List<ByteArray>,
+            token: String
     ): ValidatePublicKeysResponse {
         val jwt = Jwt(token)
         val userStore = this.users[jwt.identity] ?: UserStore()
@@ -290,7 +290,7 @@ class InMemoryRatchetClient(private val cardManager: CardManager) : RatchetClien
         val usedLongTermKeyId: ByteArray?
 
         if (longTermKeyId != null && userStore.longTermPublicKey?.publicKey != null &&
-            this.keyId.computePublicKeyId(userStore.longTermPublicKey!!.publicKey)!!.contentEquals(longTermKeyId)
+                this.keyId.computePublicKeyId(userStore.longTermPublicKey!!.publicKey)!!.contentEquals(longTermKeyId)
         ) {
             usedLongTermKeyId = null
         } else {
@@ -356,7 +356,7 @@ class InMemoryCardClient : VirgilCardClient(TestConfig.cardsServiceURL) {
 
     override fun publishCard(rawCard: RawSignedModel?, token: String?): RawSignedModel {
         val cardId = this.crypto.computeHash(rawCard?.contentSnapshot, HashAlgorithm.SHA512).copyOfRange(0, 32)
-            .hexEncodedString()
+                .hexEncodedString()
         LOG.value.info("Publish card $cardId")
 
         this.cards[cardId] = rawCard!!

@@ -67,7 +67,7 @@ dependencies {
 }
 
 test {
-    systemProperties=System.properties
+    systemProperties = System.properties
 }
 
 task generateVersionVirgilAgent {
@@ -76,7 +76,7 @@ task generateVersionVirgilAgent {
         def versionFile = file("$buildDir/generated/com/virgilsecurity/ratchet/build/VersionVirgilAgent.kt")
         versionFile.parentFile.mkdirs()
         versionFile.text =
-"""
+                """
 package com.virgilsecurity.ratchet.build;
 
 object VersionVirgilAgent {

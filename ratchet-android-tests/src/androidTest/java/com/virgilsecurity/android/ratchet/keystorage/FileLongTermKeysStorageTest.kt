@@ -78,8 +78,7 @@ class FileLongTermKeysStorageTest {
         try {
             this.keyStorage.retrieveKey(keyId)
             fail("Key should be deleted")
-        }
-        catch (e : KeyStorageException) {
+        } catch (e: KeyStorageException) {
             assertEquals(KeyStorageException.KEY_NOT_FOUND, e.errorCode)
         }
     }
@@ -99,9 +98,9 @@ class FileLongTermKeysStorageTest {
         assertArrayEquals(keyData, keys.first().key)
 
         this.keyStorage.storeKey(generatePublicKeyData(),
-                                 generateKeyId())
+                generateKeyId())
         this.keyStorage.storeKey(generatePublicKeyData(),
-                                 generateKeyId())
+                generateKeyId())
         assertEquals(3, this.keyStorage.retrieveAllKeys().size)
 
         this.keyStorage.deleteKey(keyId)

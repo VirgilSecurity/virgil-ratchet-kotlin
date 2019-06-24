@@ -37,7 +37,9 @@ import com.virgilsecurity.ratchet.exception.KeyStorageException
 import com.virgilsecurity.ratchet.generateKeyId
 import com.virgilsecurity.ratchet.generatePublicKeyData
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.util.*
 
 class FileOneTimeKeysStorageTest {
@@ -119,8 +121,7 @@ class FileOneTimeKeysStorageTest {
             try {
                 this.keyStorage.retrieveKey(keyId)
                 Assertions.fail("Key should be deleted")
-            }
-            catch (e: KeyStorageException) {
+            } catch (e: KeyStorageException) {
                 Assertions.assertEquals(KeyStorageException.KEY_NOT_FOUND, e.errorCode)
             }
         }
@@ -133,8 +134,7 @@ class FileOneTimeKeysStorageTest {
                 Assertions.assertNotNull(key)
                 Assertions.assertArrayEquals(keyId, key.identifier)
                 Assertions.assertArrayEquals(keyData, key.key)
-            }
-            catch (e: KeyStorageException) {
+            } catch (e: KeyStorageException) {
                 cnt++
             }
         }
@@ -155,8 +155,7 @@ class FileOneTimeKeysStorageTest {
         try {
             this.keyStorage.retrieveKey(keyId)
             Assertions.fail<String>("Key should be deleted")
-        }
-        catch (e: KeyStorageException) {
+        } catch (e: KeyStorageException) {
             Assertions.assertEquals(KeyStorageException.KEY_NOT_FOUND, e.errorCode)
         }
         this.keyStorage.stopInteraction()
@@ -181,8 +180,7 @@ class FileOneTimeKeysStorageTest {
         try {
             this.keyStorage.retrieveKey(keyId)
             Assertions.fail<String>("Key should be deleted")
-        }
-        catch (e: KeyStorageException) {
+        } catch (e: KeyStorageException) {
             Assertions.assertEquals(KeyStorageException.KEY_NOT_FOUND, e.errorCode)
         }
         this.keyStorage.stopInteraction()
@@ -194,8 +192,7 @@ class FileOneTimeKeysStorageTest {
         try {
             this.keyStorage.retrieveKey(keyId)
             Assertions.fail<String>("Key should be deleted")
-        }
-        catch (e: KeyStorageException) {
+        } catch (e: KeyStorageException) {
             Assertions.assertEquals(KeyStorageException.ILLEGAL_STORAGE_STATE, e.errorCode)
         }
     }

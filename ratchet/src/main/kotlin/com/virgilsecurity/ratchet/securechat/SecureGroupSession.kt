@@ -46,16 +46,16 @@ import java.nio.charset.StandardCharsets
 class SecureGroupSession {
 
     val crypto: VirgilCrypto
-//    val sessionStorage: GroupSessionStorage
+    //    val sessionStorage: GroupSessionStorage
     val ratchetGroupSession: RatchetGroupSession
     val syncObj = 1
 
     constructor(
-        crypto: VirgilCrypto,
-        privateKeyData: ByteArray,
-        myId: ByteArray,
-        ratchetGroupMessage: RatchetGroupMessage,
-        cards: List<Card>
+            crypto: VirgilCrypto,
+            privateKeyData: ByteArray,
+            myId: ByteArray,
+            ratchetGroupMessage: RatchetGroupMessage,
+            cards: List<Card>
     ) {
         this.crypto = crypto
 
@@ -203,8 +203,8 @@ class SecureGroupSession {
 
                 if (card.publicKey !is VirgilPublicKey) {
                     throw SecureGroupSessionException(
-                        SecureGroupSessionException.PUBLIC_KEY_IS_NOT_VIRGIL,
-                        "Card public key should be a VirgilPublicKey"
+                            SecureGroupSessionException.PUBLIC_KEY_IS_NOT_VIRGIL,
+                            "Card public key should be a VirgilPublicKey"
                     )
                 }
                 val publicKeyData = this.crypto.exportPublicKey(card.publicKey as VirgilPublicKey)
@@ -212,8 +212,8 @@ class SecureGroupSession {
                 info.addParticipant(participantId, publicKeyData)
             } catch (e: HexEncodingException) {
                 throw SecureGroupSessionException(
-                    SecureGroupSessionException.INVALID_CARD_ID,
-                    "Card identifier is not HEX encoded"
+                        SecureGroupSessionException.INVALID_CARD_ID,
+                        "Card identifier is not HEX encoded"
                 )
             }
         }
@@ -248,16 +248,16 @@ class SecureGroupSession {
 
                 if (card.publicKey !is VirgilPublicKey) {
                     throw SecureGroupSessionException(
-                        SecureGroupSessionException.PUBLIC_KEY_IS_NOT_VIRGIL,
-                        "Card public key should be a VirgilPublicKey"
+                            SecureGroupSessionException.PUBLIC_KEY_IS_NOT_VIRGIL,
+                            "Card public key should be a VirgilPublicKey"
                     )
                 }
                 val publicKeyData = this.crypto.exportPublicKey(card.publicKey as VirgilPublicKey)
                 addInfo.addParticipant(participantId, publicKeyData)
             } catch (e: HexEncodingException) {
                 throw SecureGroupSessionException(
-                    SecureGroupSessionException.INVALID_CARD_ID,
-                    "Card identifier is not HEX encoded"
+                        SecureGroupSessionException.INVALID_CARD_ID,
+                        "Card identifier is not HEX encoded"
                 )
             }
         }
@@ -268,8 +268,8 @@ class SecureGroupSession {
                 removeInfo.addId(idData)
             } catch (e: HexEncodingException) {
                 throw SecureGroupSessionException(
-                    SecureGroupSessionException.INVALID_CARD_ID,
-                    "Card identifier is not HEX encoded"
+                        SecureGroupSessionException.INVALID_CARD_ID,
+                        "Card identifier is not HEX encoded"
                 )
             }
         }

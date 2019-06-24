@@ -37,7 +37,6 @@ import com.virgilsecurity.ratchet.securechat.SecureSession
 import com.virgilsecurity.ratchet.utils.SecureFileSystem
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
-import java.nio.file.Path
 
 /**
  * SessionStorage implementation using files.

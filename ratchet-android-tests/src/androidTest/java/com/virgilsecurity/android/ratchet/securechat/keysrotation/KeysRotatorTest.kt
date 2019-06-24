@@ -88,10 +88,10 @@ class KeysRotatorTest {
         val cardVerifier = VirgilCardVerifier(VirgilCardCrypto(crypto), true, false)
 
         this.cardManager = CardManager(
-            VirgilCardCrypto(this.crypto),
-            this.tokenProvider,
-            cardVerifier,
-            VirgilCardClient(TestConfig.cardsServiceURL)
+                VirgilCardCrypto(this.crypto),
+                this.tokenProvider,
+                cardVerifier,
+                VirgilCardClient(TestConfig.cardsServiceURL)
         )
 
         this.card = this.cardManager.publishCard(identityKeyPair.privateKey, identityKeyPair.publicKey)
@@ -106,9 +106,9 @@ class KeysRotatorTest {
         val fakeClient = InMemoryRatchetClient(this.cardManager)
 
         val rotator = KeysRotator(
-            this.crypto, this.privateKey, this.card.identifier,
-            100, 100, 100, numberOfOneTimeKeys,
-            fakeLongTermKeysStorage, fakeOneTimeKeysStorage, fakeClient
+                this.crypto, this.privateKey, this.card.identifier,
+                100, 100, 100, numberOfOneTimeKeys,
+                fakeLongTermKeysStorage, fakeOneTimeKeysStorage, fakeClient
         )
 
         val log = rotate(rotator, this.tokenProvider)
@@ -140,9 +140,9 @@ class KeysRotatorTest {
         val fakeClient = InMemoryRatchetClient(cardManager)
 
         val rotator = KeysRotator(
-            this.crypto, this.privateKey, this.card.identifier,
-            100, 5, 2, numberOfOneTimeKeys,
-            fakeLongTermKeysStorage, fakeOneTimeKeysStorage, fakeClient
+                this.crypto, this.privateKey, this.card.identifier,
+                100, 5, 2, numberOfOneTimeKeys,
+                fakeLongTermKeysStorage, fakeOneTimeKeysStorage, fakeClient
         )
 
         rotate(rotator, this.tokenProvider)
@@ -192,9 +192,9 @@ class KeysRotatorTest {
         val fakeClient = InMemoryRatchetClient(this.cardManager)
 
         val rotator = KeysRotator(
-            this.crypto, this.privateKey, this.card.identifier,
-            5, 100, 100, numberOfOneTimeKeys,
-            fakeLongTermKeysStorage, fakeOneTimeKeysStorage, fakeClient
+                this.crypto, this.privateKey, this.card.identifier,
+                5, 100, 100, numberOfOneTimeKeys,
+                fakeLongTermKeysStorage, fakeOneTimeKeysStorage, fakeClient
         )
 
         rotate(rotator, this.tokenProvider)

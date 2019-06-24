@@ -67,24 +67,24 @@ class SecureSessionTest {
         val receiverIdentity = generateIdentity()
 
         val receiverTokenProvider = CallbackJwtProvider(
-            CallbackJwtProvider.GetTokenCallback {
-                val generator = JwtGenerator(
-                        TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
-                        TimeSpan.fromTime(10050, TimeUnit.SECONDS), VirgilAccessTokenSigner(crypto)
-                )
+                CallbackJwtProvider.GetTokenCallback {
+                    val generator = JwtGenerator(
+                            TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
+                            TimeSpan.fromTime(10050, TimeUnit.SECONDS), VirgilAccessTokenSigner(crypto)
+                    )
 
-                return@GetTokenCallback generator.generateToken(receiverIdentity).stringRepresentation()
-            })
+                    return@GetTokenCallback generator.generateToken(receiverIdentity).stringRepresentation()
+                })
 
         val senderTokenProvider = CallbackJwtProvider(
-            CallbackJwtProvider.GetTokenCallback {
-                val generator = JwtGenerator(
-                        TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
-                        TimeSpan.fromTime(10050, TimeUnit.SECONDS), VirgilAccessTokenSigner(crypto)
-                )
+                CallbackJwtProvider.GetTokenCallback {
+                    val generator = JwtGenerator(
+                            TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
+                            TimeSpan.fromTime(10050, TimeUnit.SECONDS), VirgilAccessTokenSigner(crypto)
+                    )
 
-                return@GetTokenCallback generator.generateToken(senderIdentity).stringRepresentation()
-            })
+                    return@GetTokenCallback generator.generateToken(senderIdentity).stringRepresentation()
+                })
 
         var cardVerifier = TrustAllCardVerifier()
         var ramCardClient = InMemoryCardClient()
@@ -92,12 +92,12 @@ class SecureSessionTest {
         val senderCardManager = CardManager(VirgilCardCrypto(crypto), senderTokenProvider, cardVerifier, ramCardClient)
 
         val receiverCardManager =
-            CardManager(VirgilCardCrypto(crypto), receiverTokenProvider, cardVerifier, ramCardClient)
+                CardManager(VirgilCardCrypto(crypto), receiverTokenProvider, cardVerifier, ramCardClient)
 
         this.receiverCard =
-            receiverCardManager.publishCard(receiverIdentityKeyPair.privateKey, receiverIdentityKeyPair.publicKey)
+                receiverCardManager.publishCard(receiverIdentityKeyPair.privateKey, receiverIdentityKeyPair.publicKey)
         this.senderCard =
-            senderCardManager.publishCard(senderIdentityKeyPair.privateKey, senderIdentityKeyPair.publicKey)
+                senderCardManager.publishCard(senderIdentityKeyPair.privateKey, senderIdentityKeyPair.publicKey)
 
         val receiverLongTermKeysStorage = InMemoryLongTermKeysStorage()
         val receiverOneTimeKeysStorage = InMemoryOneTimeKeysStorage()
@@ -115,9 +115,9 @@ class SecureSessionTest {
         )
 
         val receiverKeysRotator = KeysRotator(
-            crypto, receiverIdentityKeyPair.privateKey, receiverCard.identifier, 100,
-            100, 100, 10, receiverLongTermKeysStorage,
-            receiverOneTimeKeysStorage, fakeClient
+                crypto, receiverIdentityKeyPair.privateKey, receiverCard.identifier, 100,
+                100, 100, 10, receiverLongTermKeysStorage,
+                receiverOneTimeKeysStorage, fakeClient
         )
 
         this.receiverSecureChat = SecureChat(
@@ -166,10 +166,10 @@ class SecureSessionTest {
         assertEquals(plainText, decryptedMessage)
 
         Utils.encryptDecrypt100TimesRestored(
-            this.senderSecureChat,
-            this.senderCard.identity,
-            this.receiverSecureChat,
-            this.receiverCard.identity
+                this.senderSecureChat,
+                this.senderCard.identity,
+                this.receiverSecureChat,
+                this.receiverCard.identity
         )
     }
 

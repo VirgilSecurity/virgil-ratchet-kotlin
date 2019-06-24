@@ -36,7 +36,6 @@ package com.virgilsecurity.ratchet.utils
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 import java.io.File
-import java.nio.file.Files
 
 class SecureFileSystem constructor(
         val userIdentifier: String,
@@ -46,8 +45,8 @@ class SecureFileSystem constructor(
 ) {
 
     class Credentials(
-        val crypto: VirgilCrypto,
-        val keyPair: VirgilKeyPair
+            val crypto: VirgilCrypto,
+            val keyPair: VirgilKeyPair
     )
 
     fun write(name: String, data: ByteArray, subDir: String? = null) {
@@ -102,6 +101,10 @@ class SecureFileSystem constructor(
         }
         val file = File(path)
         if (!file.exists()) {
+            LOG.value.info("File ${file.absolutePath} doesn't exist")
+            if (!file.parentFile.exists()) {
+                file.parentFile.mkdirs()
+            }
             file.createNewFile()
         }
         LOG.value.fine("Writing to file ${file.absolutePath}")

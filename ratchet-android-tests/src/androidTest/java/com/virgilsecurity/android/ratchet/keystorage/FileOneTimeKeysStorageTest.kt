@@ -123,8 +123,7 @@ class FileOneTimeKeysStorageTest {
             try {
                 this.keyStorage.retrieveKey(keyId)
                 fail("Key should be deleted")
-            }
-            catch (e: KeyStorageException) {
+            } catch (e: KeyStorageException) {
                 assertEquals(KeyStorageException.KEY_NOT_FOUND, e.errorCode)
             }
         }
@@ -137,8 +136,7 @@ class FileOneTimeKeysStorageTest {
                 assertNotNull(key)
                 assertArrayEquals(keyId, key.identifier)
                 assertArrayEquals(keyData, key.key)
-            }
-            catch (e: KeyStorageException) {
+            } catch (e: KeyStorageException) {
                 cnt++
             }
         }
@@ -159,8 +157,7 @@ class FileOneTimeKeysStorageTest {
         try {
             this.keyStorage.retrieveKey(keyId)
             fail("Key should be deleted")
-        }
-        catch (e: KeyStorageException) {
+        } catch (e: KeyStorageException) {
             assertEquals(KeyStorageException.KEY_NOT_FOUND, e.errorCode)
         }
         this.keyStorage.stopInteraction()
@@ -185,8 +182,7 @@ class FileOneTimeKeysStorageTest {
         try {
             this.keyStorage.retrieveKey(keyId)
             fail("Key should be deleted")
-        }
-        catch (e: KeyStorageException) {
+        } catch (e: KeyStorageException) {
             assertEquals(KeyStorageException.KEY_NOT_FOUND, e.errorCode)
         }
         this.keyStorage.stopInteraction()
@@ -198,8 +194,7 @@ class FileOneTimeKeysStorageTest {
         try {
             this.keyStorage.retrieveKey(keyId)
             fail("Key should be deleted")
-        }
-        catch (e: KeyStorageException) {
+        } catch (e: KeyStorageException) {
             assertEquals(KeyStorageException.ILLEGAL_STORAGE_STATE, e.errorCode)
         }
     }

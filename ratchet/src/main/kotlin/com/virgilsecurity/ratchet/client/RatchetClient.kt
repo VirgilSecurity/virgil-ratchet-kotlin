@@ -43,6 +43,7 @@ import com.virgilsecurity.ratchet.data.*
 import com.virgilsecurity.ratchet.exception.ProtocolException
 import com.virgilsecurity.ratchet.utils.OsUtils
 import com.virgilsecurity.ratchet.utils.logger
+import com.virgilsecurity.sdk.common.ErrorResponse
 import com.virgilsecurity.sdk.utils.ConvertionUtils
 import java.net.URL
 
@@ -60,7 +61,7 @@ class RatchetClient : RatchetClientInterface {
     constructor() {
         serviceUrl = "https://api.virgilsecurity.com"
         virgilAgentHeader =
-            "$VIRGIL_AGENT_PRODUCT;$VIRGIL_AGENT_FAMILY;${OsUtils.osAgentName};${VersionVirgilAgent.VERSION}"
+                "$VIRGIL_AGENT_PRODUCT;$VIRGIL_AGENT_FAMILY;${OsUtils.osAgentName};${VersionVirgilAgent.VERSION}"
     }
 
     /**
@@ -71,7 +72,7 @@ class RatchetClient : RatchetClientInterface {
     constructor(serviceUrl: URL) {
         this.serviceUrl = serviceUrl.toString()
         virgilAgentHeader =
-            "$VIRGIL_AGENT_PRODUCT;$VIRGIL_AGENT_FAMILY;${OsUtils.osAgentName};${VersionVirgilAgent.VERSION}"
+                "$VIRGIL_AGENT_PRODUCT;$VIRGIL_AGENT_FAMILY;${OsUtils.osAgentName};${VersionVirgilAgent.VERSION}"
     }
 
     companion object {
@@ -97,10 +98,10 @@ class RatchetClient : RatchetClientInterface {
      * @throws ProtocolException
      */
     override fun uploadPublicKeys(
-        identityCardId: String?,
-        longTermPublicKey: SignedPublicKey?,
-        oneTimePublicKeys: List<ByteArray>,
-        token: String
+            identityCardId: String?,
+            longTermPublicKey: SignedPublicKey?,
+            oneTimePublicKeys: List<ByteArray>,
+            token: String
     ) {
         val request = UploadPublicKeysRequest(identityCardId, longTermPublicKey, oneTimePublicKeys)
         execute("/pfs/v2/keys", Method.PUT, request, token)
@@ -118,9 +119,9 @@ class RatchetClient : RatchetClientInterface {
      * @return Object with used keys ids.
      */
     override fun validatePublicKeys(
-        longTermKeyId: ByteArray?,
-        oneTimeKeysIds: List<ByteArray>,
-        token: String
+            longTermKeyId: ByteArray?,
+            oneTimeKeysIds: List<ByteArray>,
+            token: String
     ): ValidatePublicKeysResponse {
         if (longTermKeyId == null && oneTimeKeysIds.isEmpty()) {
             return ValidatePublicKeysResponse(null, listOf())
@@ -181,17 +182,20 @@ class RatchetClient : RatchetClientInterface {
     private fun validateResponse(response: Response) {
         if (!response.isSuccessful) {
             val errorBody = ConvertionUtils.toString(response.data)
-            LOG.value.warning("Response status: ${response.statusCode}\nError: $errorBody")
-            //TODO Get service error type
-            throw ProtocolException()
+            val error = ConvertionUtils.getGson().fromJson<ErrorResponse>(errorBody, ErrorResponse::class.java)
+            if (error != null) {
+                throw ProtocolException(error.code, error.message)
+            } else {
+                throw ProtocolException()
+            }
         }
     }
 
     private fun execute(path: String, method: Method, body: Any?, token: String): String {
         LOG.value.fine("$method $path")
         val request = Fuel.request(method, "$serviceUrl$path")
-            .header(mapOf(VIRGIL_AGENT_HEADER_KEY to virgilAgentHeader))
-            .header(mapOf(VIRGIL_AUTHORIZATION_HEADER_KEY to "Virgil $token"))
+                .header(mapOf(VIRGIL_AGENT_HEADER_KEY to virgilAgentHeader))
+                .header(mapOf(VIRGIL_AUTHORIZATION_HEADER_KEY to "Virgil $token"))
         if (method == Method.POST || method == Method.PUT) {
             val jsonBody = ConvertionUtils.getGson().toJson(body)
             request.jsonBody(jsonBody)

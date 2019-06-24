@@ -43,7 +43,7 @@ import java.util.*
  * @param orphanedFrom Date from which we found out that this key if orphaned.
  */
 class OneTimeKey(
-    val identifier: ByteArray,
-    val key: ByteArray,
-    val orphanedFrom: Date? = null
+        val identifier: ByteArray,
+        val key: ByteArray,
+        val orphanedFrom: Date? = null
 )

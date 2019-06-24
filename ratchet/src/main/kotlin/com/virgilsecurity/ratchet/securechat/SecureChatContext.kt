@@ -46,11 +46,11 @@ import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
  * @param accessTokenProvider access token provider
  */
 class SecureChatContext(
-    val identity: String,
-    val identityCard: Card,
-    val identityKeyPair: VirgilKeyPair,
-    val accessTokenProvider: AccessTokenProvider,
-    val rootPath: String? = null
+        val identity: String,
+        val identityCard: Card,
+        val identityKeyPair: VirgilKeyPair,
+        val accessTokenProvider: AccessTokenProvider,
+        val rootPath: String? = null
 ) {
 
     /**

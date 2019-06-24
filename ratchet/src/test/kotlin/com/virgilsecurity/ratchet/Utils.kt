@@ -87,10 +87,10 @@ class Utils {
         }
 
         fun encryptDecrypt100TimesRestored(
-            senderSecureChat: SecureChat,
-            senderIdentity: String,
-            receiverSecureChat: SecureChat,
-            receiverIdentity: String
+                senderSecureChat: SecureChat,
+                senderIdentity: String,
+                receiverSecureChat: SecureChat,
+                receiverIdentity: String
         ) {
             for (i in 1..100) {
                 val sender: SecureSession

@@ -76,10 +76,10 @@ class SecureSession {
      * @param ratchetMessage
      */
     constructor(
-        crypto: VirgilCrypto, participantIdentity: String,
-        name: String, receiverIdentityPrivateKey: VirgilPrivateKey, receiverLongTermPrivateKey: LongTermKey,
-        receiverOneTimePrivateKey: OneTimeKey?,
-        senderIdentityPublicKey: ByteArray, ratchetMessage: RatchetMessage
+            crypto: VirgilCrypto, participantIdentity: String,
+            name: String, receiverIdentityPrivateKey: VirgilPrivateKey, receiverLongTermPrivateKey: LongTermKey,
+            receiverOneTimePrivateKey: OneTimeKey?,
+            senderIdentityPublicKey: ByteArray, ratchetMessage: RatchetMessage
     ) {
 
         this.crypto = crypto
@@ -90,10 +90,10 @@ class SecureSession {
         ratchetSession.setRng(crypto.rng)
 
         this.ratchetSession.respond(senderIdentityPublicKey,
-            this.crypto.exportPrivateKey(receiverIdentityPrivateKey),
-            receiverLongTermPrivateKey.key,
-            receiverOneTimePrivateKey?.key ?: byteArrayOf(),
-            ratchetMessage)
+                this.crypto.exportPrivateKey(receiverIdentityPrivateKey),
+                receiverLongTermPrivateKey.key,
+                receiverOneTimePrivateKey?.key ?: byteArrayOf(),
+                ratchetMessage)
     }
 
     /**
@@ -108,9 +108,9 @@ class SecureSession {
      * @param receiverOneTimePublicKey
      */
     constructor(
-        crypto: VirgilCrypto, participantIdentity: String,
-        name: String, senderIdentityPrivateKey: ByteArray, receiverIdentityPublicKey: ByteArray,
-        receiverLongTermPublicKey: ByteArray, receiverOneTimePublicKey: ByteArray?
+            crypto: VirgilCrypto, participantIdentity: String,
+            name: String, senderIdentityPrivateKey: ByteArray, receiverIdentityPublicKey: ByteArray,
+            receiverLongTermPublicKey: ByteArray, receiverOneTimePublicKey: ByteArray?
     ) {
         this.crypto = crypto
         this.participantIdentity = participantIdentity
@@ -120,8 +120,8 @@ class SecureSession {
         ratchetSession.setRng(crypto.rng)
 
         ratchetSession.initiate(
-            senderIdentityPrivateKey, receiverIdentityPublicKey, receiverLongTermPublicKey,
-            receiverOneTimePublicKey
+                senderIdentityPrivateKey, receiverIdentityPublicKey, receiverLongTermPublicKey,
+                receiverOneTimePublicKey
         )
     }
 
@@ -134,7 +134,7 @@ class SecureSession {
      * @param crypto VirgilCrypto
      */
     constructor(
-        data: ByteArray, participantIdentity: String, name: String, crypto: VirgilCrypto
+            data: ByteArray, participantIdentity: String, name: String, crypto: VirgilCrypto
     ) {
         this.ratchetSession = RatchetSession.deserialize(data)
         ratchetSession.setRng(crypto.rng)

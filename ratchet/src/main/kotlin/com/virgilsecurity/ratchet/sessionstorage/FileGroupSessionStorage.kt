@@ -38,7 +38,6 @@ import com.virgilsecurity.ratchet.utils.SecureFileSystem
 import com.virgilsecurity.ratchet.utils.hexEncodedString
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
-import java.nio.file.Path
 
 /**
  * GroupSessionStorage implementation using files.

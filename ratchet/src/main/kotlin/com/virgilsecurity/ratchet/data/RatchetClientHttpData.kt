@@ -36,9 +36,9 @@ package com.virgilsecurity.ratchet.data
 import com.google.gson.annotations.SerializedName
 
 class UploadPublicKeysRequest(
-    @SerializedName("identity_card_id") val identityCardId: String?,
-    @SerializedName("long_term_key") val longTermPublicKey: SignedPublicKey?,
-    @SerializedName("one_time_keys") val oneTimePublicKeys: List<ByteArray>
+        @SerializedName("identity_card_id") val identityCardId: String?,
+        @SerializedName("long_term_key") val longTermPublicKey: SignedPublicKey?,
+        @SerializedName("one_time_keys") val oneTimePublicKeys: List<ByteArray>
 )
 
 /**
@@ -47,8 +47,8 @@ class UploadPublicKeysRequest(
  * @param Used one-time keys ids
  */
 class ValidatePublicKeysRequest(
-    @SerializedName("long_term_key_id") val usedLongTermKeyId: ByteArray? = null,
-    @SerializedName("one_time_keys_ids") val usedOneTimeKeysIds: List<ByteArray>
+        @SerializedName("long_term_key_id") val usedLongTermKeyId: ByteArray? = null,
+        @SerializedName("one_time_keys_ids") val usedOneTimeKeysIds: List<ByteArray>
 )
 
 /**
@@ -57,8 +57,8 @@ class ValidatePublicKeysRequest(
  * @param Used one-time keys ids
  */
 class ValidatePublicKeysResponse(
-    @SerializedName("used_long_term_key_id") val usedLongTermKeyId: ByteArray? = null,
-    @SerializedName("used_one_time_keys_ids") val usedOneTimeKeysIds: List<ByteArray>
+        @SerializedName("used_long_term_key_id") val usedLongTermKeyId: ByteArray? = null,
+        @SerializedName("used_one_time_keys_ids") val usedOneTimeKeysIds: List<ByteArray>
 )
 
 class GetPublicKeySetRequest(@SerializedName("identity") val identity: String)

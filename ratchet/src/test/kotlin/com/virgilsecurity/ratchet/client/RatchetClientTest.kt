@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2015-2019, Virgil Security, Inc.
  *
@@ -46,7 +45,10 @@ import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.*
 import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
@@ -141,14 +143,14 @@ class RatchetClientTest {
     @Test
     fun full_cycle__multiple_identities__should_succeed() {
         class Entry(
-            var identity: String,
-            var token: String,
-            var client: RatchetClient,
-            var identityPublicKey: ByteArray,
-            var longTermKey: ByteArray,
-            var longTermKeySignature: ByteArray,
-            var oneTimeKey1: ByteArray,
-            var oneTimeKey2: ByteArray
+                var identity: String,
+                var token: String,
+                var client: RatchetClient,
+                var identityPublicKey: ByteArray,
+                var longTermKey: ByteArray,
+                var longTermKeySignature: ByteArray,
+                var oneTimeKey1: ByteArray,
+                var oneTimeKey2: ByteArray
         )
 
         val entries = mutableListOf<Entry>()
@@ -166,21 +168,21 @@ class RatchetClientTest {
             val token = this.generator.generateToken(this.identity).stringRepresentation()
 
             this.client.uploadPublicKeys(
-                this.card.identifier,
-                signedLongTermKey,
-                listOf(oneTimeKey1, oneTimeKey2),
-                token
+                    this.card.identifier,
+                    signedLongTermKey,
+                    listOf(oneTimeKey1, oneTimeKey2),
+                    token
             )
 
             val entry = Entry(
-                this.identity,
-                token,
-                this.client,
-                this.crypto.exportPublicKey(this.crypto.extractPublicKey(identityPrivateKey)),
-                longTermPublicKey,
-                signature,
-                oneTimeKey1,
-                oneTimeKey2
+                    this.identity,
+                    token,
+                    this.client,
+                    this.crypto.exportPublicKey(this.crypto.extractPublicKey(identityPrivateKey)),
+                    longTermPublicKey,
+                    signature,
+                    oneTimeKey1,
+                    oneTimeKey2
             )
             entries.add(entry)
 
@@ -201,9 +203,9 @@ class RatchetClientTest {
             Assertions.assertArrayEquals(entry.longTermKeySignature, cloudEntry.longTermPublicKey.signature)
 
             Assertions.assertTrue(
-                entry.oneTimeKey1.contentEquals(cloudEntry.oneTimePublicKey!!) || entry.oneTimeKey2.contentEquals(
-                    cloudEntry.oneTimePublicKey!!
-                )
+                    entry.oneTimeKey1.contentEquals(cloudEntry.oneTimePublicKey!!) || entry.oneTimeKey2.contentEquals(
+                            cloudEntry.oneTimePublicKey!!
+                    )
             )
         }
     }
@@ -228,8 +230,8 @@ class RatchetClientTest {
             this.client.getPublicKeySet(this.identity, token)
             Assertions.fail<String>()
 
+        } catch (e: Exception) {
         }
-        catch(e: Exception) {}
 
         this.client.uploadPublicKeys(this.card.identifier, signedLongTermKey, listOf(oneTimeKey), token)
 
@@ -247,8 +249,8 @@ class RatchetClientTest {
         this.client = RatchetClient(URL(TestConfig.serviceURL))
 
         this.generator = JwtGenerator(
-            TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
-            TimeSpan.fromTime(10050, TimeUnit.MILLISECONDS), VirgilAccessTokenSigner(crypto)
+                TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
+                TimeSpan.fromTime(10050, TimeUnit.MILLISECONDS), VirgilAccessTokenSigner(crypto)
         )
 
         val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
