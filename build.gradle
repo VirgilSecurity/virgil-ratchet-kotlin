@@ -59,7 +59,7 @@ buildscript {
             // Tests
             testsRunner       : '1.0.2',
             espresso          : '3.0.2',
-            junit             : '5.3.1',
+            junit             : '5.4.2',
             junitPlugin       : '1.0.0',
             junitOld          : '4.12',
     ]
