@@ -31,18 +31,31 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.ratchet.securechat.keysrotation
+package com.virgilsecurity.ratchet.model
 
-import com.virgilsecurity.ratchet.model.Result
-import com.virgilsecurity.sdk.jwt.contract.AccessToken
+import com.virgilsecurity.ratchet.model.callback.OnResultListener
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 /**
- * Keys rotation interface.
+ * Result class.
  */
-interface KeysRotatorInterface {
+interface Result<T> {
 
-    /**
-     * Rotates keys.
-     */
-    fun rotateKeys(token: AccessToken): Result<RotationLog>
+    fun get(): T
+
+    fun addCallback(onResultListener: OnResultListener<T>, scope: CoroutineScope = GlobalScope) {
+        scope.launch {
+            try {
+                val result = get()
+                onResultListener.onSuccess(result)
+            } catch (throwable: Throwable) {
+                onResultListener.onError(throwable)
+            }
+        }
+    }
+
+    fun addCallback(onResultListener: OnResultListener<T>) =
+            addCallback(onResultListener, GlobalScope)
 }

@@ -126,8 +126,8 @@ class SecureSessionTest {
 
     @Test
     fun encrypt_decrypt__random_uuid_messages_ram_client__should_decrypt() {
-        this.receiverSecureChat.rotateKeys()
-        val senderSession = this.senderSecureChat.startNewSessionAsSender(receiverCard)
+        this.receiverSecureChat.rotateKeys().get()
+        val senderSession = this.senderSecureChat.startNewSessionAsSender(receiverCard).get()
 
         val plainText = generateText()
         val cipherText = senderSession.encrypt(plainText)
@@ -142,9 +142,9 @@ class SecureSessionTest {
 
     @Test
     fun session_persistence__random_uuid_messages_ram_client__should_decrypt() {
-        this.receiverSecureChat.rotateKeys()
+        this.receiverSecureChat.rotateKeys().get()
 
-        val senderSession = this.senderSecureChat.startNewSessionAsSender(this.receiverCard)
+        val senderSession = this.senderSecureChat.startNewSessionAsSender(this.receiverCard).get()
         this.senderSecureChat.storeSession(senderSession)
 
         Assertions.assertNotNull(this.senderSecureChat.existingSession(this.receiverCard.identity))
@@ -171,8 +171,8 @@ class SecureSessionTest {
 
     @Test
     fun session_persistence__recreate_session__should_throw_error() {
-        this.receiverSecureChat.rotateKeys()
-        val senderSession = senderSecureChat.startNewSessionAsSender(receiverCard)
+        this.receiverSecureChat.rotateKeys().get()
+        val senderSession = senderSecureChat.startNewSessionAsSender(receiverCard).get()
         this.senderSecureChat.storeSession(senderSession)
 
         val plainText = generateText()
@@ -182,7 +182,7 @@ class SecureSessionTest {
         this.receiverSecureChat.storeSession(receiverSession)
 
         try {
-            this.senderSecureChat.startNewSessionAsSender(receiverCard)
+            this.senderSecureChat.startNewSessionAsSender(receiverCard).get()
             Assertions.fail<String>()
         } catch (e: SecureChatException) {
             Assertions.assertEquals(SecureChatException.SESSION_ALREADY_EXISTS, e.errorCode)
@@ -200,7 +200,7 @@ class SecureSessionTest {
         }
 
         try {
-            this.receiverSecureChat.startNewSessionAsSender(senderCard)
+            this.receiverSecureChat.startNewSessionAsSender(senderCard).get()
             Assertions.fail<String>()
         } catch (e: SecureChatException) {
             Assertions.assertEquals(SecureChatException.SESSION_ALREADY_EXISTS, e.errorCode)

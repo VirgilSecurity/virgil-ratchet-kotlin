@@ -44,6 +44,8 @@ import com.virgilsecurity.ratchet.keystorage.LongTermKey
 import com.virgilsecurity.ratchet.keystorage.LongTermKeysStorage
 import com.virgilsecurity.ratchet.keystorage.OneTimeKey
 import com.virgilsecurity.ratchet.keystorage.OneTimeKeysStorage
+import com.virgilsecurity.ratchet.model.Completable
+import com.virgilsecurity.ratchet.model.Result
 import com.virgilsecurity.ratchet.securechat.SecureGroupSession
 import com.virgilsecurity.ratchet.securechat.SecureSession
 import com.virgilsecurity.ratchet.securechat.keysrotation.KeysRotatorInterface
@@ -208,8 +210,12 @@ class InMemoryOneTimeKeysStorage : OneTimeKeysStorage {
 }
 
 class FakeKeysRotator : KeysRotatorInterface {
-    override fun rotateKeys(token: AccessToken): RotationLog {
-        return RotationLog()
+    override fun rotateKeys(token: AccessToken): Result<RotationLog> {
+        return object : Result<RotationLog> {
+            override fun get(): RotationLog {
+                return RotationLog()
+            }
+        }
     }
 }
 
@@ -237,97 +243,109 @@ class InMemoryRatchetClient(private val cardManager: CardManager) : RatchetClien
             longTermPublicKey: SignedPublicKey?,
             oneTimePublicKeys: List<ByteArray>,
             token: String
-    ) {
-        val jwt = Jwt(token)
-        val userStore = this.users[jwt.identity] ?: UserStore()
+    ) = object : Completable {
+        override fun execute() {
+            val jwt = Jwt(token)
+            val userStore = this@InMemoryRatchetClient.users[jwt.identity] ?: UserStore()
 
-        var publicKey: VirgilPublicKey
-        if (identityCardId != null) {
-            val card = this.cardManager.getCard(identityCardId)
-            publicKey = card.publicKey as VirgilPublicKey
-            userStore.identityPublicKey = publicKey
-            userStore.identityPublicKeyData = this.crypto.exportPublicKey(publicKey)
-        } else {
-            if (userStore.identityPublicKey == null) {
-                throw RuntimeException("Identity public key is null")
+            var publicKey: VirgilPublicKey
+            if (identityCardId != null) {
+                val card = this@InMemoryRatchetClient.cardManager.getCard(identityCardId)
+                publicKey = card.publicKey as VirgilPublicKey
+                userStore.identityPublicKey = publicKey
+                userStore.identityPublicKeyData = this@InMemoryRatchetClient.crypto.exportPublicKey(publicKey)
+            } else {
+                if (userStore.identityPublicKey == null) {
+                    throw RuntimeException("Identity public key is null")
+                }
+
+                publicKey = userStore.identityPublicKey!!
             }
 
-            publicKey = userStore.identityPublicKey!!
-        }
+            if (longTermPublicKey != null) {
+                this@InMemoryRatchetClient.crypto.verifySignature(longTermPublicKey.signature,
+                                                                  longTermPublicKey.publicKey, publicKey)
 
-        if (longTermPublicKey != null) {
-            this.crypto.verifySignature(longTermPublicKey.signature, longTermPublicKey.publicKey, publicKey)
-
-            userStore.longTermPublicKey = longTermPublicKey
-        } else {
-            if (userStore.longTermPublicKey == null) {
-                throw RuntimeException("Long term key is null")
-            }
-        }
-
-        if (oneTimePublicKeys.isNotEmpty()) {
-            val newKeysSet = mutableSetOf<ByteArray>()
-            newKeysSet.addAll(oneTimePublicKeys)
-
-            if (userStore.oneTimePublicKeys.intersect(newKeysSet).isNotEmpty()) {
-                throw RuntimeException("Some one time keys are already set")
+                userStore.longTermPublicKey = longTermPublicKey
+            } else {
+                if (userStore.longTermPublicKey == null) {
+                    throw RuntimeException("Long term key is null")
+                }
             }
 
-            userStore.oneTimePublicKeys.addAll(newKeysSet)
-        }
+            if (oneTimePublicKeys.isNotEmpty()) {
+                val newKeysSet = mutableSetOf<ByteArray>()
+                newKeysSet.addAll(oneTimePublicKeys)
 
-        this.users[jwt.identity] = userStore
+                if (userStore.oneTimePublicKeys.intersect(newKeysSet).isNotEmpty()) {
+                    throw RuntimeException("Some one time keys are already set")
+                }
+
+                userStore.oneTimePublicKeys.addAll(newKeysSet)
+            }
+
+            this@InMemoryRatchetClient.users[jwt.identity] = userStore
+        }
     }
 
     override fun validatePublicKeys(
             longTermKeyId: ByteArray?,
             oneTimeKeysIds: List<ByteArray>,
             token: String
-    ): ValidatePublicKeysResponse {
-        val jwt = Jwt(token)
-        val userStore = this.users[jwt.identity] ?: UserStore()
+    ) = object : Result<ValidatePublicKeysResponse> {
+        override fun get(): ValidatePublicKeysResponse {
+            val jwt = Jwt(token)
+            val userStore = this@InMemoryRatchetClient.users[jwt.identity] ?: UserStore()
 
-        val usedLongTermKeyId: ByteArray?
+            val usedLongTermKeyId: ByteArray?
 
-        if (longTermKeyId != null && userStore.longTermPublicKey?.publicKey != null &&
-                this.keyId.computePublicKeyId(userStore.longTermPublicKey!!.publicKey)!!.contentEquals(longTermKeyId)
-        ) {
-            usedLongTermKeyId = null
-        } else {
-            usedLongTermKeyId = longTermKeyId
+            if (longTermKeyId != null && userStore.longTermPublicKey?.publicKey != null &&
+                    this@InMemoryRatchetClient.keyId.computePublicKeyId(userStore.longTermPublicKey!!.publicKey)!!.contentEquals(longTermKeyId)
+            ) {
+                usedLongTermKeyId = null
+            } else {
+                usedLongTermKeyId = longTermKeyId
+            }
+
+            val validOneTimeKeysId = userStore.oneTimePublicKeys.map { this@InMemoryRatchetClient.keyId.computePublicKeyId(it).hexEncodedString() }
+            val usedOneTimeKeysIds = oneTimeKeysIds.filter { !validOneTimeKeysId.contains(it.hexEncodedString()) }.toList()
+
+            return ValidatePublicKeysResponse(usedLongTermKeyId, usedOneTimeKeysIds)
         }
-
-        val validOneTimeKeysId = userStore.oneTimePublicKeys.map { this.keyId.computePublicKeyId(it).hexEncodedString() }
-        val usedOneTimeKeysIds = oneTimeKeysIds.filter { !validOneTimeKeysId.contains(it.hexEncodedString()) }.toList()
-
-        return ValidatePublicKeysResponse(usedLongTermKeyId, usedOneTimeKeysIds)
     }
 
-    override fun getPublicKeySet(identity: String, token: String): PublicKeySet {
-        Jwt(token)
-        val userStore = this.users[identity] ?: UserStore()
+    override fun getPublicKeySet(identity: String, token: String) = object : Result<PublicKeySet> {
+        override fun get(): PublicKeySet {
+            Jwt(token)
+            val userStore = this@InMemoryRatchetClient.users[identity] ?: UserStore()
 
-        val identityPublicKey = userStore.identityPublicKeyData
-        val longTermPublicKey = userStore.longTermPublicKey
-        if (identityPublicKey == null || longTermPublicKey == null) {
-            throw RuntimeException()
+            val identityPublicKey = userStore.identityPublicKeyData
+            val longTermPublicKey = userStore.longTermPublicKey
+            if (identityPublicKey == null || longTermPublicKey == null) {
+                throw RuntimeException()
+            }
+
+            val oneTimePublicKey = userStore.oneTimePublicKeys.firstOrNull()
+            if (oneTimePublicKey != null) {
+                userStore.oneTimePublicKeys.remove(oneTimePublicKey)
+                this@InMemoryRatchetClient.users[identity] = userStore
+            }
+
+            return PublicKeySet(identityPublicKey, longTermPublicKey, oneTimePublicKey)
         }
-
-        val oneTimePublicKey = userStore.oneTimePublicKeys.firstOrNull()
-        if (oneTimePublicKey != null) {
-            userStore.oneTimePublicKeys.remove(oneTimePublicKey)
-            this.users[identity] = userStore
-        }
-
-        return PublicKeySet(identityPublicKey, longTermPublicKey, oneTimePublicKey)
     }
 
-    override fun getMultiplePublicKeysSets(identities: List<String>, token: String): List<IdentityPublicKeySet> {
-        TODO("not implemented")
+    override fun getMultiplePublicKeysSets(identities: List<String>, token: String)
+            = object : Result<List<IdentityPublicKeySet>> {
+        override fun get(): List<IdentityPublicKeySet> {
+            TODO("not implemented")
+        }
     }
 
-    override fun deleteKeysEntity(token: String) {
-        this.users.clear()
+    override fun deleteKeysEntity(token: String) = object : Completable {
+        override fun execute() {
+            this@InMemoryRatchetClient.users.clear()
+        }
     }
 }
 

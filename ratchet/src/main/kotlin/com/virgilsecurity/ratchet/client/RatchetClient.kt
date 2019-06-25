@@ -41,6 +41,8 @@ import com.google.gson.reflect.TypeToken
 import com.virgilsecurity.ratchet.build.VersionVirgilAgent
 import com.virgilsecurity.ratchet.data.*
 import com.virgilsecurity.ratchet.exception.ProtocolException
+import com.virgilsecurity.ratchet.model.Completable
+import com.virgilsecurity.ratchet.model.Result
 import com.virgilsecurity.ratchet.utils.OsUtils
 import com.virgilsecurity.ratchet.utils.logger
 import com.virgilsecurity.sdk.common.ErrorResponse
@@ -50,7 +52,7 @@ import java.net.URL
 /**
  *  Client used to communicate with ratchet service
  */
-class RatchetClient : RatchetClientInterface {
+class RatchetClient : RatchetClientInterface { // TODO check code, comments, line breaks, @throws, etc
 
     private val serviceUrl: String
     private val virgilAgentHeader: String
@@ -102,9 +104,11 @@ class RatchetClient : RatchetClientInterface {
             longTermPublicKey: SignedPublicKey?,
             oneTimePublicKeys: List<ByteArray>,
             token: String
-    ) {
-        val request = UploadPublicKeysRequest(identityCardId, longTermPublicKey, oneTimePublicKeys)
-        execute("/pfs/v2/keys", Method.PUT, request, token)
+    ) = object : Completable {
+        override fun execute() {
+            val request = UploadPublicKeysRequest(identityCardId, longTermPublicKey, oneTimePublicKeys)
+            executeRequest("/pfs/v2/keys", Method.PUT, request, token).get() // TODO move string to const val
+        }
     }
 
     /**
@@ -122,15 +126,17 @@ class RatchetClient : RatchetClientInterface {
             longTermKeyId: ByteArray?,
             oneTimeKeysIds: List<ByteArray>,
             token: String
-    ): ValidatePublicKeysResponse {
-        if (longTermKeyId == null && oneTimeKeysIds.isEmpty()) {
-            return ValidatePublicKeysResponse(null, listOf())
-        }
+    ) = object : Result<ValidatePublicKeysResponse> {
+        override fun get(): ValidatePublicKeysResponse {
+            if (longTermKeyId == null && oneTimeKeysIds.isEmpty()) {
+                return ValidatePublicKeysResponse(null, listOf())
+            }
 
-        val request = ValidatePublicKeysRequest(longTermKeyId, oneTimeKeysIds)
-        val responseBody = execute("/pfs/v2/keys/actions/validate", Method.POST, request, token)
-        val keys = ConvertionUtils.getGson().fromJson(responseBody, ValidatePublicKeysResponse::class.java)
-        return keys
+            val request = ValidatePublicKeysRequest(longTermKeyId, oneTimeKeysIds)
+            val responseBody = executeRequest("/pfs/v2/keys/actions/validate", Method.POST, request, token).get()
+            val keys = ConvertionUtils.getGson().fromJson(responseBody, ValidatePublicKeysResponse::class.java)
+            return keys
+        }
     }
 
     /**
@@ -141,12 +147,14 @@ class RatchetClient : RatchetClientInterface {
      *
      * @return Set of public keys.
      */
-    override fun getPublicKeySet(identity: String, token: String): PublicKeySet {
-        val request = GetPublicKeySetRequest(identity)
-        val responseBody = execute("/pfs/v2/keys/actions/pick-one", Method.POST, request, token)
+    override fun getPublicKeySet(identity: String, token: String) = object : Result<PublicKeySet> {
+        override fun get(): PublicKeySet {
+            val request = GetPublicKeySetRequest(identity)
+            val responseBody = executeRequest("/pfs/v2/keys/actions/pick-one", Method.POST, request, token).get()
 
-        val keySet = ConvertionUtils.getGson().fromJson(responseBody, PublicKeySet::class.java)
-        return keySet
+            val keySet = ConvertionUtils.getGson().fromJson(responseBody, PublicKeySet::class.java)
+            return keySet
+        }
     }
 
     /**
@@ -157,13 +165,16 @@ class RatchetClient : RatchetClientInterface {
      *
      * @return Sets of public keys.
      */
-    override fun getMultiplePublicKeysSets(identities: List<String>, token: String): List<IdentityPublicKeySet> {
-        val request = GetMultiplePublicKeysSetsRequest(identities)
-        val responseBody = execute("/pfs/v2/keys/actions/pick-batch", Method.POST, request, token)
+    override fun getMultiplePublicKeysSets(identities: List<String>,
+                                           token: String) = object : Result<List<IdentityPublicKeySet>> {
+        override fun get(): List<IdentityPublicKeySet> {
+            val request = GetMultiplePublicKeysSetsRequest(identities)
+            val responseBody = executeRequest("/pfs/v2/keys/actions/pick-batch", Method.POST, request, token).get()
 
-        val listType = object : TypeToken<List<IdentityPublicKeySet>>() {}.type
-        val keySet = ConvertionUtils.getGson().fromJson<List<IdentityPublicKeySet>>(responseBody, listType)
-        return keySet
+            val listType = object : TypeToken<List<IdentityPublicKeySet>>() {}.type
+            val keySet = ConvertionUtils.getGson().fromJson<List<IdentityPublicKeySet>>(responseBody, listType)
+            return keySet
+        }
     }
 
     /**
@@ -171,8 +182,10 @@ class RatchetClient : RatchetClientInterface {
      *
      * @param token auth token (JWT).
      */
-    override fun deleteKeysEntity(token: String) {
-        execute("/pfs/v2/keys", Method.DELETE, null, token)
+    override fun deleteKeysEntity(token: String) = object : Completable {
+        override fun execute() {
+            executeRequest("/pfs/v2/keys", Method.DELETE, null, token).get()
+        }
     }
 
     /**
@@ -191,22 +204,23 @@ class RatchetClient : RatchetClientInterface {
         }
     }
 
-    private fun execute(path: String, method: Method, body: Any?, token: String): String {
-        LOG.value.fine("$method $path")
-        val request = Fuel.request(method, "$serviceUrl$path")
-                .header(mapOf(VIRGIL_AGENT_HEADER_KEY to virgilAgentHeader))
-                .header(mapOf(VIRGIL_AUTHORIZATION_HEADER_KEY to "Virgil $token"))
-        if (method == Method.POST || method == Method.PUT) {
-            val jsonBody = ConvertionUtils.getGson().toJson(body)
-            request.jsonBody(jsonBody)
+    private fun executeRequest(path: String, method: Method, body: Any?, token: String) = object : Result<String> {
+        override fun get(): String {
+            LOG.value.fine("$method $path")
+            val request = Fuel.request(method, "$serviceUrl$path")
+                    .header(mapOf(VIRGIL_AGENT_HEADER_KEY to virgilAgentHeader))
+                    .header(mapOf(VIRGIL_AUTHORIZATION_HEADER_KEY to "Virgil $token"))
+            if (method == Method.POST || method == Method.PUT) {
+                val jsonBody = ConvertionUtils.getGson().toJson(body)
+                request.jsonBody(jsonBody)
+            }
+            val (_, response, result) = request.response()
+            validateResponse(response)
+
+            val responseBody = ConvertionUtils.toString(result.component1())
+            LOG.value.fine("result:\n$responseBody")
+
+            return responseBody
         }
-        val (_, response, result) = request.response()
-        validateResponse(response)
-
-        val responseBody = ConvertionUtils.toString(result.component1())
-        LOG.value.fine("result:\n$responseBody")
-
-        return responseBody
     }
-
 }

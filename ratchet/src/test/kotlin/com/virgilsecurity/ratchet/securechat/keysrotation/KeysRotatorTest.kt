@@ -198,7 +198,7 @@ class KeysRotatorTest {
 
         val token = this.generator.generateToken(this.identity)
 
-        fakeClient.getPublicKeySet(token.identity, token.stringRepresentation())
+        fakeClient.getPublicKeySet(token.identity, token.stringRepresentation()).get()
 
         val log1 = rotate(rotator, tokenProvider)
 
@@ -235,7 +235,7 @@ class KeysRotatorTest {
         val tokenContext = TokenContext("ratchet", false, "rotate")
         val jwt = tokenProvider.getToken(tokenContext)
 
-        return rotator.rotateKeys(jwt)
+        return rotator.rotateKeys(jwt).get()
     }
 
     private fun compareCloudAndStorage(

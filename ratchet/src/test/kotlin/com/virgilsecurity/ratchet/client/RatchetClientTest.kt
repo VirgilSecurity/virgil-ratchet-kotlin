@@ -84,12 +84,12 @@ class RatchetClientTest {
         val signedLongTermKey = SignedPublicKey(longTermPublicKey, signature)
 
         val token = this.generator.generateToken(this.identity).stringRepresentation()
-        this.client.uploadPublicKeys(this.card.identifier, signedLongTermKey, listOf(), token)
+        this.client.uploadPublicKeys(this.card.identifier, signedLongTermKey, listOf(), token).execute()
 
-        val response1 = this.client.validatePublicKeys(longTermKeyId, listOf(), token)
+        val response1 = this.client.validatePublicKeys(longTermKeyId, listOf(), token).get()
         Assertions.assertNull(response1.usedLongTermKeyId)
 
-        val response2 = this.client.getPublicKeySet(this.identity, token)
+        val response2 = this.client.getPublicKeySet(this.identity, token).get()
         Assertions.assertArrayEquals(signedLongTermKey.publicKey, response2.longTermPublicKey.publicKey)
         Assertions.assertArrayEquals(signedLongTermKey.signature, response2.longTermPublicKey.signature)
         Assertions.assertNull(response2.oneTimePublicKey)
@@ -112,13 +112,14 @@ class RatchetClientTest {
 
         val token = this.generator.generateToken(this.identity).stringRepresentation()
 
-        this.client.uploadPublicKeys(card.identifier, signedLongTermKey, listOf(oneTimeKey1, oneTimeKey2), token)
+        this.client.uploadPublicKeys(card.identifier, signedLongTermKey,
+                                     listOf(oneTimeKey1, oneTimeKey2), token).execute()
 
-        val response1 = this.client.validatePublicKeys(longTermKeyId, listOf(oneTimeKeyId1, oneTimeKeyId2), token)
+        val response1 = this.client.validatePublicKeys(longTermKeyId, listOf(oneTimeKeyId1, oneTimeKeyId2), token).get()
         Assertions.assertNull(response1.usedLongTermKeyId)
         Assertions.assertTrue(response1.usedOneTimeKeysIds.isEmpty())
 
-        val response2 = this.client.getPublicKeySet(this.identity, token)
+        val response2 = this.client.getPublicKeySet(this.identity, token).get()
         Assertions.assertArrayEquals(signedLongTermKey.publicKey, response2.longTermPublicKey.publicKey)
         Assertions.assertArrayEquals(signedLongTermKey.signature, response2.longTermPublicKey.signature)
         Assertions.assertNotNull(response2.oneTimePublicKey)
@@ -133,7 +134,7 @@ class RatchetClientTest {
             }
         }
 
-        val response3 = this.client.validatePublicKeys(longTermKeyId, listOf(oneTimeKeyId1, oneTimeKeyId2), token)
+        val response3 = this.client.validatePublicKeys(longTermKeyId, listOf(oneTimeKeyId1, oneTimeKeyId2), token).get()
 
         Assertions.assertNull(response3.usedLongTermKeyId)
         Assertions.assertEquals(1, response3.usedOneTimeKeysIds.size)
@@ -172,7 +173,7 @@ class RatchetClientTest {
                     signedLongTermKey,
                     listOf(oneTimeKey1, oneTimeKey2),
                     token
-            )
+            ).execute()
 
             val entry = Entry(
                     this.identity,
@@ -190,7 +191,7 @@ class RatchetClientTest {
         }
 
         val lastEntry = entries.last()
-        val response = lastEntry.client.getMultiplePublicKeysSets(entries.map { it.identity }, lastEntry.token)
+        val response = lastEntry.client.getMultiplePublicKeysSets(entries.map { it.identity }, lastEntry.token).get()
         Assertions.assertNotNull(response)
         Assertions.assertEquals(entries.size, response.size)
 
@@ -222,20 +223,19 @@ class RatchetClientTest {
 
         val token = this.generator.generateToken(this.identity).stringRepresentation()
 
-        this.client.uploadPublicKeys(this.card.identifier, signedLongTermKey, listOf(oneTimeKey), token)
+        this.client.uploadPublicKeys(this.card.identifier, signedLongTermKey, listOf(oneTimeKey), token).execute()
 
-        this.client.deleteKeysEntity(token)
+        this.client.deleteKeysEntity(token).execute()
 
         try {
-            this.client.getPublicKeySet(this.identity, token)
+            this.client.getPublicKeySet(this.identity, token).get()
             Assertions.fail<String>()
-
         } catch (e: Exception) {
         }
 
-        this.client.uploadPublicKeys(this.card.identifier, signedLongTermKey, listOf(oneTimeKey), token)
+        this.client.uploadPublicKeys(this.card.identifier, signedLongTermKey, listOf(oneTimeKey), token).execute()
 
-        val response = this.client.getPublicKeySet(this.identity, token)
+        val response = this.client.getPublicKeySet(this.identity, token).get()
 
         Assertions.assertArrayEquals(signedLongTermKey.publicKey, response.longTermPublicKey.publicKey)
         Assertions.assertArrayEquals(signedLongTermKey.signature, response.longTermPublicKey.signature)

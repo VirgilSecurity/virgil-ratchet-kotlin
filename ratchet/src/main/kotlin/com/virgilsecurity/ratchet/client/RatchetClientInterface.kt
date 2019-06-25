@@ -37,6 +37,8 @@ import com.virgilsecurity.ratchet.data.IdentityPublicKeySet
 import com.virgilsecurity.ratchet.data.PublicKeySet
 import com.virgilsecurity.ratchet.data.SignedPublicKey
 import com.virgilsecurity.ratchet.data.ValidatePublicKeysResponse
+import com.virgilsecurity.ratchet.model.Completable
+import com.virgilsecurity.ratchet.model.Result
 
 /**
  *  Client used to communicate with ratchet service
@@ -60,7 +62,7 @@ interface RatchetClientInterface {
             longTermPublicKey: SignedPublicKey?,
             oneTimePublicKeys: List<ByteArray>,
             token: String
-    )
+    ) : Completable
 
     /**
      * Checks list of keys ids and returns subset of that list with already used keys ids.
@@ -77,7 +79,7 @@ interface RatchetClientInterface {
             longTermKeyId: ByteArray?,
             oneTimeKeysIds: List<ByteArray>,
             token: String
-    ): ValidatePublicKeysResponse
+    ): Result<ValidatePublicKeysResponse>
 
     /**
      * Returns public keys set for given identity.
@@ -87,7 +89,7 @@ interface RatchetClientInterface {
      *
      * @return Set of public keys.
      */
-    fun getPublicKeySet(identity: String, token: String): PublicKeySet
+    fun getPublicKeySet(identity: String, token: String): Result<PublicKeySet>
 
     /**
      * Returns public keys sets for given identities.
@@ -97,13 +99,13 @@ interface RatchetClientInterface {
      *
      * @return Sets of public keys.
      */
-    fun getMultiplePublicKeysSets(identities: List<String>, token: String): List<IdentityPublicKeySet>
+    fun getMultiplePublicKeysSets(identities: List<String>, token: String): Result<List<IdentityPublicKeySet>>
 
     /**
      * Deletes keys entity.
      *
      * @param token auth token (JWT).
      */
-    fun deleteKeysEntity(token: String)
+    fun deleteKeysEntity(token: String): Completable
 
 }

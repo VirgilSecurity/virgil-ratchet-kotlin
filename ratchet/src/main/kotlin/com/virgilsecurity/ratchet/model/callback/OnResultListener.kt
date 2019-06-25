@@ -31,18 +31,23 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.ratchet.securechat.keysrotation
-
-import com.virgilsecurity.ratchet.model.Result
-import com.virgilsecurity.sdk.jwt.contract.AccessToken
+package com.virgilsecurity.ratchet.model.callback
 
 /**
- * Keys rotation interface.
+ * Interface that is intended to return *<T>* type result if some asynchronous process is
+ * completed successfully, otherwise error will be returned.
  */
-interface KeysRotatorInterface {
+interface OnResultListener<T> {
 
     /**
-     * Rotates keys.
+     * This method will be called if asynchronous process is completed successfully and
+     * provide *<T>* type [result].
      */
-    fun rotateKeys(token: AccessToken): Result<RotationLog>
+    fun onSuccess(result: T)
+
+    /**
+     * This method will be called if asynchronous process is failed and provide [throwable]
+     * cause.
+     */
+    fun onError(throwable: Throwable)
 }

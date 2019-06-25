@@ -75,9 +75,9 @@ class IntegrationTest {
 
     @Test
     fun encrypt_decrypt__random_uuid_messages__should_decrypt() {
-        this.receiverSecureChat.rotateKeys()
+        this.receiverSecureChat.rotateKeys().get()
 
-        val senderSession = this.senderSecureChat.startNewSessionAsSender(this.receiverCard)
+        val senderSession = this.senderSecureChat.startNewSessionAsSender(this.receiverCard).get()
         val plainText = generateText()
         val cipherText = senderSession.encrypt(plainText)
 
@@ -91,9 +91,9 @@ class IntegrationTest {
 
     @Test
     fun session_persistence__random_uuid_messages__should_decrypt() {
-        this.receiverSecureChat.rotateKeys()
+        this.receiverSecureChat.rotateKeys().get()
 
-        val senderSession = this.senderSecureChat.startNewSessionAsSender(this.receiverCard)
+        val senderSession = this.senderSecureChat.startNewSessionAsSender(this.receiverCard).get()
         this.senderSecureChat.storeSession(senderSession)
         Assertions.assertNotNull(this.senderSecureChat.existingSession(this.receiverCard.identity))
 
@@ -116,9 +116,9 @@ class IntegrationTest {
 
     @Test
     fun session_removal__one_session_per_participant__should_delete_session() {
-        this.receiverSecureChat.rotateKeys()
+        this.receiverSecureChat.rotateKeys().get()
 
-        val senderSession = this.senderSecureChat.startNewSessionAsSender(this.receiverCard)
+        val senderSession = this.senderSecureChat.startNewSessionAsSender(this.receiverCard).get()
         Assertions.assertNull(this.senderSecureChat.existingSession(this.receiverCard.identity))
 
         senderSecureChat.storeSession(senderSession)
@@ -147,10 +147,10 @@ class IntegrationTest {
 
     @Test
     fun reset__one_session_per_participant__should_reset() {
-        this.receiverSecureChat.rotateKeys()
-        this.senderSecureChat.rotateKeys()
+        this.receiverSecureChat.rotateKeys().get()
+        this.senderSecureChat.rotateKeys().get()
 
-        val senderSession = this.senderSecureChat.startNewSessionAsSender(this.receiverCard)
+        val senderSession = this.senderSecureChat.startNewSessionAsSender(this.receiverCard).get()
         this.senderSecureChat.storeSession(senderSession)
 
         val plainText = generateText()
@@ -166,7 +166,7 @@ class IntegrationTest {
 
         Thread.sleep(3000)
 
-        this.senderSecureChat.reset()
+        this.senderSecureChat.reset().execute()
         Assertions.assertNull(this.senderSecureChat.existingSession(this.receiverCard.identity))
         Assertions.assertTrue(this.senderSecureChat.longTermKeysStorage.retrieveAllKeys().isEmpty())
 
@@ -179,7 +179,7 @@ class IntegrationTest {
 
         Thread.sleep(5000)
 
-        this.receiverSecureChat.reset()
+        this.receiverSecureChat.reset().execute()
         Assertions.assertNull(this.receiverSecureChat.existingSession(this.senderCard.identity))
         Assertions.assertTrue(this.receiverSecureChat.longTermKeysStorage.retrieveAllKeys().isEmpty())
 
@@ -190,13 +190,13 @@ class IntegrationTest {
 
     @Test
     fun start_as_receiver__one_session__should_replenish_ot_key() {
-        this.receiverSecureChat.rotateKeys()
-        this.senderSecureChat.rotateKeys()
+        this.receiverSecureChat.rotateKeys().get()
+        this.senderSecureChat.rotateKeys().get()
 
         this.receiverSecureChat.oneTimeKeysStorage.startInteraction()
         Assertions.assertEquals(IntegrationTest.DESIRED_NUMBER_OF_KEYS, this.receiverSecureChat.oneTimeKeysStorage.retrieveAllKeys().size)
 
-        val senderSession = this.senderSecureChat.startNewSessionAsSender(this.receiverCard)
+        val senderSession = this.senderSecureChat.startNewSessionAsSender(this.receiverCard).get()
 
         val plainText = generateText()
         val cipherText = senderSession.encrypt(plainText)
@@ -219,23 +219,23 @@ class IntegrationTest {
 
     @Test
     fun rotate__one_session__should_replenish_ot_key() {
-        this.receiverSecureChat.rotateKeys()
-        this.senderSecureChat.rotateKeys()
+        this.receiverSecureChat.rotateKeys().get()
+        this.senderSecureChat.rotateKeys().get()
 
         this.receiverSecureChat.oneTimeKeysStorage.startInteraction()
         Assertions.assertEquals(IntegrationTest.DESIRED_NUMBER_OF_KEYS, receiverSecureChat.oneTimeKeysStorage.retrieveAllKeys().size)
 
-        val senderSession = this.senderSecureChat.startNewSessionAsSender(this.receiverCard)
+        val senderSession = this.senderSecureChat.startNewSessionAsSender(this.receiverCard).get()
 
         val plainText = generateText()
         val cipherText = senderSession.encrypt(plainText)
 
-        this.receiverSecureChat.rotateKeys()
+        this.receiverSecureChat.rotateKeys().get()
         Assertions.assertEquals(IntegrationTest.DESIRED_NUMBER_OF_KEYS + 1, receiverSecureChat.oneTimeKeysStorage.retrieveAllKeys().size)
 
         Thread.sleep(6000)
 
-        this.receiverSecureChat.rotateKeys()
+        this.receiverSecureChat.rotateKeys().get()
         Assertions.assertEquals(IntegrationTest.DESIRED_NUMBER_OF_KEYS, receiverSecureChat.oneTimeKeysStorage.retrieveAllKeys().size)
 
         this.receiverSecureChat.oneTimeKeysStorage.stopInteraction()
@@ -249,17 +249,17 @@ class IntegrationTest {
 
     @Test
     fun rotate__ltk_outdated__should_outdate_and_delete_ltk() {
-        this.receiverSecureChat.rotateKeys()
+        this.receiverSecureChat.rotateKeys().get()
         Assertions.assertEquals(1, receiverSecureChat.longTermKeysStorage.retrieveAllKeys().size)
 
         Thread.sleep(11000)
 
-        this.receiverSecureChat.rotateKeys()
+        this.receiverSecureChat.rotateKeys().get()
         Assertions.assertEquals(2, receiverSecureChat.longTermKeysStorage.retrieveAllKeys().size)
 
         Thread.sleep(5000)
 
-        this.receiverSecureChat.rotateKeys()
+        this.receiverSecureChat.rotateKeys().get()
         Assertions.assertEquals(1, receiverSecureChat.longTermKeysStorage.retrieveAllKeys().size)
     }
 
@@ -276,11 +276,11 @@ class IntegrationTest {
         val chat3 = senderSecureChat
         val chat4 = receiverSecureChat
 
-        chat2.rotateKeys()
-        chat3.rotateKeys()
-        chat4.rotateKeys()
+        chat2.rotateKeys().get()
+        chat3.rotateKeys().get()
+        chat4.rotateKeys().get()
 
-        val sessions = chat1.startMutipleNewSessionsAsSender(listOf(card2, card3, card4))
+        val sessions = chat1.startMutipleNewSessionsAsSender(listOf(card2, card3, card4)).get()
 
         val plainText2 = generateText()
         val plainText3 = generateText()
