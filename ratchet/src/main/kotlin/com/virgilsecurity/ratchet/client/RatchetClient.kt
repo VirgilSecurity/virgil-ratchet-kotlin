@@ -43,8 +43,8 @@ import com.virgilsecurity.ratchet.data.*
 import com.virgilsecurity.ratchet.exception.ProtocolException
 import com.virgilsecurity.ratchet.model.Completable
 import com.virgilsecurity.ratchet.model.Result
+import com.virgilsecurity.ratchet.utils.LogHelper
 import com.virgilsecurity.ratchet.utils.OsUtils
-import com.virgilsecurity.ratchet.utils.logger
 import com.virgilsecurity.sdk.common.ErrorResponse
 import com.virgilsecurity.sdk.utils.ConvertionUtils
 import java.net.URL
@@ -56,6 +56,7 @@ class RatchetClient : RatchetClientInterface { // TODO check code, comments, lin
 
     private val serviceUrl: String
     private val virgilAgentHeader: String
+    private val logHelper = LogHelper.instance()
 
     /**
      * Initializes a new `RatchetClient` instance.
@@ -75,14 +76,6 @@ class RatchetClient : RatchetClientInterface { // TODO check code, comments, lin
         this.serviceUrl = serviceUrl.toString()
         virgilAgentHeader =
                 "$VIRGIL_AGENT_PRODUCT;$VIRGIL_AGENT_FAMILY;${OsUtils.osAgentName};${VersionVirgilAgent.VERSION}"
-    }
-
-    companion object {
-        val LOG = logger()
-        private const val VIRGIL_AGENT_HEADER_KEY = "virgil-agent"
-        private const val VIRGIL_AGENT_PRODUCT = "ratchet"
-        private const val VIRGIL_AGENT_FAMILY = "jvm"
-        private const val VIRGIL_AUTHORIZATION_HEADER_KEY = "Authorization"
     }
 
     /**
@@ -206,7 +199,7 @@ class RatchetClient : RatchetClientInterface { // TODO check code, comments, lin
 
     private fun executeRequest(path: String, method: Method, body: Any?, token: String) = object : Result<String> {
         override fun get(): String {
-            LOG.value.fine("$method $path")
+            logHelper.logger.fine("$method $path")
             val request = Fuel.request(method, "$serviceUrl$path")
                     .header(mapOf(VIRGIL_AGENT_HEADER_KEY to virgilAgentHeader))
                     .header(mapOf(VIRGIL_AUTHORIZATION_HEADER_KEY to "Virgil $token"))
@@ -218,9 +211,16 @@ class RatchetClient : RatchetClientInterface { // TODO check code, comments, lin
             validateResponse(response)
 
             val responseBody = ConvertionUtils.toString(result.component1())
-            LOG.value.fine("result:\n$responseBody")
+            logHelper.logger.fine("result:\n$responseBody")
 
             return responseBody
         }
+    }
+
+    companion object {
+        private const val VIRGIL_AGENT_HEADER_KEY = "virgil-agent"
+        private const val VIRGIL_AGENT_PRODUCT = "ratchet"
+        private const val VIRGIL_AGENT_FAMILY = "jvm"
+        private const val VIRGIL_AUTHORIZATION_HEADER_KEY = "Authorization"
     }
 }

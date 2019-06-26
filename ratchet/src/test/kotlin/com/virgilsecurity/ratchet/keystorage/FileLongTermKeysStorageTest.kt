@@ -33,20 +33,30 @@
 
 package com.virgilsecurity.ratchet.keystorage
 
+import com.virgilsecurity.ratchet.TestConfig
 import com.virgilsecurity.ratchet.exception.KeyStorageException
 import com.virgilsecurity.ratchet.generateKeyId
 import com.virgilsecurity.ratchet.generatePublicKeyData
+import com.virgilsecurity.ratchet.utils.LogHelper
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.*
+import java.util.logging.Level
 
 class FileLongTermKeysStorageTest {
 
     private val identity = UUID.randomUUID().toString()
     private lateinit var path: String
     private lateinit var keyStorage: FileLongTermKeysStorage
+
+    companion object {
+        @JvmStatic @BeforeAll fun globalSetup() {
+            LogHelper.instance().logLevel = TestConfig.logLevel
+        }
+    }
 
     @BeforeEach
     fun setup() {

@@ -44,6 +44,8 @@ class SecureFileSystem constructor(
         val credentials: Credentials? = null
 ) {
 
+    private val logHelper = LogHelper.instance()
+
     class Credentials(
             val crypto: VirgilCrypto,
             val keyPair: VirgilKeyPair
@@ -74,7 +76,7 @@ class SecureFileSystem constructor(
 
     fun deleteDir(subDir: String? = null) {
         val path = getFullPath(null, subDir)
-        LOG.value.fine("Deleting directory $path")
+        logHelper.logger.fine("Deleting directory $path")
         val file = File(path)
         file.deleteRecursively()
     }
@@ -87,7 +89,7 @@ class SecureFileSystem constructor(
             // It's OK, directory already exists
         } else {
             // Create a directory
-            LOG.value.fine("Creating directory ${file.absolutePath}")
+            logHelper.logger.fine("Creating directory ${file.absolutePath}")
             file.mkdirs()
         }
         return dir
@@ -101,20 +103,20 @@ class SecureFileSystem constructor(
         }
         val file = File(path)
         if (!file.exists()) {
-            LOG.value.info("File ${file.absolutePath} doesn't exist")
+            logHelper.logger.info("File ${file.absolutePath} doesn't exist")
             if (!file.parentFile.exists()) {
                 file.parentFile.mkdirs()
             }
             file.createNewFile()
         }
-        LOG.value.fine("Writing to file ${file.absolutePath}")
+        logHelper.logger.fine("Writing to file ${file.absolutePath}")
         file.writeBytes(dataToWrite)
     }
 
     private fun readFile(path: String): ByteArray {
         val file = File(path)
         val data = if (file.exists()) {
-            LOG.value.fine("Reading file ${file.absolutePath}")
+            logHelper.logger.fine("Reading file ${file.absolutePath}")
             file.readBytes()
         } else {
             byteArrayOf()
@@ -141,9 +143,5 @@ class SecureFileSystem constructor(
             path = path.append(File.separator).append(name)
         }
         return path.toString()
-    }
-
-    companion object {
-        val LOG = logger()
     }
 }

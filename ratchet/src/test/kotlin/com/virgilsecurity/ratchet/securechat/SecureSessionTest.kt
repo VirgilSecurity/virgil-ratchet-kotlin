@@ -36,6 +36,7 @@ package com.virgilsecurity.ratchet.securechat
 import com.virgilsecurity.ratchet.*
 import com.virgilsecurity.ratchet.exception.SecureChatException
 import com.virgilsecurity.ratchet.securechat.keysrotation.KeysRotator
+import com.virgilsecurity.ratchet.utils.LogHelper
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.common.TimeSpan
@@ -45,16 +46,23 @@ import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
 import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.accessProviders.CallbackJwtProvider
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.concurrent.TimeUnit
 
 class SecureSessionTest {
 
-    lateinit var senderCard: Card
-    lateinit var receiverCard: Card
-    lateinit var senderSecureChat: SecureChat
-    lateinit var receiverSecureChat: SecureChat
+    private lateinit var senderCard: Card
+    private lateinit var receiverCard: Card
+    private lateinit var senderSecureChat: SecureChat
+    private lateinit var receiverSecureChat: SecureChat
+
+    companion object {
+        @JvmStatic @BeforeAll fun globalSetup() {
+            LogHelper.instance().logLevel = TestConfig.logLevel
+        }
+    }
 
     @BeforeEach
     fun setup() {

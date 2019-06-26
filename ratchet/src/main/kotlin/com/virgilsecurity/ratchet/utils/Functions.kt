@@ -37,10 +37,6 @@ import com.virgilsecurity.ratchet.exception.HexEncodingException
 import java.util.*
 import java.util.logging.Logger
 
-fun <R : Any> R.logger(): Lazy<Logger> {
-    return lazy { Logger.getLogger(this::class.java.name) }
-}
-
 private val HEX_CHARS = "0123456789abcdef"
 private val HEX_CHARS_ARR = HEX_CHARS.toCharArray()
 
@@ -63,8 +59,8 @@ fun String.hexStringToByteArray(): ByteArray {
     val result = ByteArray(length / 2)
 
     for (i in 0 until length step 2) {
-        val firstIndex = HEX_CHARS.indexOf(this[i]);
-        val secondIndex = HEX_CHARS.indexOf(this[i + 1]);
+        val firstIndex = HEX_CHARS.indexOf(this[i])
+        val secondIndex = HEX_CHARS.indexOf(this[i + 1])
 
         if (firstIndex < 0 || secondIndex < 0) {
             throw HexEncodingException()

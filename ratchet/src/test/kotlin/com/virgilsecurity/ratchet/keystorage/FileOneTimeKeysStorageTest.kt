@@ -33,20 +33,29 @@
 
 package com.virgilsecurity.ratchet.keystorage
 
+import com.virgilsecurity.ratchet.TestConfig
 import com.virgilsecurity.ratchet.exception.KeyStorageException
 import com.virgilsecurity.ratchet.generateKeyId
 import com.virgilsecurity.ratchet.generatePublicKeyData
+import com.virgilsecurity.ratchet.utils.LogHelper
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.*
 
 class FileOneTimeKeysStorageTest {
 
-    val identity = UUID.randomUUID().toString()
-    val path = createTempDir().absolutePath
+    private val identity = UUID.randomUUID().toString()
+    private val path = createTempDir().absolutePath
     private lateinit var keyStorage: FileOneTimeKeysStorage
+
+    companion object {
+        @JvmStatic @BeforeAll fun globalSetup() {
+            LogHelper.instance().logLevel = TestConfig.logLevel
+        }
+    }
 
     @BeforeEach
     fun setup() {

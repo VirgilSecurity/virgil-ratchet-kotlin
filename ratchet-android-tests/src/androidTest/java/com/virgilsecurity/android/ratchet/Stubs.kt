@@ -338,7 +338,7 @@ class InMemoryRatchetClient(private val cardManager: CardManager) : RatchetClien
     override fun getMultiplePublicKeysSets(identities: List<String>, token: String)
             = object : Result<List<IdentityPublicKeySet>> {
         override fun get(): List<IdentityPublicKeySet> {
-            TODO("not implemented")
+            returnNothing()
         }
     }
 
@@ -365,11 +365,11 @@ class InMemoryCardClient : VirgilCardClient(TestConfig.cardsServiceURL) {
     }
 
     override fun searchCards(identity: String?, token: String?): MutableList<RawSignedModel> {
-        TODO("not implemented")
+        returnNothing()
     }
 
     override fun searchCards(identities: MutableCollection<String>?, token: String?): MutableList<RawSignedModel> {
-        TODO("not implemented")
+        returnNothing()
     }
 
     override fun publishCard(rawCard: RawSignedModel?, token: String?): RawSignedModel {
@@ -383,7 +383,7 @@ class InMemoryCardClient : VirgilCardClient(TestConfig.cardsServiceURL) {
     }
 
     override fun revokeCard(cardId: String?, token: String?) {
-        TODO("not implemented")
+        returnNothing()
     }
 
     companion object {
@@ -416,3 +416,6 @@ fun generatePublicKeyData(): ByteArray {
     val keyPair = crypto.generateKeyPair(KeyType.CURVE25519)
     return keyPair.publicKey.publicKey.exportPublicKey()
 }
+
+private inline fun returnNothing(): Nothing =
+    throw NotImplementedError("This method is supposed to not be called.")

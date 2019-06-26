@@ -49,9 +49,9 @@ import com.virgilsecurity.ratchet.sessionstorage.FileGroupSessionStorage
 import com.virgilsecurity.ratchet.sessionstorage.FileSessionStorage
 import com.virgilsecurity.ratchet.sessionstorage.GroupSessionStorage
 import com.virgilsecurity.ratchet.sessionstorage.SessionStorage
+import com.virgilsecurity.ratchet.utils.LogHelper
 import com.virgilsecurity.ratchet.utils.hexEncodedString
 import com.virgilsecurity.ratchet.utils.hexStringToByteArray
-import com.virgilsecurity.ratchet.utils.logger
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.KeyType
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
@@ -61,6 +61,8 @@ import com.virgilsecurity.sdk.jwt.TokenContext
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 
 class SecureChat {
+
+    private val logHelper = LogHelper.instance()
 
     val accessTokenProvider: AccessTokenProvider
     val identityPrivateKey: VirgilPrivateKey
@@ -158,7 +160,7 @@ class SecureChat {
      */
     fun rotateKeys() = object : Result<RotationLog> {
         override fun get(): RotationLog {
-            LOG.value.fine("Started keys rotation")
+            logHelper.logger.fine("Started keys rotation")
 
             val tokenContext = TokenContext("rotate", false, "ratchet")
             val token = this@SecureChat.accessTokenProvider.getToken(tokenContext)
@@ -174,7 +176,7 @@ class SecureChat {
      * @param session session to store
      */
     fun storeSession(session: SecureSession) {
-        LOG.value.fine("Storing session with ${session.participantIdentity} name: ${session.name}")
+        logHelper.logger.fine("Storing session with ${session.participantIdentity} name: ${session.name}")
 
         this.sessionStorage.storeSession(session)
     }
@@ -186,7 +188,7 @@ class SecureChat {
      * @param session GroupSession to store
      */
     fun storeGroupSession(session: SecureGroupSession) {
-        LOG.value.fine("Storing group session with id ${session.identifier().hexEncodedString()}")
+        logHelper.logger.fine("Storing group session with id ${session.identifier().hexEncodedString()}")
 
         this.groupSessionStorage.storeSession(session)
     }
@@ -203,10 +205,10 @@ class SecureChat {
         val session = this.sessionStorage.retrieveSession(particpantIdentity, name
                 ?: SecureChat.DEFAULT_SESSION_NAME)
         if (session != null) {
-            LOG.value.fine("Found existing session with $particpantIdentity")
+            logHelper.logger.fine("Found existing session with $particpantIdentity")
             return session
         } else {
-            LOG.value.fine("Existing session with $particpantIdentity was not found")
+            logHelper.logger.fine("Existing session with $particpantIdentity was not found")
             return null
         }
     }
@@ -218,7 +220,7 @@ class SecureChat {
      * @param name session name
      */
     fun deleteSession(particpantIdentity: String, name: String? = null) {
-        LOG.value.fine("Deleting session with $particpantIdentity")
+        logHelper.logger.fine("Deleting session with $particpantIdentity")
 
         this.sessionStorage.deleteSession(particpantIdentity, name
                 ?: SecureChat.DEFAULT_SESSION_NAME)
@@ -230,7 +232,7 @@ class SecureChat {
      * @param particpantIdentity participant identity
      */
     fun deleteAllSessions(particpantIdentity: String) {
-        LOG.value.fine("Deleting session with $particpantIdentity")
+        logHelper.logger.fine("Deleting session with $particpantIdentity")
 
         this.sessionStorage.deleteSession(particpantIdentity, null)
     }
@@ -244,7 +246,7 @@ class SecureChat {
      */
     fun startNewSessionAsSender(receiverCard: Card, name: String? = null) = object : Result<SecureSession> {
         override fun get(): SecureSession {
-            LOG.value.fine("Starting new session with ${receiverCard.identity}")
+            logHelper.logger.fine("Starting new session with ${receiverCard.identity}")
 
             if (existingSession(receiverCard.identity, name ?: SecureChat.DEFAULT_SESSION_NAME) != null) {
                 throw SecureChatException(SecureChatException.SESSION_ALREADY_EXISTS, "Session is already exists")
@@ -284,7 +286,7 @@ class SecureChat {
     fun startMutipleNewSessionsAsSender(receiverCards: List<Card>,
                                         name: String? = null) = object : Result<List<SecureSession>> {
         override fun get(): List<SecureSession> {
-            LOG.value.fine("Starting new session with ${receiverCards.map { it.identity }}")
+            logHelper.logger.fine("Starting new session with ${receiverCards.map { it.identity }}")
 
             receiverCards.forEach {
                 if (existingSession(it.identity, name ?: SecureChat.DEFAULT_SESSION_NAME) != null) {
@@ -357,7 +359,7 @@ class SecureChat {
             )
         }
         if (oneTimePublicKey == null) {
-            LOG.value.warning("Creating weak session with $identity")
+            logHelper.logger.warning("Creating weak session with $identity")
         }
         val privateKeyData = this.crypto.exportPrivateKey(this.identityPrivateKey)
         return SecureSession(
@@ -368,7 +370,7 @@ class SecureChat {
 
     private fun replaceOneTimeKey() = object : Completable {
         override fun execute() {
-            LOG.value.fine("Adding one time key") // TODO set logs optional
+            logHelper.logger.fine("Adding one time key") // TODO set logs optional
             val oneTimePublicKey: ByteArray
 
             try {
@@ -382,9 +384,9 @@ class SecureChat {
 
                     this@SecureChat.oneTimeKeysStorage.storeKey(oneTimePrivateKey, keyId)
 
-                    LOG.value.fine("Saved one-time key successfully")
+                    logHelper.logger.fine("Saved one-time key successfully")
                 } catch (e: Exception) {
-                    LOG.value.severe("Error saving one-time key")
+                    logHelper.logger.severe("Error saving one-time key")
                     return
                 }
 
@@ -397,9 +399,9 @@ class SecureChat {
                             token.stringRepresentation()
                     ).execute()
 
-                    LOG.value.fine("Added one-time key successfully")
+                    logHelper.logger.fine("Added one-time key successfully")
                 } catch (e: Exception) {
-                    LOG.value.severe("Error adding one-time key")
+                    logHelper.logger.severe("Error adding one-time key")
                 }
             } finally {
                 this@SecureChat.oneTimeKeysStorage.stopInteraction()
@@ -431,7 +433,7 @@ class SecureChat {
      * @return SecureSession
      */
     fun startNewSessionAsReceiver(senderCard: Card, name: String?, ratchetMessage: RatchetMessage): SecureSession {
-        LOG.value.fine("Responding to session with ${senderCard.identity}")
+        logHelper.logger.fine("Responding to session with ${senderCard.identity}")
 
         if (existingSession(senderCard.identity, name) != null) {
             throw SecureChatException(
@@ -573,9 +575,9 @@ class SecureChat {
         val identifier = sessionId.hexEncodedString()
         val session = this.groupSessionStorage.retrieveSession(sessionId)
         if (session == null) {
-            LOG.value.fine("Existing session with identifier: $identifier was not found")
+            logHelper.logger.fine("Existing session with identifier: $identifier was not found")
         } else {
-            LOG.value.fine("Found existing group session with identifier: $identifier")
+            logHelper.logger.fine("Found existing group session with identifier: $identifier")
         }
 
         return session
@@ -586,24 +588,24 @@ class SecureChat {
      */
     fun reset() = object : Completable {
         override fun execute() {
-            LOG.value.fine("Reset secure chat")
+            logHelper.logger.fine("Reset secure chat")
 
             val tokenContext = TokenContext("delete", false, "ratchet")
             val token = this@SecureChat.accessTokenProvider.getToken(tokenContext)
 
-            LOG.value.fine("Resetting cloud")
+            logHelper.logger.fine("Resetting cloud")
             this@SecureChat.client.deleteKeysEntity(token.stringRepresentation()).execute()
 
-            LOG.value.fine("Resetting one-time keys")
+            logHelper.logger.fine("Resetting one-time keys")
             this@SecureChat.oneTimeKeysStorage.reset()
 
-            LOG.value.fine("Resetting long-term keys")
+            logHelper.logger.fine("Resetting long-term keys")
             this@SecureChat.longTermKeysStorage.reset()
 
-            LOG.value.fine("Resetting sessions")
+            logHelper.logger.fine("Resetting sessions")
             this@SecureChat.sessionStorage.reset()
 
-            LOG.value.fine("Resetting success")
+            logHelper.logger.fine("Resetting success")
         }
     }
 
@@ -611,7 +613,6 @@ class SecureChat {
         /**
          * Default session name.
          */
-        val DEFAULT_SESSION_NAME = "DEFAULT"
-        val LOG = logger()
+        private const val DEFAULT_SESSION_NAME = "DEFAULT"
     }
 }

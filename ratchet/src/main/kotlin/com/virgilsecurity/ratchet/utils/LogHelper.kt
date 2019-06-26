@@ -31,53 +31,37 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.ratchet
+package com.virgilsecurity.ratchet.utils
 
-import com.virgilsecurity.sdk.crypto.VirgilCrypto
-import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
-import java.util.*
 import java.util.logging.Level
+import java.util.logging.Logger
 
-class TestConfig {
+/**
+ * LogHelper class.
+ */
+class LogHelper private constructor() {
+
+    val logger: Logger = Logger.getLogger("Virgil_Ratchet_Kotlin_Logger").apply { level = Level.ALL }
+
+    var logLevel: Level
+        get() = logger.level
+        set(logLevel) {
+            logger.level = logLevel
+        }
+
+    init {
+        logLevel = logger.level
+    }
 
     companion object {
-        val virgilCrypto = VirgilCrypto(false)
+        @Volatile private var instance: LogHelper? = null
 
-        val appId: String by lazy {
-            if (System.getProperty("APP_ID") != null)
-                System.getProperty("APP_ID")
-            else
-                System.getenv("APP_ID")
-        }
-
-        val apiPrivateKey: VirgilPrivateKey by lazy {
-            (if (System.getProperty("API_PRIVATE_KEY") != null)
-                System.getProperty("API_PRIVATE_KEY")
-            else
-                System.getenv("API_PRIVATE_KEY")).let {
-                this.virgilCrypto.importPrivateKey(Base64.getDecoder().decode(it)).privateKey
+        fun instance(): LogHelper {
+            return instance ?: synchronized(this) {
+                LogHelper().also {
+                    instance = it
+                }
             }
         }
-
-        val apiPublicKeyId: String by lazy {
-            if (System.getProperty("API_PUBLIC_KEY_ID") != null)
-                System.getProperty("API_PUBLIC_KEY_ID")
-            else
-                System.getenv("API_PUBLIC_KEY_ID")
-        }
-
-        val serviceURL: String by lazy {
-            when {
-                System.getProperty("SERVICE_URL") != null -> System.getProperty("SERVICE_URL")
-                System.getenv("SERVICE_URL") != null -> System.getenv("SERVICE_URL")
-                else -> "https://api.virgilsecurity.com"
-            }
-        }
-
-        val cardsServiceURL: String by lazy {
-            "$serviceURL/card/v5/"
-        }
-
-        val logLevel: Level = Level.ALL
     }
 }
