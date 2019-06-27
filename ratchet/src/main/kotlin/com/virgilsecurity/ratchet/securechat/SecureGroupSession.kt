@@ -46,7 +46,6 @@ import java.nio.charset.StandardCharsets
 class SecureGroupSession {
 
     val crypto: VirgilCrypto
-    //    val sessionStorage: GroupSessionStorage
     val ratchetGroupSession: RatchetGroupSession
     val syncObj = 1
 
@@ -70,7 +69,8 @@ class SecureGroupSession {
             val participantId = card.identifier.hexStringToByteArray()
 
             if (card.publicKey !is VirgilPublicKey) {
-                throw SecureGroupSessionException(SecureGroupSessionException.PUBLIC_KEY_IS_NOT_VIRGIL, "Card public key should be a VirgilPublicKey")
+                throw SecureGroupSessionException(SecureGroupSessionException.PUBLIC_KEY_IS_NOT_VIRGIL,
+                                                  "Card public key should be a VirgilPublicKey")
             }
             val publicKey = card.publicKey as VirgilPublicKey
             val publicKeyData = this.crypto.exportPublicKey(publicKey)
@@ -83,9 +83,9 @@ class SecureGroupSession {
     /**
      * Init session from serialized representation.
      *
-     * @param data serialized session
-     * @param privateKeyData private key data
-     * @param crypto VirgilCrypto
+     * @param data Serialized session.
+     * @param privateKeyData Private key data.
+     * @param crypto VirgilCrypto.
      */
     constructor(data: ByteArray, privateKeyData: ByteArray, crypto: VirgilCrypto) {
         this.crypto = crypto
@@ -120,8 +120,8 @@ class SecureGroupSession {
      * Encrypts string.
      * This operation changes session state, so session should be updated in storage.
      *
-     * @param string message to encrypt
-     * @return RatchetMessage
+     * @param string Message to encrypt.
+     * @return RatchetMessage.
      */
     fun encrypt(string: String): RatchetGroupMessage {
         val data = string.toByteArray(StandardCharsets.UTF_8)
@@ -132,8 +132,8 @@ class SecureGroupSession {
      * Encrypts data.
      * This operation changes session state, so session should be updated in storage.
      *
-     * @param data message to encrypt
-     * @return RatchetMessage
+     * @param data Message to encrypt.
+     * @return RatchetMessage.
      */
     fun encrypt(data: ByteArray): RatchetGroupMessage {
         synchronized(syncObj) {
@@ -145,15 +145,15 @@ class SecureGroupSession {
      * Decrypts data from RatchetMessage.
      * This operation changes session state, so session should be updated in storage.
      *
-     * @param message RatchetGroupMessage
-     * @param senderCardId Sender card id
-     * @return Decrypted data
+     * @param message RatchetGroupMessage.
+     * @param senderCardId Sender card id.
+     * @return Decrypted data.
      */
     fun decryptData(message: RatchetGroupMessage, senderCardId: String): ByteArray {
         if (message.type != GroupMsgType.REGULAR) {
             throw SecureGroupSessionException(SecureGroupSessionException.INVALID_MESSAGE_TYPE, "Message should be a REGULAR type")
         }
-        if (!senderCardId.equals(message.senderId.hexEncodedString())) {
+        if (senderCardId != message.senderId.hexEncodedString()) {
             throw SecureGroupSessionException(SecureGroupSessionException.WRONG_SENDER, "Sender id doesn't match")
         }
         synchronized(syncObj) {
@@ -165,9 +165,9 @@ class SecureGroupSession {
      * Decrypts utf-8 string from RatchetMessage.
      * This operation changes session state, so session should be updated in storage.
      *
-     * @param message RatchetGroupMessage
-     * @param senderCardId Sender card id
-     * @return Decrypted utf-8 string
+     * @param message RatchetGroupMessage.
+     * @param senderCardId Sender card id.
+     * @return Decrypted utf-8 string.
      */
     fun decryptString(message: RatchetGroupMessage, senderCardId: String): String {
         val data = this.decryptData(message, senderCardId)
@@ -183,12 +183,13 @@ class SecureGroupSession {
 
     /**
      * Set participants.
-     * NOTE: As this update is incremental, tickets should be applied strictly consequently
+     *
+     * NOTE: As this update is incremental, tickets should be applied strictly consequently.
      * NOTE: This operation changes session state, so session should be updated in storage.
      * Otherwise, use setParticipants()
      *
-     * @param ticket ticket
-     * @param cards participants to set
+     * @param ticket Ticket.
+     * @param cards Participants to set.
      */
     fun setParticipants(ticket: RatchetGroupMessage, cards: List<Card>) {
         if (ticket.type != GroupMsgType.GROUP_INFO) {
@@ -222,14 +223,14 @@ class SecureGroupSession {
 
     /**
      * Updates participants incrementally.
-     * NOTE: As this update is incremental, tickets should be applied strictly consequently
+     *
+     * NOTE: As this update is incremental, tickets should be applied strictly consequently.
      * NOTE: This operation changes session state, so session should be updated in storage.
-     * Otherwise, use setParticipants()
+     * Otherwise, use setParticipants().
      *
-     * @param ticket ticket
-     * @param addCards participants to add
-     * @param removeCardIds participants to remove
-     *
+     * @param ticket Ticket.
+     * @param addCards Participants to add.
+     * @param removeCardIds Participants to remove.
      */
     fun updateParticipants(ticket: RatchetGroupMessage, addCards: List<Card>, removeCardIds: List<String>) {
         if (ticket.type != GroupMsgType.GROUP_INFO) {

@@ -41,63 +41,62 @@ import com.google.gson.annotations.SerializedName
 class RotationLog {
 
     /**
-     * Number of unused one-time keys
+     * Number of unused one-time keys.
      */
     @SerializedName("one_time_keys_relevant")
     var oneTimeKeysRelevant = 0
 
     /**
-     * NUmber of one-time keys that were generated and uploaded to the cloud during this operation
+     * NUmber of one-time keys that were generated and uploaded to the cloud during this operation.
      */
     @SerializedName("one_time_keys_added")
     var oneTimeKeysAdded = 0
 
     /**
-     * Number of one-time keys that were deleted during this rotation
+     * Number of one-time keys that were deleted during this rotation.
      */
     @SerializedName("one_time_keys_deleted")
     var oneTimeKeysDeleted = 0
 
     /**
-     * Number of one-time keys that were marked orphaned during this operation
+     * Number of one-time keys that were marked orphaned during this operation.
      */
     @SerializedName("one_time_keys_marks_orphaned")
     var oneTimeKeysMarkedOrphaned = 0
 
     /**
-     * Number of one-time keys that were marked orphaned
+     * Number of one-time keys that were marked orphaned.
      */
     @SerializedName("one_time_keys_orphaned")
-    public var oneTimeKeysOrphaned = 0
+    var oneTimeKeysOrphaned = 0
 
     /**
-     * Number of relevant long-term keys
+     * Number of relevant long-term keys.
      */
     @SerializedName("long_term_keys_relevant")
     var longTermKeysRelevant = 0
 
     /**
-     * Number of long-term keys that were generated and uploaded to the cloud during this operation
+     * Number of long-term keys that were generated and uploaded to the cloud during this operation.
      */
     @SerializedName("long_term_keys_added")
     var longTermKeysAdded = 0
 
     /**
-     * Number of long-term keys that were deleted during this rotation
+     * Number of long-term keys that were deleted during this rotation.
      */
     @SerializedName("long_term_keys_deleted")
     var longTermKeysDeleted = 0
 
     /**
-     * Number of long-term keys that were marked orphaned outdated this operation
+     * Number of long-term keys that were marked orphaned outdated this operation.
      */
     @SerializedName("long_term_keys_marked_outdated")
     var longTermKeysMarkedOutdated = 0
 
     /**
-     * Number of long-term keys that were marked orphaned
+     * Number of long-term keys that were marked orphaned.
      */
     @SerializedName("long_term_keys_outdated")
     var longTermKeysOutdated = 0
-
 }

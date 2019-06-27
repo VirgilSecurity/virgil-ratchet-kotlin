@@ -33,8 +33,6 @@
 
 package com.virgilsecurity.ratchet.exception
 
-class Exceptions(message: String?) : Exception(message)
-
 /**
  * Exception that is thrown when Ratchet service answers with some error.
  */
@@ -43,51 +41,58 @@ class ProtocolException @JvmOverloads constructor(
         message: String? = "Unknown error"
 ) : Exception(message)
 
+/**
+ * Exception that is thrown when some errors occur while working with *KeyStorage*.
+ */
 class KeyStorageException @JvmOverloads constructor(
         val errorCode: Int = -1,
         message: String? = "Unknown error"
 ) : Exception(message) {
     companion object {
-        val KEY_ALREADY_EXISTS = 1
-        val KEY_NOT_FOUND = 2
-        val KEY_ALREADY_MARKED = 3
-        val ILLEGAL_STORAGE_STATE = 10000
+        const val KEY_ALREADY_EXISTS = 1
+        const val KEY_NOT_FOUND = 2
+        const val KEY_ALREADY_MARKED = 3
+        const val ILLEGAL_STORAGE_STATE = 10000
     }
 }
 
+/**
+ * Exception that is thrown when some error occurs while working with *SecureGroupSession*.
+ */
 class SecureGroupSessionException @JvmOverloads constructor(
         val errorCode: Int = -1,
         message: String? = "Unknown error"
 ) : Exception(message) {
     companion object {
-        val NOT_CONSEQUENT_TICKET = 2
-        val INVALID_MESSAGE_TYPE = 3
-        val INVALID_CARD_ID = 4
-        val PUBLIC_KEY_IS_NOT_VIRGIL = 5
-        val WRONG_SENDER = 6
-//        val WRONG_MESSAGE_TYPE = 1
-//        val WRONG_TICKET_TYPE = 2
-//        val CREATE_TICKET = 3
-//        val CHANGE_MEMBERS = 4
-//        val KEY_TYPE_NOT_SUPPORTED = 5
+        const val NOT_CONSEQUENT_TICKET = 2
+        const val INVALID_MESSAGE_TYPE = 3
+        const val INVALID_CARD_ID = 4
+        const val PUBLIC_KEY_IS_NOT_VIRGIL = 5
+        const val WRONG_SENDER = 6
     }
 }
 
+/**
+ * Exception that is thrown when some error occurs while working with *SecureChat*.
+ */
 class SecureChatException @JvmOverloads constructor(
         val errorCode: Int = -1,
         message: String? = "Unknown error"
 ) : Exception(message) {
     companion object {
-        val SESSION_ALREADY_EXISTS = 1
-        val WRONG_IDENTIRY_PUBLIC_KEY_CRYPTO = 2
-        val IDENTITY_KEY_DOESNT_MATCH = 3
-        val INVALID_LONG_TERM_KEY_SIGNATURE = 4
-        val INVALID_MESSAGE_TYPE = 5
-        val INVALID_KEY_TYPE = 6
-        val PUBLIC_KEY_SETS_MISMATCH = 7
-        val INVALID_SESSION_ID_LENGTH = 8
-        val INVALID_CARD_ID = 9
+        const val SESSION_ALREADY_EXISTS = 1
+        const val WRONG_IDENTIRY_PUBLIC_KEY_CRYPTO = 2
+        const val IDENTITY_KEY_DOESNT_MATCH = 3
+        const val INVALID_LONG_TERM_KEY_SIGNATURE = 4
+        const val INVALID_MESSAGE_TYPE = 5
+        const val INVALID_KEY_TYPE = 6
+        const val PUBLIC_KEY_SETS_MISMATCH = 7
+        const val INVALID_SESSION_ID_LENGTH = 8
+        const val INVALID_CARD_ID = 9
     }
 }
 
-class HexEncodingException(message: String? = "Hex encoding failed") : Exception(message) {}
+/**
+ * Exception that is thrown when Hex encoding is failed.
+ */
+class HexEncodingException(message: String? = "Hex encoding failed") : Exception(message)

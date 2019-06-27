@@ -41,26 +41,21 @@ import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 
 /**
  * GroupSessionStorage implementation using files.
+ *
+ * @constructor Create new instance with: [identity] - Identity of this user, [crypto] - VirgilCrypto that will be
+ * forwarded to SecureSession, [identityKeyPair] - Key pair to encrypt session, [rootPath] - Root path.
  */
-class FileGroupSessionStorage : GroupSessionStorage {
+class FileGroupSessionStorage(
+        identity: String,
+        private val crypto: VirgilCrypto,
+        identityKeyPair: VirgilKeyPair,
+        rootPath: String? = null
+) : GroupSessionStorage {
 
     private val fileSystem: SecureFileSystem
-    private val crypto: VirgilCrypto
-    private val privateKeyData: ByteArray
+    private val privateKeyData: ByteArray = crypto.exportPrivateKey(identityKeyPair.privateKey)
 
-    /**
-     * Create new instance.
-     *
-     * @param identity identity of this user
-     * @param crypto VirgilCrypto that will be forwarded to SecureSession
-     * @param identityKeyPair Key pair to encrypt session
-     * @param rootPath TBD
-     *
-     */
-    constructor(identity: String, crypto: VirgilCrypto, identityKeyPair: VirgilKeyPair, rootPath: String? = null) {
-        this.crypto = crypto
-        this.privateKeyData = crypto.exportPrivateKey(identityKeyPair.privateKey)
-
+    init {
         val credentials = SecureFileSystem.Credentials(crypto, identityKeyPair)
         this.fileSystem = SecureFileSystem(identity, rootPath, listOf("GROUPS"), credentials)
     }
@@ -93,5 +88,4 @@ class FileGroupSessionStorage : GroupSessionStorage {
             this.fileSystem.deleteDir()
         }
     }
-
 }

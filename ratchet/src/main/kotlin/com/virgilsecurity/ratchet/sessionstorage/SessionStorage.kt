@@ -43,24 +43,24 @@ interface SessionStorage {
     /**
      * Stores session.
      *
-     * @param session session to store
+     * @param session Session to store.
      */
     fun storeSession(session: SecureSession)
 
     /**
      * Retrieves session.
      *
-     * @param participantIdentity participant identity
-     * @param name name
-     * @return Stored session if found, null otherwise
+     * @param participantIdentity Participant identity.
+     * @param name Name.
+     * @return Stored session if found, null otherwise.
      */
     fun retrieveSession(participantIdentity: String, name: String): SecureSession?
 
     /**
      * Deletes session.
      *
-     * @param participantIdentity participant identity
-     * @param name name
+     * @param participantIdentity Participant identity.
+     * @param name Name.
      */
     fun deleteSession(participantIdentity: String, name: String?)
 

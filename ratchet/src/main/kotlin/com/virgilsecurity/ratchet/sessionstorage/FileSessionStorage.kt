@@ -41,24 +41,22 @@ import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 /**
  * SessionStorage implementation using files.
  * This class is thread-safe.
+ *
+ * @constructor Create new instance, with: [identity] - identity of this user, [crypto] - VirgilCrypto that will
+ * be forwarded to SecureSession, [identityKeyPair] - Identity key pair, [rootPath] - Root path.
  */
-class FileSessionStorage : SessionStorage {
+class FileSessionStorage(
+        identity: String,
+        private val crypto: VirgilCrypto,
+        identityKeyPair: VirgilKeyPair,
+        rootPath: String? = null
+) : SessionStorage {
 
     private val fileSystem: SecureFileSystem
-    private val crypto: VirgilCrypto
 
-    /**
-     * Create new instance.
-     *
-     * @param identity identity of this user
-     * @param crypto VirgilCrypto that will be forwarded to SecureSession
-     * @param identityKeyPair TBD
-     * @param rootPath TBD
-     */
-    constructor(identity: String, crypto: VirgilCrypto, identityKeyPair: VirgilKeyPair, rootPath: String? = null) {
+    init {
         val credentials = SecureFileSystem.Credentials(crypto, identityKeyPair)
         this.fileSystem = SecureFileSystem(identity, rootPath, listOf("SESSIONS"), credentials)
-        this.crypto = crypto
     }
 
     override fun storeSession(session: SecureSession) {
@@ -92,5 +90,4 @@ class FileSessionStorage : SessionStorage {
             this.fileSystem.deleteDir()
         }
     }
-
 }

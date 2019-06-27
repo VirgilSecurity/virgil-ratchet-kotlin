@@ -42,7 +42,21 @@ import com.virgilsecurity.sdk.jwt.contract.AccessToken
 interface KeysRotatorInterface {
 
     /**
-     * Rotates keys.
+     * Rotate keys.
+     *
+     * Rotation process:
+     * - Retrieve all one-time keys
+     * - Delete one-time keys that were marked as orphaned more than orphanedOneTimeKeyTtl seconds ago
+     * - Retrieve all long-term keys
+     * - Delete long-term keys that were marked as outdated more than outdatedLongTermKeyTtl seconds ago
+     * - Check that all relevant long-term and one-time keys are in the cloud
+     *   (still persistent in the cloud and were not used)
+     * - Mark used one-time keys as used
+     * - Decide on long-term key rotation
+     * - Generate needed number of one-time keys
+     * - Upload keys to the cloud
+     *
+     * @return Rotation log.
      */
     fun rotateKeys(token: AccessToken): Result<RotationLog>
 }

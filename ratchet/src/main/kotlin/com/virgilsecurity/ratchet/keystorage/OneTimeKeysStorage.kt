@@ -43,7 +43,7 @@ interface OneTimeKeysStorage {
     /**
      * Starts interaction with storage.
      * This method should be called before any other interaction with storage.
-     * This method can be called many times and works like a stack
+     * This method can be called many times and works like a stack.
      */
     fun startInteraction()
 

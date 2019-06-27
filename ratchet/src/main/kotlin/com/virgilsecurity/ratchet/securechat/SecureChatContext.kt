@@ -40,10 +40,10 @@ import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 /**
  * Create new instance.
  *
- * @param identity user's identity
- * @param identityCard user's identity card id
- * @param identityKeyPair user's identity key pair (corresponding to public key in identityCard)
- * @param accessTokenProvider access token provider
+ * @param identity User's identity.
+ * @param identityCard User's identity card id.
+ * @param identityKeyPair User's identity key pair (corresponding to public key in identityCard).
+ * @param accessTokenProvider Access token provider.
  */
 class SecureChatContext(
         val identity: String,
@@ -54,27 +54,27 @@ class SecureChatContext(
 ) {
 
     /**
-     * Time that one-time key lives in the storage after been marked as orphaned. Seconds
+     * Time that one-time key lives in the storage after been marked as orphaned in seconds.
      */
     var orphanedOneTimeKeyTtl = 24 * 60 * 60
 
     /**
-     * Time that long-term key is been used before rotation. Seconds
+     * Time that long-term key is been used before rotation in seconds.
      */
     var longTermKeyTtl = 5 * 24 * 60 * 60
 
     /**
-     * Time that long-term key lives in the storage after been marked as outdated. Seconds
+     * Time that long-term key lives in the storage after been marked as outdated in seconds.
      */
     var outdatedLongTermKeyTtl = 24 * 60 * 60
 
     /**
-     * Desired number of one-time keys
+     * Desired number of one-time keys.
      */
     var desiredNumberOfOneTimeKeys = 100
 
     /**
-     * App name
+     * App name.
      */
     var appName: String? = null
 }

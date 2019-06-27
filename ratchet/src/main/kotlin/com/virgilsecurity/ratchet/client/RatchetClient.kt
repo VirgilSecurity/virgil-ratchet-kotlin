@@ -50,7 +50,7 @@ import com.virgilsecurity.sdk.utils.ConvertionUtils
 import java.net.URL
 
 /**
- *  Client used to communicate with ratchet service
+ *  Client used to communicate with ratchet service.
  */
 class RatchetClient : RatchetClientInterface { // TODO check code, comments, line breaks, @throws, etc
 
@@ -62,7 +62,7 @@ class RatchetClient : RatchetClientInterface { // TODO check code, comments, lin
      * Initializes a new `RatchetClient` instance.
      */
     constructor() {
-        serviceUrl = "https://api.virgilsecurity.com"
+        serviceUrl = VIRGIL_API_BASE_URL
         virgilAgentHeader =
                 "$VIRGIL_AGENT_PRODUCT;$VIRGIL_AGENT_FAMILY;${OsUtils.osAgentName};${VersionVirgilAgent.VERSION}"
     }
@@ -83,12 +83,15 @@ class RatchetClient : RatchetClientInterface { // TODO check code, comments, lin
      *
      * Long-term public key signature should be verified.
      * Upload priority: identity card id > long-term public key > one-time public key.
-     * Which means long-term public key can't be uploaded if identity card id is absent in the cloud and one-time public key can't be uploaded if long-term public key is absent in the cloud.
+     * Which means long-term public key can't be uploaded if identity card id is absent in the cloud and one-time
+     * public key can't be uploaded if long-term public key is absent in the cloud.
      *
-     * @param identityCardId Identity cardId that should be available on Card service. It's public key should be ED25519.
-     * @param longTermPublicKey long-term public key + its signature created using identity private key. Should be X25518 in PKCS#8.
-     * @param oneTimePublicKeys one-time public keys (up to 150 keys in the cloud). Should be X25518 in PKCS#8
-     * @param token auth token (JWT)
+     * @param identityCardId Identity cardId that should be available on Card service.
+     * It's public key should be ED25519.
+     * @param longTermPublicKey Long-term public key + its signature created using identity private key.
+     * Should be X25518 in PKCS#8.
+     * @param oneTimePublicKeys One-time public keys (up to 150 keys in the cloud). Should be X25518 in PKCS#8.
+     * @param token Auth token (JWT).
      *
      * @throws ProtocolException
      */
@@ -100,7 +103,7 @@ class RatchetClient : RatchetClientInterface { // TODO check code, comments, lin
     ) = object : Completable {
         override fun execute() {
             val request = UploadPublicKeysRequest(identityCardId, longTermPublicKey, oneTimePublicKeys)
-            executeRequest("/pfs/v2/keys", Method.PUT, request, token).get() // TODO move string to const val
+            executeRequest(PFS_BASE_URL, Method.PUT, request, token).get()
         }
     }
 
@@ -109,9 +112,9 @@ class RatchetClient : RatchetClientInterface { // TODO check code, comments, lin
      *
      * keyId == SHA512(raw 32-byte publicKey)[0..7].
      *
-     * @param longTermKeyId long-term public key id to validate.
-     * @param oneTimeKeysIds list of one-time public keys ids to validate.
-     * @param token auth token (JWT).
+     * @param longTermKeyId Long-term public key id to validate.
+     * @param oneTimeKeysIds List of one-time public keys ids to validate.
+     * @param token Auth token (JWT).
      *
      * @return Object with used keys ids.
      */
@@ -126,7 +129,7 @@ class RatchetClient : RatchetClientInterface { // TODO check code, comments, lin
             }
 
             val request = ValidatePublicKeysRequest(longTermKeyId, oneTimeKeysIds)
-            val responseBody = executeRequest("/pfs/v2/keys/actions/validate", Method.POST, request, token).get()
+            val responseBody = executeRequest(PFS_BASE_URL + ACTIONS_VALIDATE, Method.POST, request, token).get()
             val keys = ConvertionUtils.getGson().fromJson(responseBody, ValidatePublicKeysResponse::class.java)
             return keys
         }
@@ -136,14 +139,14 @@ class RatchetClient : RatchetClientInterface { // TODO check code, comments, lin
      * Returns public keys set for given identity.
      *
      * @param identity User's identity.
-     * @param token auth token (JWT).
+     * @param token Auth token (JWT).
      *
      * @return Set of public keys.
      */
     override fun getPublicKeySet(identity: String, token: String) = object : Result<PublicKeySet> {
         override fun get(): PublicKeySet {
             val request = GetPublicKeySetRequest(identity)
-            val responseBody = executeRequest("/pfs/v2/keys/actions/pick-one", Method.POST, request, token).get()
+            val responseBody = executeRequest(PFS_BASE_URL + ACTIONS_PICK_ONE, Method.POST, request, token).get()
 
             val keySet = ConvertionUtils.getGson().fromJson(responseBody, PublicKeySet::class.java)
             return keySet
@@ -153,8 +156,8 @@ class RatchetClient : RatchetClientInterface { // TODO check code, comments, lin
     /**
      * Returns public keys sets for given identities.
      *
-     * @param identities Users' identities
-     * @param token auth token (JWT)
+     * @param identities Users' identities.
+     * @param token Auth token (JWT).
      *
      * @return Sets of public keys.
      */
@@ -162,7 +165,7 @@ class RatchetClient : RatchetClientInterface { // TODO check code, comments, lin
                                            token: String) = object : Result<List<IdentityPublicKeySet>> {
         override fun get(): List<IdentityPublicKeySet> {
             val request = GetMultiplePublicKeysSetsRequest(identities)
-            val responseBody = executeRequest("/pfs/v2/keys/actions/pick-batch", Method.POST, request, token).get()
+            val responseBody = executeRequest(PFS_BASE_URL + ACTIONS_PICK_BATCH, Method.POST, request, token).get()
 
             val listType = object : TypeToken<List<IdentityPublicKeySet>>() {}.type
             val keySet = ConvertionUtils.getGson().fromJson<List<IdentityPublicKeySet>>(responseBody, listType)
@@ -173,22 +176,22 @@ class RatchetClient : RatchetClientInterface { // TODO check code, comments, lin
     /**
      * Deletes keys entity.
      *
-     * @param token auth token (JWT).
+     * @param token Auth token (JWT).
      */
     override fun deleteKeysEntity(token: String) = object : Completable {
         override fun execute() {
-            executeRequest("/pfs/v2/keys", Method.DELETE, null, token).get()
+            executeRequest(PFS_BASE_URL, Method.DELETE, null, token).get()
         }
     }
 
     /**
-     * Throws an [ProtocolException] or [ProtocolHttpException] if the [response] is not successful.
+     * Throws an [ProtocolException] if the [response] is not successful.
      */
     @Throws(ProtocolException::class)
     private fun validateResponse(response: Response) {
         if (!response.isSuccessful) {
             val errorBody = ConvertionUtils.toString(response.data)
-            val error = ConvertionUtils.getGson().fromJson<ErrorResponse>(errorBody, ErrorResponse::class.java)
+            val error = ConvertionUtils.getGson().fromJson(errorBody, ErrorResponse::class.java)
             if (error != null) {
                 throw ProtocolException(error.code, error.message)
             } else {
@@ -197,6 +200,12 @@ class RatchetClient : RatchetClientInterface { // TODO check code, comments, lin
         }
     }
 
+    /**
+     * Executes request with provided [path], [method] as [Method], [body] and [token].
+     *
+     * @throws ProtocolException If the response is not successful.
+     */
+    @Throws(ProtocolException::class)
     private fun executeRequest(path: String, method: Method, body: Any?, token: String) = object : Result<String> {
         override fun get(): String {
             logHelper.logger.fine("$method $path")
@@ -222,5 +231,11 @@ class RatchetClient : RatchetClientInterface { // TODO check code, comments, lin
         private const val VIRGIL_AGENT_PRODUCT = "ratchet"
         private const val VIRGIL_AGENT_FAMILY = "jvm"
         private const val VIRGIL_AUTHORIZATION_HEADER_KEY = "Authorization"
+
+        private const val VIRGIL_API_BASE_URL = "https://api.virgilsecurity.com"
+        private const val PFS_BASE_URL = "/pfs/v2/keys"
+        private const val ACTIONS_VALIDATE = "/actions/validate"
+        private const val ACTIONS_PICK_ONE = "/actions/pick-one"
+        private const val ACTIONS_PICK_BATCH = "/actions/pick-batch"
     }
 }

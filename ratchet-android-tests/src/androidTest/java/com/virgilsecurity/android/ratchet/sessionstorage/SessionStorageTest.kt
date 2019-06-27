@@ -33,11 +33,13 @@
 
 package com.virgilsecurity.android.ratchet.sessionstorage
 
+import com.virgilsecurity.android.ratchet.TestConfig
 import com.virgilsecurity.android.ratchet.generateIdentity
 import com.virgilsecurity.android.ratchet.generateText
 import com.virgilsecurity.ratchet.securechat.SecureSession
 import com.virgilsecurity.ratchet.sessionstorage.FileSessionStorage
 import com.virgilsecurity.ratchet.sessionstorage.SessionStorage
+import com.virgilsecurity.ratchet.utils.LogHelper
 import com.virgilsecurity.sdk.crypto.KeyType
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
@@ -54,6 +56,7 @@ class SessionStorageTest {
 
     @Before
     fun setup() {
+        LogHelper.instance().logLevel = TestConfig.logLevel
         this.crypto = VirgilCrypto()
         this.identity = generateIdentity()
         this.identityKeyPair = this.crypto.generateKeyPair(KeyType.ED25519)

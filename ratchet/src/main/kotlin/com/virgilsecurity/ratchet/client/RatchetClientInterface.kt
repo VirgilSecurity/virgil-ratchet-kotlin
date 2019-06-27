@@ -50,11 +50,14 @@ interface RatchetClientInterface {
      *
      * Long-term public key signature should be verified.
      * Upload priority: identity card id > long-term public key > one-time public key.
-     * Which means long-term public key can't be uploaded if identity card id is absent in the cloud and one-time public key can't be uploaded if long-term public key is absent in the cloud.
+     * Which means long-term public key can't be uploaded if identity card id is absent in the cloud and one-time
+     * public key can't be uploaded if long-term public key is absent in the cloud.
      *
-     * @param identityCardId Identity cardId that should be available on Card service. It's public key should be ED25519.
-     * @param longTermPublicKey long-term public key + its signature created using identity private key. Should be X25518 in PKCS#8.
-     * @param oneTimePublicKeys one-time public keys (up to 150 keys in the cloud). Should be X25518 in PKCS#8
+     * @param identityCardId Identity cardId that should be available on Card service.
+     * It's public key should be ED25519.
+     * @param longTermPublicKey Long-term public key + its signature created using identity private key.
+     * Should be X25518 in PKCS#8.
+     * @param oneTimePublicKeys One-time public keys (up to 150 keys in the cloud). Should be X25518 in PKCS#8.
      * @param token auth token (JWT)
      */
     fun uploadPublicKeys(
@@ -69,9 +72,9 @@ interface RatchetClientInterface {
      *
      * keyId == SHA512(raw 32-byte publicKey)[0..7].
      *
-     * @param longTermKeyId long-term public key id to validate.
-     * @param oneTimeKeysIds list of one-time public keys ids to validate.
-     * @param token auth token (JWT).
+     * @param longTermKeyId Long-term public key id to validate.
+     * @param oneTimeKeysIds List of one-time public keys ids to validate.
+     * @param token Auth token (JWT).
      *
      * @return Object with used keys ids.
      */
@@ -85,7 +88,7 @@ interface RatchetClientInterface {
      * Returns public keys set for given identity.
      *
      * @param identity User's identity.
-     * @param token auth token (JWT).
+     * @param token Auth token (JWT).
      *
      * @return Set of public keys.
      */
@@ -94,8 +97,8 @@ interface RatchetClientInterface {
     /**
      * Returns public keys sets for given identities.
      *
-     * @param identities Users' identities
-     * @param token auth token (JWT)
+     * @param identities Users' identities.
+     * @param token Auth token (JWT).
      *
      * @return Sets of public keys.
      */
@@ -104,8 +107,7 @@ interface RatchetClientInterface {
     /**
      * Deletes keys entity.
      *
-     * @param token auth token (JWT).
+     * @param token Auth token (JWT).
      */
     fun deleteKeysEntity(token: String): Completable
-
 }

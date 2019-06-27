@@ -33,7 +33,6 @@
 
 package com.virgilsecurity.ratchet.securechat.keysrotation
 
-import com.sun.xml.internal.ws.spi.db.BindingContextFactory.LOGGER
 import com.virgilsecurity.crypto.ratchet.RatchetKeyId
 import com.virgilsecurity.ratchet.*
 import com.virgilsecurity.ratchet.utils.LogHelper
@@ -52,7 +51,6 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.concurrent.TimeUnit
-import java.util.logging.Level
 
 class KeysRotatorTest {
 

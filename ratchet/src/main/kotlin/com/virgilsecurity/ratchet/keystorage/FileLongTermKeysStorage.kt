@@ -42,13 +42,21 @@ import com.virgilsecurity.sdk.utils.ConvertionUtils
 import java.nio.charset.StandardCharsets
 import java.util.*
 
-class FileLongTermKeysStorage : LongTermKeysStorage {
+/**
+ * FileLongTermKeysStorage is used to store long-term keys.
+ */
+class FileLongTermKeysStorage(
+        identity: String,
+        crypto: VirgilCrypto,
+        identityKeyPair: VirgilKeyPair,
+        rootPath: String? = null
+) : LongTermKeysStorage {
 
     private val fileSystem: SecureFileSystem
 
-    constructor(identity: String, crypto: VirgilCrypto, identityKeyPair: VirgilKeyPair, rootPath: String? = null) {
+    init {
         val credentials = SecureFileSystem.Credentials(crypto, identityKeyPair)
-        fileSystem = SecureFileSystem(identity, rootPath, listOf("ltks"), credentials)
+        fileSystem = SecureFileSystem(identity, rootPath, listOf(LONG_TIME_KEY_STORAGE), credentials)
     }
 
     override fun storeKey(key: ByteArray, keyId: ByteArray): LongTermKey {
@@ -87,7 +95,7 @@ class FileLongTermKeysStorage : LongTermKeysStorage {
     override fun markKeyOutdated(date: Date, keyId: ByteArray) {
         val keyIdHex = keyId.hexEncodedString()
         val longTermKey = retrieveKey(keyId)
-        val newLongTermKey = LongTermKey(longTermKey.identifier, longTermKey.key, longTermKey.creationDate, Date())
+        val newLongTermKey = LongTermKey(longTermKey.identifier, longTermKey.key, longTermKey.creationDate, date)
         val data = ConvertionUtils.getGson().toJson(newLongTermKey).toByteArray(StandardCharsets.UTF_8)
         fileSystem.write(keyIdHex, data)
     }
@@ -96,4 +104,7 @@ class FileLongTermKeysStorage : LongTermKeysStorage {
         this.fileSystem.deleteDir()
     }
 
+    companion object {
+        private const val LONG_TIME_KEY_STORAGE = "ltks"
+    }
 }

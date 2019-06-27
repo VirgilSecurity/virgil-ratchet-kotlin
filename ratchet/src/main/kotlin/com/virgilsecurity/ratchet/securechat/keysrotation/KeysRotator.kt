@@ -54,16 +54,16 @@ import kotlin.math.max
 /**
  * Default implementation of KeysRotatorInterface.
  *
- * @param crypto VirgilCrypto instance
- * @param identityPrivateKey identity private key
- * @param identityCardId identity card id
- * @param orphanedOneTimeKeyTtl time that one-time key lives in the storage after been marked as orphaned. Seconds
- * @param longTermKeyTtl time that long-term key is been used before rotation. Seconds
- * @param outdatedLongTermKeyTtl time that long-term key lives in the storage after been marked as outdated. Seconds
- * @param desiredNumberOfOneTimeKeys desired number of one-time keys
- * @param longTermKeysStorage long-term keys storage
- * @param oneTimeKeysStorage one-time keys storage
- * @param client RatchetClient
+ * @param crypto VirgilCrypto instance.
+ * @param identityPrivateKey Identity private key.
+ * @param identityCardId Identity card id.
+ * @param orphanedOneTimeKeyTtl Time that one-time key lives in the storage after been marked as orphaned in seconds.
+ * @param longTermKeyTtl Time that long-term key is been used before rotation in seconds.
+ * @param outdatedLongTermKeyTtl Time that long-term key lives in the storage after been marked as outdated in seconds.
+ * @param desiredNumberOfOneTimeKeys desired number of one-time keys.
+ * @param longTermKeysStorage Long-term keys storage.
+ * @param oneTimeKeysStorage One-time keys storage.
+ * @param client RatchetClient.
  */
 class KeysRotator(
         private val crypto: VirgilCrypto,
@@ -81,23 +81,6 @@ class KeysRotator(
     private val keyId = RatchetKeyId()
     private val logHelper = LogHelper.instance()
 
-    /**
-     * Rotate keys.
-     *
-     * Rotation process:
-     * - Retrieve all one-time keys
-     * - Delete one-time keys that were marked as orphaned more than orphanedOneTimeKeyTtl seconds ago
-     * - Retrieve all long-term keys
-     * - Delete long-term keys that were marked as outdated more than outdatedLongTermKeyTtl seconds ago
-     * - Check that all relevant long-term and one-time keys are in the cloud
-     *   (still persistent in the cloud and were not used)
-     * - Mark used one-time keys as used
-     * - Decide on long-term key roration
-     * - Generate needed number of one-time keys
-     * - Upload keys to the cloud
-     *
-     * @return rotation log
-     */
     @Synchronized
     override fun rotateKeys(token: AccessToken) = object : Result<RotationLog> {
         override fun get(): RotationLog {
@@ -109,7 +92,7 @@ class KeysRotator(
             try {
 
                 val oneTimeKeys = this@KeysRotator.oneTimeKeysStorage.retrieveAllKeys()
-                var oneTimeKeysIds = mutableListOf<ByteArray>()
+                val oneTimeKeysIds = mutableListOf<ByteArray>()
 
                 oneTimeKeys.forEach {
                     val orphanedFrom = it.orphanedFrom
@@ -181,7 +164,7 @@ class KeysRotator(
                     rotateLongTermKey = true
                 }
 
-                var longTermSignedPublicKey: SignedPublicKey?
+                val longTermSignedPublicKey: SignedPublicKey?
                 if (rotateLongTermKey) {
                     logHelper.logger.fine("Rotating long-term key")
                     val longTermKeyPair = this@KeysRotator.crypto.generateKeyPair(KeyType.CURVE25519)
@@ -203,9 +186,9 @@ class KeysRotator(
                         max(this@KeysRotator.desiredNumberOfOneTimeKeys - numOfRelevantOneTimeKeys, 0)
 
                 logHelper.logger.fine("Generating $numbOfOneTimeKeysToGen one-time keys")
-                var oneTimePublicKeys: MutableList<ByteArray>
+                val oneTimePublicKeys: MutableList<ByteArray>
                 if (numbOfOneTimeKeysToGen > 0) {
-                    var publicKeys = mutableListOf<ByteArray>()
+                    val publicKeys = mutableListOf<ByteArray>()
                     for (i in 1..numbOfOneTimeKeysToGen) {
                         logHelper.logger.fine("Generation $i key of $numbOfOneTimeKeysToGen")
                         val keyPair = this@KeysRotator.crypto.generateKeyPair(KeyType.CURVE25519)

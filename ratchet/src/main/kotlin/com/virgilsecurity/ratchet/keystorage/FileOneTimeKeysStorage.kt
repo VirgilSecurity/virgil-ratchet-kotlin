@@ -44,16 +44,24 @@ import com.virgilsecurity.sdk.utils.ConvertionUtils
 import java.nio.charset.StandardCharsets
 import java.util.*
 
-class FileOneTimeKeysStorage : OneTimeKeysStorage {
+/**
+ * FileOneTimeKeysStorage is used to store one-time keys.
+ */
+class FileOneTimeKeysStorage(
+        identity: String,
+        crypto: VirgilCrypto,
+        identityKeyPair: VirgilKeyPair,
+        rootPath: String? = null
+) : OneTimeKeysStorage {
 
     private val fileSystem: SecureFileSystem
     private var oneTimeKeys: OneTimeKeys? = null
     private var interactionCounter = 0
     private val logHelper = LogHelper.instance()
 
-    constructor(identity: String, crypto: VirgilCrypto, identityKeyPair: VirgilKeyPair, rootPath: String? = null) {
+    init {
         val credentials = SecureFileSystem.Credentials(crypto, identityKeyPair)
-        fileSystem = SecureFileSystem(identity, rootPath, listOf("otks"), credentials)
+        fileSystem = SecureFileSystem(identity, rootPath, listOf(ONE_TIME_KEY_STORAGE), credentials)
     }
 
     override fun startInteraction() {
@@ -68,7 +76,7 @@ class FileOneTimeKeysStorage : OneTimeKeysStorage {
                 throw KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "oneTimeKeys should be null")
             }
 
-            val data = fileSystem.read("OTK")
+            val data = fileSystem.read(ONE_TIME_KEY)
 
             oneTimeKeys = if (data.isNotEmpty()) {
                 ConvertionUtils.getGson().fromJson(data.toString(StandardCharsets.UTF_8), OneTimeKeys::class.java)
@@ -94,7 +102,7 @@ class FileOneTimeKeysStorage : OneTimeKeysStorage {
             }
 
             if (oneTimeKeys == null) {
-                KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "oneTimeKeys should not be nil")
+                throw KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "oneTimeKeys should not be nil")
             }
 
             val data = ConvertionUtils.getGson().toJson(oneTimeKeys).toByteArray(StandardCharsets.UTF_8)
@@ -108,7 +116,7 @@ class FileOneTimeKeysStorage : OneTimeKeysStorage {
         logHelper.logger.fine("storeKey")
         synchronized(interactionCounter) {
             if (oneTimeKeys == null) {
-                KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "oneTimeKeys should not be nil")
+                throw KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "oneTimeKeys should not be nil")
             }
 
             val existedKey = oneTimeKeys!!.oneTimeKeys.firstOrNull { it.identifier.contentEquals(keyId) }
@@ -116,7 +124,7 @@ class FileOneTimeKeysStorage : OneTimeKeysStorage {
                 throw KeyStorageException(KeyStorageException.KEY_ALREADY_EXISTS, "One time key already exists")
             }
 
-            var oneTimeKey = OneTimeKey(keyId, key)
+            val oneTimeKey = OneTimeKey(keyId, key)
             oneTimeKeys!!.oneTimeKeys.add(oneTimeKey)
 
             return oneTimeKey
@@ -128,8 +136,7 @@ class FileOneTimeKeysStorage : OneTimeKeysStorage {
             throw KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "oneTimeKeys should not be null")
         }
 
-        val oneTimeKey =
-                oneTimeKeys!!.oneTimeKeys.firstOrNull { it.identifier.contentEquals(keyId) }
+        val oneTimeKey = oneTimeKeys!!.oneTimeKeys.firstOrNull { it.identifier.contentEquals(keyId) }
                         ?: throw KeyStorageException(
                                 KeyStorageException.KEY_NOT_FOUND,
                                 "One time key doesn't exist"
@@ -191,4 +198,8 @@ class FileOneTimeKeysStorage : OneTimeKeysStorage {
         var oneTimeKeys = mutableListOf<OneTimeKey>()
     }
 
+    companion object {
+        private const val ONE_TIME_KEY_STORAGE = "otks"
+        private const val ONE_TIME_KEY = "OTK"
+    }
 }

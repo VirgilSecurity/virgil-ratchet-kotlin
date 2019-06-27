@@ -35,9 +35,8 @@ package com.virgilsecurity.ratchet.utils
 
 import com.virgilsecurity.ratchet.exception.HexEncodingException
 import java.util.*
-import java.util.logging.Logger
 
-private val HEX_CHARS = "0123456789abcdef"
+private const val HEX_CHARS = "0123456789abcdef"
 private val HEX_CHARS_ARR = HEX_CHARS.toCharArray()
 
 fun ByteArray.hexEncodedString(): String {

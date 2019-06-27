@@ -43,22 +43,22 @@ interface GroupSessionStorage {
     /**
      * Stores session.
      *
-     * @param session session to store
+     * @param session Session to store.
      */
     fun storeSession(session: SecureGroupSession)
 
     /**
      * Retrieves session.
      *
-     * @param identifier session identifier
-     * @return Stored session if found, null otherwise
+     * @param identifier Session identifier.
+     * @return Stored session if found, null otherwise.
      */
     fun retrieveSession(identifier: ByteArray): SecureGroupSession?
 
     /**
      * Deletes session.
      *
-     * @param identifier session identifier
+     * @param identifier Session identifier.
      */
     fun deleteSession(identifier: ByteArray)
 

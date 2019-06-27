@@ -33,30 +33,33 @@
 
 package com.virgilsecurity.android.ratchet
 
+import android.content.Context
 import android.support.test.InstrumentationRegistry
 import android.util.Base64
 import com.virgilsecurity.ratchet_android_tests.BuildConfig
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
+import java.util.logging.Level
 
 class TestConfig {
 
     companion object {
         val virgilCrypto = VirgilCrypto(false)
-        val appId: String = BuildConfig.APP_ID
+
+        const val appId: String = BuildConfig.APP_ID
+
         val apiPrivateKey: VirgilPrivateKey by lazy {
             virgilCrypto.importPrivateKey(Base64.decode(BuildConfig.API_PRIVATE_KEY, Base64.NO_WRAP)).privateKey
         }
-        val apiPublicKeyId: String = BuildConfig.API_PUBLIC_KEY_ID
-        val serviceURL: String by lazy {
-            when {
-                BuildConfig.SERVICE_URL != null -> BuildConfig.SERVICE_URL
-                else -> "https://api.virgilsecurity.com"
-            }
-        }
-        val cardsServiceURL: String by lazy {
-            "$serviceURL/card/v5/"
-        }
-        val context = InstrumentationRegistry.getTargetContext()
+
+        const val apiPublicKeyId: String = BuildConfig.API_PUBLIC_KEY_ID
+
+        val serviceURL: String by lazy { BuildConfig.SERVICE_URL }
+
+        val cardsServiceURL: String by lazy { "$serviceURL/card/v5/" }
+
+        val context: Context = InstrumentationRegistry.getTargetContext()
+
+        val logLevel: Level = Level.ALL
     }
 }

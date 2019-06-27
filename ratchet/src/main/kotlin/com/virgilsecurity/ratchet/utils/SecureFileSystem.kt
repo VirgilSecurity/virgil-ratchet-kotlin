@@ -36,7 +36,11 @@ package com.virgilsecurity.ratchet.utils
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 import java.io.File
+import java.lang.IllegalStateException
 
+/**
+ * SecureFileSystem class provides access to secure file system.
+ */
 class SecureFileSystem constructor(
         val userIdentifier: String,
         val rootPath: String?,
@@ -46,27 +50,43 @@ class SecureFileSystem constructor(
 
     private val logHelper = LogHelper.instance()
 
+    /**
+     * Credentials contains required arguments to initialize [SecureFileSystem].
+     */
     class Credentials(
             val crypto: VirgilCrypto,
             val keyPair: VirgilKeyPair
     )
 
+    /**
+     * Writes [data] to the file with provided [name], into the [subDir] if provided.
+     */
     fun write(name: String, data: ByteArray, subDir: String? = null) {
         val path = getFullPath(name, subDir)
         writeFile(path, data)
     }
 
+    /**
+     * Reads [ByteArray] from the file with provided [name], from the [subDir] if provided.
+     */
     fun read(name: String, subDir: String? = null): ByteArray {
         val path = getFullPath(name, subDir)
         return readFile(path)
     }
 
+    /**
+     * Lists all names of files in [subDir] if provided.
+     */
     fun list(subDir: String? = null): List<String> {
         val path = getFullPath(null, subDir)
         val file = File(path)
-        return file.listFiles().filter { it.isFile }.map { it.name }
+        return file.listFiles()?.filter { it.isFile }?.map { it.name }
+                ?: throw IllegalStateException("Folder should contain files.")
     }
 
+    /**
+     * Deletes file with [name] from the [subDir] if provided.
+     */
     fun delete(name: String, subDir: String? = null) {
         val filePath = getFullPath(name, subDir)
         val file = File(filePath)
@@ -74,6 +94,9 @@ class SecureFileSystem constructor(
             file.delete()
     }
 
+    /**
+     * Deletes the [subDir] if provided. Otherwise deletes default dir.
+     */
     fun deleteDir(subDir: String? = null) {
         val path = getFullPath(null, subDir)
         logHelper.logger.fine("Deleting directory $path")

@@ -37,7 +37,7 @@ import com.virgilsecurity.android.ratchet.*
 import com.virgilsecurity.crypto.ratchet.RatchetKeyId
 import com.virgilsecurity.ratchet.securechat.keysrotation.KeysRotator
 import com.virgilsecurity.ratchet.securechat.keysrotation.RotationLog
-import com.virgilsecurity.ratchet.utils.logger
+import com.virgilsecurity.ratchet.utils.LogHelper
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -65,9 +65,11 @@ class KeysRotatorTest {
     private lateinit var identity: String
     private lateinit var privateKey: VirgilPrivateKey
     private lateinit var card: Card
+    private val logHelper = LogHelper.instance()
 
     @Before
     fun setup() {
+        LogHelper.instance().logLevel = TestConfig.logLevel
         this.keyId = RatchetKeyId()
         this.crypto = VirgilCrypto()
 
@@ -253,7 +255,7 @@ class KeysRotatorTest {
                 val keyId = this.keyId.computePublicKeyId(longTermKey)
 
                 if (!longTermStorage.retrieveKey(keyId).identifier.contentEquals(keyId)) {
-                    LOG.value.warning("Wrong long term key ID")
+                    logHelper.logger.warning("Wrong long term key ID")
                     return false
                 }
 
@@ -261,25 +263,21 @@ class KeysRotatorTest {
                 val cloudOneTimeKeysIds = userStore.oneTimePublicKeys.map { this.keyId.computePublicKeyId(it) }
 
                 if (storedOneTimeKeysIds.size != cloudOneTimeKeysIds.size) {
-                    LOG.value.warning("One time keys cound doesn't match")
+                    logHelper.logger.warning("One time keys cound doesn't match")
                     return false
                 }
                 storedOneTimeKeysIds.forEachIndexed { i, value ->
                     if (!cloudOneTimeKeysIds[i].contentEquals(value)) {
-                        LOG.value.warning("Could one time key $i doesn't match")
+                        logHelper.logger.warning("Could one time key $i doesn't match")
                         return false
                     }
                 }
             }
         } catch (e: Exception) {
-            LOG.value.log(Level.SEVERE, "Unpredictable error", e)
+            logHelper.logger.log(Level.SEVERE, "Unpredictable error", e)
             return false
         }
 
         return true
-    }
-
-    companion object {
-        val LOG = logger()
     }
 }

@@ -37,6 +37,11 @@ import com.google.gson.annotations.SerializedName
 
 /**
  * Set of public keys for some receiver.
+ *
+ * @param identity Identity.
+ * @param identityPublicKey Identity public key.
+ * @param longTermPublicKey Long-term public key.
+ * @param oneTimePublicKey One-time public key.
  */
 class IdentityPublicKeySet(
         @SerializedName("identity") val identity: String,

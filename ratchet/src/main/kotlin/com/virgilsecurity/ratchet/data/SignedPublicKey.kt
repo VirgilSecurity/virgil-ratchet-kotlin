@@ -37,6 +37,7 @@ import com.google.gson.annotations.SerializedName
 
 /**
  * Signed public key.
+ *
  * @param publicKey Public key.
  * @param signature Signature.
  */

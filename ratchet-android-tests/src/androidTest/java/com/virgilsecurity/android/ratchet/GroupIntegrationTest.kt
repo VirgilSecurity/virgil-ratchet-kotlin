@@ -43,6 +43,7 @@ import com.virgilsecurity.ratchet.securechat.SecureGroupSession
 import com.virgilsecurity.ratchet.securechat.keysrotation.KeysRotator
 import com.virgilsecurity.ratchet.sessionstorage.FileGroupSessionStorage
 import com.virgilsecurity.ratchet.sessionstorage.FileSessionStorage
+import com.virgilsecurity.ratchet.utils.LogHelper
 import com.virgilsecurity.ratchet.utils.hexEncodedString
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
@@ -69,6 +70,7 @@ class GroupIntegrationTest {
 
     @Before
     fun setup() {
+        LogHelper.instance().logLevel = TestConfig.logLevel
         this.crypto = VirgilCrypto()
     }
 

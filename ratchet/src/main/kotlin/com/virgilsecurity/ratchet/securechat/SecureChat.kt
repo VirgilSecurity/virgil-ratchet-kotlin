@@ -79,7 +79,7 @@ class SecureChat {
     /**
      * Create new instance.
      *
-     * @param context SecureChatContext
+     * @param context Contains info required to instantiate [SecureChat] object.
      */
     constructor(context: SecureChatContext) {
         this.crypto = VirgilCrypto()
@@ -107,16 +107,16 @@ class SecureChat {
     /**
      * Create new instance.
      *
-     * @param crypto VirgilCrypto instance
-     * @param identityPrivateKey identity private key
-     * @param identityCard identity card
-     * @param accessTokenProvider access token provider
-     * @param client Ratchet client
-     * @param longTermKeysStorage long-term keys storage
-     * @param oneTimeKeysStorage one-time keys storage
-     * @param sessionStorage session storage
-     * @param groupSessionStorage group session storage
-     * @param keysRotator keys rotation
+     * @param crypto VirgilCrypto instance.
+     * @param identityPrivateKey Identity private key.
+     * @param identityCard Identity card.
+     * @param accessTokenProvider Access token provider.
+     * @param client Ratchet client.
+     * @param longTermKeysStorage Long-term keys storage.
+     * @param oneTimeKeysStorage One-time keys storage.
+     * @param sessionStorage Session storage.
+     * @param groupSessionStorage Group session storage.
+     * @param keysRotator Keys rotation
      */
     constructor(
             crypto: VirgilCrypto,
@@ -156,13 +156,13 @@ class SecureChat {
      * - Generate needed number of one-time keys
      * - Upload keys to the cloud
      *
-     * @return RotationLog
+     * @return RotationLog.
      */
     fun rotateKeys() = object : Result<RotationLog> {
         override fun get(): RotationLog {
             logHelper.logger.fine("Started keys rotation")
 
-            val tokenContext = TokenContext("rotate", false, "ratchet")
+            val tokenContext = TokenContext(OPERATION_ROTATE, false, SERVICE)
             val token = this@SecureChat.accessTokenProvider.getToken(tokenContext)
 
             return this@SecureChat.keysRotator.rotateKeys(token).get()
@@ -171,9 +171,11 @@ class SecureChat {
 
     /**
      * Stores session.
-     * NOTE: This method is used for storing new session as well as updating existing ones after operations that change session's state (encrypt and decrypt), therefore is session already exists in storage, it will be overwritten.
+     * NOTE: This method is used for storing new session as well as updating existing ones after operations that
+     * change session's state (encrypt and decrypt), therefore is session already exists in storage, it will
+     * be overwritten.
      *
-     * @param session session to store
+     * @param session Session to store.
      */
     fun storeSession(session: SecureSession) {
         logHelper.logger.fine("Storing session with ${session.participantIdentity} name: ${session.name}")
@@ -183,9 +185,12 @@ class SecureChat {
 
     /**
      * Stores group session.
-     * NOTE: This method is used for storing new session as well as updating existing ones after operations that change session's state (encrypt, decrypt, setParticipants, updateParticipants), therefore is session already exists in storage, it will be overwritten.
      *
-     * @param session GroupSession to store
+     * NOTE: This method is used for storing new session as well as updating existing ones after operations that
+     * change session's state (encrypt, decrypt, setParticipants, updateParticipants), therefore is session already
+     * exists in storage, it will be overwritten.
+     *
+     * @param session GroupSession to store.
      */
     fun storeGroupSession(session: SecureGroupSession) {
         logHelper.logger.fine("Storing group session with id ${session.identifier().hexEncodedString()}")
@@ -194,61 +199,60 @@ class SecureChat {
     }
 
     /**
-     * Checks for existing session with given participent in the storage.
+     * Checks for existing session with given participant in the storage.
      *
-     * @param particpantIdentity participant identity
-     * @param name session name
+     * @param participantIdentity Participant identity.
+     * @param name Session name.
      *
-     * @return SecureSession if exists
+     * @return SecureSession if exists.
      */
-    fun existingSession(particpantIdentity: String, name: String? = null): SecureSession? {
-        val session = this.sessionStorage.retrieveSession(particpantIdentity, name
-                ?: SecureChat.DEFAULT_SESSION_NAME)
-        if (session != null) {
-            logHelper.logger.fine("Found existing session with $particpantIdentity")
-            return session
+    fun existingSession(participantIdentity: String, name: String? = null): SecureSession? {
+        val session = this.sessionStorage.retrieveSession(participantIdentity, name ?: DEFAULT_SESSION_NAME)
+        return if (session != null) {
+            logHelper.logger.fine("Found existing session with $participantIdentity")
+            session
         } else {
-            logHelper.logger.fine("Existing session with $particpantIdentity was not found")
-            return null
+            logHelper.logger.fine("Existing session with $participantIdentity was not found")
+            null
         }
     }
 
     /**
      * Deletes session with given participant identity.
      *
-     * @param particpantIdentity participant identity
-     * @param name session name
+     * @param participantIdentity Participant identity.
+     * @param name Session name.
      */
-    fun deleteSession(particpantIdentity: String, name: String? = null) {
-        logHelper.logger.fine("Deleting session with $particpantIdentity")
+    fun deleteSession(participantIdentity: String, name: String? = null) {
+        logHelper.logger.fine("Deleting session with $participantIdentity")
 
-        this.sessionStorage.deleteSession(particpantIdentity, name
-                ?: SecureChat.DEFAULT_SESSION_NAME)
+        this.sessionStorage.deleteSession(participantIdentity, name ?: DEFAULT_SESSION_NAME)
     }
 
     /**
      * Deletes sessions with given participant identity.
      *
-     * @param particpantIdentity participant identity
+     * @param participantIdentity Participant identity.
      */
-    fun deleteAllSessions(particpantIdentity: String) {
-        logHelper.logger.fine("Deleting session with $particpantIdentity")
+    fun deleteAllSessions(participantIdentity: String) {
+        logHelper.logger.fine("Deleting session with $participantIdentity")
 
-        this.sessionStorage.deleteSession(particpantIdentity, null)
+        this.sessionStorage.deleteSession(participantIdentity, null)
     }
 
     /**
      * Starts new session with given participant using his identity card.
-     * NOTE: This operation doesn't store session to storage automatically. Use storeSession()
      *
-     * @param receiverCard receiver identity cards
-     * @param name session name
+     * NOTE: This operation doesn't store session to storage automatically. Use storeSession().
+     *
+     * @param receiverCard Receiver identity cards.
+     * @param name Session name.
      */
     fun startNewSessionAsSender(receiverCard: Card, name: String? = null) = object : Result<SecureSession> {
         override fun get(): SecureSession {
             logHelper.logger.fine("Starting new session with ${receiverCard.identity}")
 
-            if (existingSession(receiverCard.identity, name ?: SecureChat.DEFAULT_SESSION_NAME) != null) {
+            if (existingSession(receiverCard.identity, name ?: DEFAULT_SESSION_NAME) != null) {
                 throw SecureChatException(SecureChatException.SESSION_ALREADY_EXISTS, "Session is already exists")
             }
 
@@ -262,7 +266,7 @@ class SecureChat {
                 throw SecureChatException(SecureChatException.INVALID_KEY_TYPE, "Key type should be ED25519")
             }
 
-            val tokenContext = TokenContext("get", false, "ratchet") // TODO move string to constant
+            val tokenContext = TokenContext(METHOD_GET, false, "ratchet")
             val token = this@SecureChat.accessTokenProvider.getToken(tokenContext)
             val publicKeySet = this@SecureChat.client.getPublicKeySet(receiverCard.identity,
                                                                       token.stringRepresentation()).get()
@@ -278,10 +282,11 @@ class SecureChat {
 
     /**
      * Starts multiple new sessions with given participants using their identity cards.
-     * NOTE: This operation doesn't store sessions to storage automatically. Use storeSession()
      *
-     * @param receiverCards receivers identity cards
-     * @param name session name
+     * NOTE: This operation doesn't store sessions to storage automatically. Use storeSession().
+     *
+     * @param receiverCards Receivers identity cards.
+     * @param name Session name.
      */
     fun startMutipleNewSessionsAsSender(receiverCards: List<Card>,
                                         name: String? = null) = object : Result<List<SecureSession>> {
@@ -289,7 +294,7 @@ class SecureChat {
             logHelper.logger.fine("Starting new session with ${receiverCards.map { it.identity }}")
 
             receiverCards.forEach {
-                if (existingSession(it.identity, name ?: SecureChat.DEFAULT_SESSION_NAME) != null) {
+                if (existingSession(it.identity, name ?: DEFAULT_SESSION_NAME) != null) {
                     throw SecureChatException(
                             SecureChatException.SESSION_ALREADY_EXISTS,
                             "Session with ${it.identity} already exists"
@@ -317,7 +322,7 @@ class SecureChat {
             if (publicKeysSets.size != receiverCards.size) {
                 throw SecureChatException(SecureChatException.PUBLIC_KEY_SETS_MISMATCH, "Wrong public keys count")
             }
-            var sessions = mutableListOf<SecureSession>()
+            val sessions = mutableListOf<SecureSession>()
             receiverCards.forEach { card ->
                 val publicKeySet = publicKeysSets.firstOrNull { it.identity == card.identity }
                         ?: throw SecureChatException(
@@ -370,7 +375,7 @@ class SecureChat {
 
     private fun replaceOneTimeKey() = object : Completable {
         override fun execute() {
-            logHelper.logger.fine("Adding one time key") // TODO set logs optional
+            logHelper.logger.fine("Adding one time key")
             val oneTimePublicKey: ByteArray
 
             try {
@@ -411,12 +416,13 @@ class SecureChat {
 
     /**
      * Responds with new session with given participant using his initiation message.
-     * NOTE: This operation doesn't store session to storage automatically. Use storeSession()
      *
-     * @param senderCard sender identity card
-     * @param ratchetMessage Ratchet initiation message (should be PREKEY message)
+     * NOTE: This operation doesn't store session to storage automatically. Use storeSession().
      *
-     * @return SecureSession
+     * @param senderCard Sender identity card.
+     * @param ratchetMessage Ratchet initiation message (should be PREKEY message).
+     *
+     * @return SecureSession.
      */
     fun startNewSessionAsReceiver(senderCard: Card, ratchetMessage: RatchetMessage): SecureSession {
         return startNewSessionAsReceiver(senderCard, null, ratchetMessage)
@@ -424,13 +430,14 @@ class SecureChat {
 
     /**
      * Responds with new session with given participant using his initiation message.
-     * NOTE: This operation doesn't store session to storage automatically. Use storeSession()
      *
-     * @param senderCard sender identity card
-     * @param name session name (in case you want to have several sessions with same participant)
-     * @param ratchetMessage Ratchet initiation message (should be PREKEY message)
+     * NOTE: This operation doesn't store session to storage automatically. Use storeSession().
      *
-     * @return SecureSession
+     * @param senderCard Sender identity card.
+     * @param name Session name (in case you want to have several sessions with same participant).
+     * @param ratchetMessage Ratchet initiation message (should be PREKEY message).
+     *
+     * @return SecureSession.
      */
     fun startNewSessionAsReceiver(senderCard: Card, name: String?, ratchetMessage: RatchetMessage): SecureSession {
         logHelper.logger.fine("Responding to session with ${senderCard.identity}")
@@ -490,7 +497,7 @@ class SecureChat {
             val session = SecureSession(
                     this.crypto,
                     senderCard.identity,
-                    name ?: SecureChat.DEFAULT_SESSION_NAME,
+                    name ?: DEFAULT_SESSION_NAME,
                     this.identityPrivateKey,
                     receiverLongTermPrivateKey,
                     receiverOneTimePrivateKey,
@@ -512,11 +519,12 @@ class SecureChat {
 
     /**
      * Creates RatchetGroupMessage that starts new group chat.
+     *
      * NOTE: Other participants should receive this message using encrypted channel (SecureSession).
      *
-     * @param sessionId session Id. Should be 32 byte.
+     * @param sessionId Session Id. Should be 32 byte.
      *
-     * @return RatchetGroupMessage that should be then passed to startGroupSession()
+     * @return RatchetGroupMessage that should be then passed to startGroupSession().
      */
     fun startNewGroupSession(sessionId: ByteArray): RatchetGroupMessage {
         val ticket = RatchetGroupTicket()
@@ -532,13 +540,14 @@ class SecureChat {
 
     /**
      * Creates secure group session that was initiated by someone.
-     * NOTE: This operation doesn't store session to storage automatically. Use storeSession()
-     * RatchetGroupMessage should be of GROUP_INFO type. Such messages should be sent encrypted (using SecureSession)
      *
-     * @param receiversCards participant cards (excluding creating user itself)
-     * @param ratchetMessage ratchet group message of GROUP_INFO type
+     * NOTE: This operation doesn't store session to storage automatically. Use storeSession().
+     * RatchetGroupMessage should be of GROUP_INFO type. Such messages should be sent encrypted (using SecureSession).
      *
-     * @return SecureGroupSession
+     * @param receiversCards Participant cards (excluding creating user itself).
+     * @param ratchetMessage Ratchet group message of GROUP_INFO type.
+     *
+     * @return SecureGroupSession.
      */
     fun startGroupSession(receiversCards: List<Card>, ratchetMessage: RatchetGroupMessage): SecureGroupSession {
         if (ratchetMessage.type != GroupMsgType.GROUP_INFO) {
@@ -567,9 +576,9 @@ class SecureChat {
     /**
      * Returns existing group session.
      *
-     * @param sessionId session identifier
+     * @param sessionId Session identifier.
      *
-     * @return stored session if found, null otherwise
+     * @return Stored session if found, null otherwise.
      */
     fun existingGroupSession(sessionId: ByteArray): SecureGroupSession? {
         val identifier = sessionId.hexEncodedString()
@@ -614,5 +623,8 @@ class SecureChat {
          * Default session name.
          */
         private const val DEFAULT_SESSION_NAME = "DEFAULT"
+        private const val SERVICE = "ratchet"
+        private const val METHOD_GET = "get"
+        private const val OPERATION_ROTATE = "rotate"
     }
 }

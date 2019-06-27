@@ -67,13 +67,13 @@ class SecureSession {
      * Create new instance as a receiver.
      *
      * @param crypto VirgilCrypto
-     * @param participantIdentity participant identity
-     * @param name session name
-     * @param receiverIdentityPrivateKey
-     * @param receiverLongTermPrivateKey
-     * @param receiverOneTimePrivateKey
-     * @param senderIdentityPublicKey
-     * @param ratchetMessage
+     * @param participantIdentity Participant identity.
+     * @param name Session name.
+     * @param receiverIdentityPrivateKey Receiver identity private key.
+     * @param receiverLongTermPrivateKey Receiver long-term private key.
+     * @param receiverOneTimePrivateKey Receiver one-time private key.
+     * @param senderIdentityPublicKey Sender identity public key.
+     * @param ratchetMessage RatchetMessage.
      */
     constructor(
             crypto: VirgilCrypto, participantIdentity: String,
@@ -99,13 +99,13 @@ class SecureSession {
     /**
      * Create new instance as a sender.
      *
-     * @param crypto VirgilCrypto
-     * @param participantIdentity participant identity
-     * @param name session name
-     * @param senderIdentityPrivateKey
-     * @param receiverIdentityPublicKey
-     * @param receiverLongTermPublicKey
-     * @param receiverOneTimePublicKey
+     * @param crypto VirgilCrypto.
+     * @param participantIdentity Participant identity.
+     * @param name Session name.
+     * @param senderIdentityPrivateKey Sender identity private key.
+     * @param receiverIdentityPublicKey Receiver identity public key.
+     * @param receiverLongTermPublicKey Receiver long-term public key.
+     * @param receiverOneTimePublicKey Receiver one-time public key.
      */
     constructor(
             crypto: VirgilCrypto, participantIdentity: String,
@@ -128,10 +128,10 @@ class SecureSession {
     /**
      * Restore session from serialized representation.
      *
-     * @param data Serialized session
-     * @param participantIdentity participant identity
-     * @param name session name
-     * @param crypto VirgilCrypto
+     * @param data Serialized session.
+     * @param participantIdentity Participant identity.
+     * @param name Session name.
+     * @param crypto VirgilCrypto.
      */
     constructor(
             data: ByteArray, participantIdentity: String, name: String, crypto: VirgilCrypto
@@ -145,10 +145,11 @@ class SecureSession {
 
     /**
      * Encrypts string.
+     *
      * NOTE: This operation changes session state, so session should be updated in storage.
      *
-     * @param str message to encrypt.
-     * @return RatchetMessage
+     * @param str Message to encrypt.
+     * @return RatchetMessage.
      */
     fun encrypt(str: String): RatchetMessage {
         val data = str.toByteArray(StandardCharsets.UTF_8)
@@ -158,10 +159,11 @@ class SecureSession {
 
     /**
      * Encrypts data.
+     *
      * NOTE: This operation changes session state, so session should be updated in storage.
      *
-     * @param data message to encrypt.
-     * @return RatchetMessage
+     * @param data Message to encrypt.
+     * @return RatchetMessage.
      */
     fun encrypt(data: ByteArray): RatchetMessage {
         synchronized(ratchetSession) {
@@ -171,10 +173,11 @@ class SecureSession {
 
     /**
      * Decrypts data from RatchetMessage.
+     *
      * NOTE: This operation changes session state, so session should be updated in storage.
      *
-     * @param message RatchetMessage
-     * @return Decrypted data
+     * @param message RatchetMessage.
+     * @return Decrypted data.
      */
     fun decryptData(message: RatchetMessage): ByteArray {
         synchronized(ratchetSession) {
@@ -184,10 +187,11 @@ class SecureSession {
 
     /**
      * Decrypts utf-8 string from RatchetMessage.
+     *
      * NOTE: This operation changes session state, so session should be updated in storage.
      *
-     * @param message RatchetMessage
-     * @return Decrypted utf-8 string
+     * @param message RatchetMessage.
+     * @return Decrypted utf-8 string.
      */
     fun decryptString(message: RatchetMessage): String {
         val data = this.decryptData(message)

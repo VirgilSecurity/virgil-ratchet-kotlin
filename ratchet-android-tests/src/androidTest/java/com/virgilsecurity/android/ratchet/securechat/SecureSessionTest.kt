@@ -37,6 +37,7 @@ import com.virgilsecurity.android.ratchet.*
 import com.virgilsecurity.ratchet.exception.SecureChatException
 import com.virgilsecurity.ratchet.securechat.SecureChat
 import com.virgilsecurity.ratchet.securechat.keysrotation.KeysRotator
+import com.virgilsecurity.ratchet.utils.LogHelper
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.common.TimeSpan
@@ -59,6 +60,7 @@ class SecureSessionTest {
 
     @Before
     fun setup() {
+        LogHelper.instance().logLevel = TestConfig.logLevel
         val crypto = TestConfig.virgilCrypto
         val receiverIdentityKeyPair = crypto.generateKeyPair(KeyType.ED25519)
         val senderIdentityKeyPair = crypto.generateKeyPair(KeyType.ED25519)
