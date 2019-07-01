@@ -38,7 +38,6 @@ import com.virgilsecurity.android.ratchet.generateKeyId
 import com.virgilsecurity.android.ratchet.generatePublicKeyData
 import com.virgilsecurity.ratchet.exception.KeyStorageException
 import com.virgilsecurity.ratchet.keystorage.FileLongTermKeysStorage
-import com.virgilsecurity.ratchet.utils.LogHelper
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import org.junit.Assert.*
 import org.junit.Before
@@ -53,7 +52,6 @@ class FileLongTermKeysStorageTest {
 
     @Before
     fun setup() {
-        LogHelper.instance().logLevel = TestConfig.logLevel
         val crypto = VirgilCrypto()
         this.keyStorage = FileLongTermKeysStorage(identity, crypto, crypto.generateKeyPair(), path)
     }

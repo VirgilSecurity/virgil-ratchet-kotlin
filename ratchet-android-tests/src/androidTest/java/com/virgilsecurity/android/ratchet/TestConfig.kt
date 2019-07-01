@@ -39,7 +39,6 @@ import android.util.Base64
 import com.virgilsecurity.ratchet_android_tests.BuildConfig
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
-import java.util.logging.Level
 
 class TestConfig {
 
@@ -59,7 +58,5 @@ class TestConfig {
         val cardsServiceURL: String by lazy { "$serviceURL/card/v5/" }
 
         val context: Context = InstrumentationRegistry.getTargetContext()
-
-        val logLevel: Level = Level.ALL
     }
 }

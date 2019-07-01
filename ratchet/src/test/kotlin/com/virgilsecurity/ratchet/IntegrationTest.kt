@@ -40,7 +40,6 @@ import com.virgilsecurity.ratchet.securechat.SecureChat
 import com.virgilsecurity.ratchet.securechat.keysrotation.KeysRotator
 import com.virgilsecurity.ratchet.sessionstorage.FileGroupSessionStorage
 import com.virgilsecurity.ratchet.sessionstorage.FileSessionStorage
-import com.virgilsecurity.ratchet.utils.LogHelper
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -53,7 +52,6 @@ import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.net.URL
@@ -66,14 +64,6 @@ class IntegrationTest {
     private lateinit var receiverCard: Card
     private lateinit var senderSecureChat: SecureChat
     private lateinit var receiverSecureChat: SecureChat
-
-    companion object {
-        private const val DESIRED_NUMBER_OF_KEYS = 5
-
-        @JvmStatic @BeforeAll fun globalSetup() {
-            LogHelper.instance().logLevel = TestConfig.logLevel
-        }
-    }
 
     @BeforeEach
     fun setup() {
@@ -410,5 +400,9 @@ class IntegrationTest {
                 FileGroupSessionStorage(receiverIdentity, this.crypto, receiverIdentityKeyPair),
                 receiverKeysRotator
         )
+    }
+
+    companion object {
+        private const val DESIRED_NUMBER_OF_KEYS = 5
     }
 }

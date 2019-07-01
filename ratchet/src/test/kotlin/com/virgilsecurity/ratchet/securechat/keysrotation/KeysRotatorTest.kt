@@ -35,7 +35,6 @@ package com.virgilsecurity.ratchet.securechat.keysrotation
 
 import com.virgilsecurity.crypto.ratchet.RatchetKeyId
 import com.virgilsecurity.ratchet.*
-import com.virgilsecurity.ratchet.utils.LogHelper
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -47,10 +46,10 @@ import com.virgilsecurity.sdk.jwt.TokenContext
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.concurrent.TimeUnit
+import java.util.logging.Logger
 
 class KeysRotatorTest {
 
@@ -62,13 +61,6 @@ class KeysRotatorTest {
     private lateinit var identity: String
     private lateinit var privateKey: VirgilPrivateKey
     private lateinit var card: Card
-    private val logHelper = LogHelper.instance()
-
-    companion object {
-        @JvmStatic @BeforeAll fun globalSetup() {
-            LogHelper.instance().logLevel = TestConfig.logLevel
-        }
-    }
 
     @BeforeEach
     fun setup() {
@@ -257,7 +249,7 @@ class KeysRotatorTest {
                 val keyId = this.keyId.computePublicKeyId(longTermKey)
 
                 if (!longTermStorage.retrieveKey(keyId).identifier.contentEquals(keyId)) {
-                    logHelper.logger.warning("Wrong long term key ID")
+                    logger.warning("Wrong long term key ID")
                     return false
                 }
 
@@ -265,21 +257,25 @@ class KeysRotatorTest {
                 val cloudOneTimeKeysIds = userStore.oneTimePublicKeys.map { this.keyId.computePublicKeyId(it) }
 
                 if (storedOneTimeKeysIds.size != cloudOneTimeKeysIds.size) {
-                    logHelper.logger.warning("One time keys cound doesn't match")
+                    logger.warning("One time keys cound doesn't match")
                     return false
                 }
                 storedOneTimeKeysIds.forEachIndexed { i, value ->
                     if (!cloudOneTimeKeysIds[i].contentEquals(value)) {
-                        logHelper.logger.warning("Could one time key $i doesn't match")
+                        logger.warning("Could one time key $i doesn't match")
                         return false
                     }
                 }
             }
         } catch (e: Exception) {
-            logHelper.logger.severe("Unpredictable error: $e")
+            logger.severe("Unpredictable error: $e")
             return false
         }
 
         return true
+    }
+    
+    companion object {
+        private val logger = Logger.getLogger(KeysRotatorTest::class.java.name)
     }
 }

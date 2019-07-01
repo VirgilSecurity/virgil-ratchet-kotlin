@@ -33,7 +33,6 @@
 
 package com.virgilsecurity.ratchet.securechat.keysrotation
 
-import com.sun.xml.internal.ws.spi.db.BindingContextFactory.LOGGER
 import com.virgilsecurity.crypto.ratchet.RatchetKeyId
 import com.virgilsecurity.ratchet.client.RatchetClientInterface
 import com.virgilsecurity.ratchet.data.SignedPublicKey
@@ -41,7 +40,6 @@ import com.virgilsecurity.ratchet.keystorage.LongTermKey
 import com.virgilsecurity.ratchet.keystorage.LongTermKeysStorage
 import com.virgilsecurity.ratchet.keystorage.OneTimeKeysStorage
 import com.virgilsecurity.ratchet.model.Result
-import com.virgilsecurity.ratchet.utils.LogHelper
 import com.virgilsecurity.ratchet.utils.addSeconds
 import com.virgilsecurity.ratchet.utils.hexEncodedString
 import com.virgilsecurity.sdk.crypto.KeyType
@@ -49,6 +47,7 @@ import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
 import com.virgilsecurity.sdk.jwt.contract.AccessToken
 import java.util.*
+import java.util.logging.Logger
 import kotlin.math.max
 
 /**
@@ -79,7 +78,6 @@ class KeysRotator(
 ) : KeysRotatorInterface {
 
     private val keyId = RatchetKeyId()
-    private val logHelper = LogHelper.instance()
 
     @Synchronized
     override fun rotateKeys(token: AccessToken) = object : Result<RotationLog> {
@@ -98,7 +96,7 @@ class KeysRotator(
                     val orphanedFrom = it.orphanedFrom
                     if (orphanedFrom != null) {
                         if (addSeconds(orphanedFrom, this@KeysRotator.orphanedOneTimeKeyTtl) < now) {
-                            logHelper.logger.fine("Removing orphaned one-time key ${it.identifier.hexEncodedString()}")
+                            logger.fine("Removing orphaned one-time key ${it.identifier.hexEncodedString()}")
                             this@KeysRotator.oneTimeKeysStorage.deleteKey(it.identifier)
                             rotationLog.oneTimeKeysDeleted += 1
                         } else {
@@ -115,9 +113,9 @@ class KeysRotator(
                 longTermKeys.forEach {
                     val oudatedFrom = it.outdatedFrom
                     if (oudatedFrom != null) {
-                        logHelper.logger.fine("LT key ${it.identifier.hexEncodedString()} is outdated")
+                        logger.fine("LT key ${it.identifier.hexEncodedString()} is outdated")
                         if (addSeconds(oudatedFrom, this@KeysRotator.outdatedLongTermKeyTtl) < now) {
-                            logHelper.logger.fine("Removing outdated long-term key ${it.identifier.hexEncodedString()}")
+                            logger.fine("Removing outdated long-term key ${it.identifier.hexEncodedString()}")
                             this@KeysRotator.longTermKeysStorage.deleteKey(it.identifier)
                             rotationLog.longTermKeysDeleted += 1
                         } else {
@@ -125,7 +123,7 @@ class KeysRotator(
                         }
                     } else {
                         if (addSeconds(it.creationDate, this@KeysRotator.longTermKeyTtl) < now) {
-                            logHelper.logger.fine("Marking long-term key as outdated ${it.identifier.hexEncodedString()}")
+                            logger.fine("Marking long-term key as outdated ${it.identifier.hexEncodedString()}")
                             this@KeysRotator.longTermKeysStorage.markKeyOutdated(now, it.identifier)
                             rotationLog.longTermKeysMarkedOutdated += 1
                             rotationLog.longTermKeysOutdated += 1
@@ -141,7 +139,7 @@ class KeysRotator(
                     }
                 }
 
-                logHelper.logger.fine("Validating local keys")
+                logger.fine("Validating local keys")
                 val validateResponse = this@KeysRotator.client.validatePublicKeys(
                         lastLongTermKey?.identifier,
                         oneTimeKeysIds,
@@ -149,7 +147,7 @@ class KeysRotator(
                 ).get()
 
                 validateResponse.usedOneTimeKeysIds.forEach {
-                    logHelper.logger.fine("Marking one-time key as orphaned ${it.hexEncodedString()}")
+                    logger.fine("Marking one-time key as orphaned ${it.hexEncodedString()}")
                     this@KeysRotator.oneTimeKeysStorage.markKeyOrphaned(now, it)
                     rotationLog.oneTimeKeysMarkedOrphaned += 1
                     rotationLog.oneTimeKeysOrphaned += 1
@@ -166,7 +164,7 @@ class KeysRotator(
 
                 val longTermSignedPublicKey: SignedPublicKey?
                 if (rotateLongTermKey) {
-                    logHelper.logger.fine("Rotating long-term key")
+                    logger.fine("Rotating long-term key")
                     val longTermKeyPair = this@KeysRotator.crypto.generateKeyPair(KeyType.CURVE25519)
                     val longTermPrivateKey = this@KeysRotator.crypto.exportPrivateKey(longTermKeyPair.privateKey)
                     val longTermPublicKey = this@KeysRotator.crypto.exportPublicKey(longTermKeyPair.publicKey)
@@ -185,12 +183,12 @@ class KeysRotator(
                 val numbOfOneTimeKeysToGen =
                         max(this@KeysRotator.desiredNumberOfOneTimeKeys - numOfRelevantOneTimeKeys, 0)
 
-                logHelper.logger.fine("Generating $numbOfOneTimeKeysToGen one-time keys")
+                logger.fine("Generating $numbOfOneTimeKeysToGen one-time keys")
                 val oneTimePublicKeys: MutableList<ByteArray>
                 if (numbOfOneTimeKeysToGen > 0) {
                     val publicKeys = mutableListOf<ByteArray>()
                     for (i in 1..numbOfOneTimeKeysToGen) {
-                        logHelper.logger.fine("Generation $i key of $numbOfOneTimeKeysToGen")
+                        logger.fine("Generation $i key of $numbOfOneTimeKeysToGen")
                         val keyPair = this@KeysRotator.crypto.generateKeyPair(KeyType.CURVE25519)
                         val oneTimePrivateKey = this@KeysRotator.crypto.exportPrivateKey(keyPair.privateKey)
                         val oneTimePublicKey = this@KeysRotator.crypto.exportPublicKey(keyPair.publicKey)
@@ -205,7 +203,7 @@ class KeysRotator(
                     oneTimePublicKeys = mutableListOf()
                 }
 
-                logHelper.logger.fine("Uploading keys")
+                logger.fine("Uploading keys")
                 this@KeysRotator.client.uploadPublicKeys(
                         this@KeysRotator.identityCardId, longTermSignedPublicKey, oneTimePublicKeys,
                         token.stringRepresentation()
@@ -221,5 +219,9 @@ class KeysRotator(
             }
             return rotationLog
         }
+    }
+
+    companion object {
+        private val logger = Logger.getLogger(KeysRotator::class.java.name)
     }
 }

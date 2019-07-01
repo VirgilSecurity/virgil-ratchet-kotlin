@@ -33,9 +33,7 @@
 
 package com.virgilsecurity.ratchet.utils
 
-import com.virgilsecurity.ratchet.TestConfig
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.*
@@ -44,12 +42,6 @@ class SecureFileSystemTest {
     private val identity = UUID.randomUUID().toString()
     private val path = createTempDir().absolutePath
     private lateinit var secureFileSystem: SecureFileSystem
-
-    companion object {
-        @JvmStatic @BeforeAll fun globalSetup() {
-            LogHelper.instance().logLevel = TestConfig.logLevel
-        }
-    }
 
     @BeforeEach
     fun setup() {

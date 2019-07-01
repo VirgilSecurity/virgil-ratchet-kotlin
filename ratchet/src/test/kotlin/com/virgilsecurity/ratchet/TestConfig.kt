@@ -36,7 +36,6 @@ package com.virgilsecurity.ratchet
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
 import java.util.*
-import java.util.logging.Level
 
 class TestConfig {
 
@@ -77,7 +76,5 @@ class TestConfig {
         val cardsServiceURL: String by lazy {
             "$serviceURL/card/v5/"
         }
-
-        val logLevel: Level = Level.ALL
     }
 }

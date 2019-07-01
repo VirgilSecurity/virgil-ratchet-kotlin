@@ -37,7 +37,6 @@ import com.virgilsecurity.crypto.ratchet.RatchetKeyId
 import com.virgilsecurity.ratchet.TestConfig
 import com.virgilsecurity.ratchet.data.SignedPublicKey
 import com.virgilsecurity.ratchet.generateIdentity
-import com.virgilsecurity.ratchet.utils.LogHelper
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -46,7 +45,10 @@ import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.*
 import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
@@ -58,12 +60,6 @@ class RatchetClientTest {
     private lateinit var identityPrivateKey: VirgilPrivateKey
     private lateinit var card: Card
     private lateinit var client: RatchetClient
-
-    companion object {
-        @JvmStatic @BeforeAll fun globalSetup() {
-            LogHelper.instance().logLevel = TestConfig.logLevel
-        }
-    }
 
     @BeforeEach
     fun setup() {

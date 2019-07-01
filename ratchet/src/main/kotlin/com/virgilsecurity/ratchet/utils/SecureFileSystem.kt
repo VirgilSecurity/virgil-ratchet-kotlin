@@ -36,7 +36,7 @@ package com.virgilsecurity.ratchet.utils
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 import java.io.File
-import java.lang.IllegalStateException
+import java.util.logging.Logger
 
 /**
  * SecureFileSystem class provides access to secure file system.
@@ -47,8 +47,6 @@ class SecureFileSystem constructor(
         val pathComponents: List<String>?,
         val credentials: Credentials? = null
 ) {
-
-    private val logHelper = LogHelper.instance()
 
     /**
      * Credentials contains required arguments to initialize [SecureFileSystem].
@@ -99,7 +97,7 @@ class SecureFileSystem constructor(
      */
     fun deleteDir(subDir: String? = null) {
         val path = getFullPath(null, subDir)
-        logHelper.logger.fine("Deleting directory $path")
+        logger.fine("Deleting directory $path")
         val file = File(path)
         file.deleteRecursively()
     }
@@ -112,7 +110,7 @@ class SecureFileSystem constructor(
             // It's OK, directory already exists
         } else {
             // Create a directory
-            logHelper.logger.fine("Creating directory ${file.absolutePath}")
+            logger.fine("Creating directory ${file.absolutePath}")
             file.mkdirs()
         }
         return dir
@@ -126,20 +124,20 @@ class SecureFileSystem constructor(
         }
         val file = File(path)
         if (!file.exists()) {
-            logHelper.logger.info("File ${file.absolutePath} doesn't exist")
+            logger.info("File ${file.absolutePath} doesn't exist")
             if (!file.parentFile.exists()) {
                 file.parentFile.mkdirs()
             }
             file.createNewFile()
         }
-        logHelper.logger.fine("Writing to file ${file.absolutePath}")
+        logger.fine("Writing to file ${file.absolutePath}")
         file.writeBytes(dataToWrite)
     }
 
     private fun readFile(path: String): ByteArray {
         val file = File(path)
         val data = if (file.exists()) {
-            logHelper.logger.fine("Reading file ${file.absolutePath}")
+            logger.fine("Reading file ${file.absolutePath}")
             file.readBytes()
         } else {
             byteArrayOf()
@@ -166,5 +164,9 @@ class SecureFileSystem constructor(
             path = path.append(File.separator).append(name)
         }
         return path.toString()
+    }
+
+    companion object {
+        private val logger = Logger.getLogger(SecureFileSystem::class.java.name)
     }
 }

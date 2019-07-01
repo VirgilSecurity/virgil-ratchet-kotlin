@@ -34,7 +34,6 @@
 package com.virgilsecurity.android.ratchet.utils
 
 import com.virgilsecurity.android.ratchet.TestConfig
-import com.virgilsecurity.ratchet.utils.LogHelper
 import com.virgilsecurity.ratchet.utils.SecureFileSystem
 import org.junit.Assert.*
 import org.junit.Before
@@ -48,7 +47,6 @@ class SecureFileSystemTest {
 
     @Before
     fun setup() {
-        LogHelper.instance().logLevel = TestConfig.logLevel
         secureFileSystem = SecureFileSystem(identity, path, null)
     }
 

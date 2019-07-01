@@ -43,20 +43,19 @@ import com.virgilsecurity.ratchet.data.*
 import com.virgilsecurity.ratchet.exception.ProtocolException
 import com.virgilsecurity.ratchet.model.Completable
 import com.virgilsecurity.ratchet.model.Result
-import com.virgilsecurity.ratchet.utils.LogHelper
 import com.virgilsecurity.ratchet.utils.OsUtils
 import com.virgilsecurity.sdk.common.ErrorResponse
 import com.virgilsecurity.sdk.utils.ConvertionUtils
 import java.net.URL
+import java.util.logging.Logger
 
 /**
  *  Client used to communicate with ratchet service.
  */
-class RatchetClient : RatchetClientInterface { // TODO check code, comments, line breaks, @throws, etc
+class RatchetClient : RatchetClientInterface {
 
     private val serviceUrl: String
     private val virgilAgentHeader: String
-    private val logHelper = LogHelper.instance()
 
     /**
      * Initializes a new `RatchetClient` instance.
@@ -208,7 +207,7 @@ class RatchetClient : RatchetClientInterface { // TODO check code, comments, lin
     @Throws(ProtocolException::class)
     private fun executeRequest(path: String, method: Method, body: Any?, token: String) = object : Result<String> {
         override fun get(): String {
-            logHelper.logger.fine("$method $path")
+            logger.fine("$method $path")
             val request = Fuel.request(method, "$serviceUrl$path")
                     .header(mapOf(VIRGIL_AGENT_HEADER_KEY to virgilAgentHeader))
                     .header(mapOf(VIRGIL_AUTHORIZATION_HEADER_KEY to "Virgil $token"))
@@ -220,7 +219,7 @@ class RatchetClient : RatchetClientInterface { // TODO check code, comments, lin
             validateResponse(response)
 
             val responseBody = ConvertionUtils.toString(result.component1())
-            logHelper.logger.fine("result:\n$responseBody")
+            logger.fine("result:\n$responseBody")
 
             return responseBody
         }
@@ -237,5 +236,7 @@ class RatchetClient : RatchetClientInterface { // TODO check code, comments, lin
         private const val ACTIONS_VALIDATE = "/actions/validate"
         private const val ACTIONS_PICK_ONE = "/actions/pick-one"
         private const val ACTIONS_PICK_BATCH = "/actions/pick-batch"
+
+        private val logger = Logger.getLogger(RatchetClient::class.java.name)
     }
 }

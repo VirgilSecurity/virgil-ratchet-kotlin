@@ -52,7 +52,6 @@ import com.virgilsecurity.ratchet.securechat.keysrotation.KeysRotatorInterface
 import com.virgilsecurity.ratchet.securechat.keysrotation.RotationLog
 import com.virgilsecurity.ratchet.sessionstorage.GroupSessionStorage
 import com.virgilsecurity.ratchet.sessionstorage.SessionStorage
-import com.virgilsecurity.ratchet.utils.LogHelper
 import com.virgilsecurity.ratchet.utils.hexEncodedString
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
@@ -66,8 +65,8 @@ import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import com.virgilsecurity.sdk.jwt.Jwt
 import com.virgilsecurity.sdk.jwt.contract.AccessToken
 import com.virgilsecurity.sdk.utils.Tuple
-import org.junit.jupiter.api.BeforeAll
 import java.util.*
+import java.util.logging.Logger
 
 class InMemorySessionStorage : SessionStorage {
     val map = mutableMapOf<String, SecureSession>()
@@ -150,7 +149,6 @@ class InMemoryLongTermKeysStorage : LongTermKeysStorage {
 }
 
 class InMemoryOneTimeKeysStorage : OneTimeKeysStorage {
-    private val logHelper = LogHelper.instance()
     val map: MutableMap<String, OneTimeKey> = mutableMapOf()
 
     override fun startInteraction() {
@@ -161,7 +159,7 @@ class InMemoryOneTimeKeysStorage : OneTimeKeysStorage {
 
     override fun storeKey(key: ByteArray, keyId: ByteArray): OneTimeKey {
         val hexKey = keyId.hexEncodedString()
-        logHelper.logger.info("Store key: $hexKey")
+        logger.info("Store key: $hexKey")
         val oneTimeKey = OneTimeKey(keyId, key)
         this.map[hexKey] = oneTimeKey
         return oneTimeKey
@@ -177,7 +175,7 @@ class InMemoryOneTimeKeysStorage : OneTimeKeysStorage {
 
     override fun deleteKey(keyId: ByteArray) {
         val hexKey = keyId.hexEncodedString()
-        logHelper.logger.info("Delete key: $hexKey")
+        logger.info("Delete key: $hexKey")
         if (!this.map.containsKey(hexKey)) {
             throw KeyStorageException(KeyStorageException.KEY_NOT_FOUND)
         }
@@ -190,7 +188,7 @@ class InMemoryOneTimeKeysStorage : OneTimeKeysStorage {
 
     override fun markKeyOrphaned(date: Date, keyId: ByteArray) {
         val hexKey = keyId.hexEncodedString()
-        logHelper.logger.info("Mark key orphaned: $hexKey")
+        logger.info("Mark key orphaned: $hexKey")
         if (!this.map.containsKey(hexKey)) {
             throw KeyStorageException(KeyStorageException.KEY_NOT_FOUND)
         }
@@ -200,6 +198,10 @@ class InMemoryOneTimeKeysStorage : OneTimeKeysStorage {
 
     override fun reset() {
         this.map.clear()
+    }
+
+    companion object {
+        private val logger = Logger.getLogger(InMemoryOneTimeKeysStorage::class.java.name)
     }
 }
 
@@ -346,14 +348,13 @@ class InMemoryRatchetClient(private val cardManager: CardManager) : RatchetClien
 class InMemoryCardClient : VirgilCardClient(TestConfig.cardsServiceURL) {
     private val crypto = VirgilCrypto()
     private val cards = mutableMapOf<String, RawSignedModel>()
-    private val logHelper = LogHelper.instance()
 
     override fun getCard(cardId: String?, token: String?): Tuple<RawSignedModel, Boolean> {
         if (this.cards.containsKey(cardId)) {
-            logHelper.logger.info("Card $cardId exists")
+            logger.info("Card $cardId exists")
         } else {
             val cardIds = this.cards.keys.joinToString()
-            logHelper.logger.warning("No card $cardId betwee $cardIds")
+            logger.warning("No card $cardId betwee $cardIds")
         }
         val rawCard = this.cards[cardId] ?: throw RuntimeException("Card $cardId not found")
         return Tuple(rawCard, false)
@@ -370,7 +371,7 @@ class InMemoryCardClient : VirgilCardClient(TestConfig.cardsServiceURL) {
     override fun publishCard(rawCard: RawSignedModel?, token: String?): RawSignedModel {
         val cardId = this.crypto.computeHash(rawCard?.contentSnapshot, HashAlgorithm.SHA512).copyOfRange(0, 32)
                 .hexEncodedString()
-        logHelper.logger.info("Publish card $cardId")
+        logger.info("Publish card $cardId")
 
         this.cards[cardId] = rawCard!!
 
@@ -379,6 +380,10 @@ class InMemoryCardClient : VirgilCardClient(TestConfig.cardsServiceURL) {
 
     override fun revokeCard(cardId: String?, token: String?) {
         returnNothing()
+    }
+
+    companion object {
+        private val logger = Logger.getLogger(InMemoryCardClient::class.java.name)
     }
 }
 

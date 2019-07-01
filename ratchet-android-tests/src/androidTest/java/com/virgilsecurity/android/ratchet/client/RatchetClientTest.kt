@@ -39,7 +39,6 @@ import com.virgilsecurity.android.ratchet.generateIdentity
 import com.virgilsecurity.crypto.ratchet.RatchetKeyId
 import com.virgilsecurity.ratchet.client.RatchetClient
 import com.virgilsecurity.ratchet.data.SignedPublicKey
-import com.virgilsecurity.ratchet.utils.LogHelper
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -68,7 +67,6 @@ class RatchetClientTest {
 
     @Before
     fun setup() {
-        LogHelper.instance().logLevel = TestConfig.logLevel
         this.crypto = VirgilCrypto()
         this.keyId = RatchetKeyId()
 

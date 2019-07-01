@@ -35,7 +35,6 @@ package com.virgilsecurity.ratchet.keystorage
 
 import com.google.gson.annotations.SerializedName
 import com.virgilsecurity.ratchet.exception.KeyStorageException
-import com.virgilsecurity.ratchet.utils.LogHelper
 import com.virgilsecurity.ratchet.utils.SecureFileSystem
 import com.virgilsecurity.ratchet.utils.hexEncodedString
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
@@ -43,6 +42,7 @@ import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 import com.virgilsecurity.sdk.utils.ConvertionUtils
 import java.nio.charset.StandardCharsets
 import java.util.*
+import java.util.logging.Logger
 
 /**
  * FileOneTimeKeysStorage is used to store one-time keys.
@@ -57,7 +57,6 @@ class FileOneTimeKeysStorage(
     private val fileSystem: SecureFileSystem
     private var oneTimeKeys: OneTimeKeys? = null
     private var interactionCounter = 0
-    private val logHelper = LogHelper.instance()
 
     init {
         val credentials = SecureFileSystem.Credentials(crypto, identityKeyPair)
@@ -65,7 +64,7 @@ class FileOneTimeKeysStorage(
     }
 
     override fun startInteraction() {
-        logHelper.logger.info("startInteraction")
+        logger.info("startInteraction")
         synchronized(interactionCounter) {
             if (interactionCounter > 0) {
                 interactionCounter++
@@ -89,7 +88,7 @@ class FileOneTimeKeysStorage(
     }
 
     override fun stopInteraction() {
-        logHelper.logger.info("stopInteraction")
+        logger.info("stopInteraction")
         synchronized(interactionCounter) {
             if (interactionCounter <= 0) {
                 throw KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "interactionCounter should be > 0")
@@ -113,7 +112,7 @@ class FileOneTimeKeysStorage(
     }
 
     override fun storeKey(key: ByteArray, keyId: ByteArray): OneTimeKey {
-        logHelper.logger.fine("storeKey")
+        logger.fine("storeKey")
         synchronized(interactionCounter) {
             if (oneTimeKeys == null) {
                 throw KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "oneTimeKeys should not be nil")
@@ -156,7 +155,7 @@ class FileOneTimeKeysStorage(
             }
 
             oneTimeKeys!!.oneTimeKeys.removeAt(oneTimeKeyIndex)
-            logHelper.logger.info("Key ${keyId.hexEncodedString()} removed")
+            logger.info("Key ${keyId.hexEncodedString()} removed")
         }
     }
 
@@ -201,5 +200,7 @@ class FileOneTimeKeysStorage(
     companion object {
         private const val ONE_TIME_KEY_STORAGE = "otks"
         private const val ONE_TIME_KEY = "OTK"
+
+        private val logger = Logger.getLogger(FileOneTimeKeysStorage::class.java.name)
     }
 }

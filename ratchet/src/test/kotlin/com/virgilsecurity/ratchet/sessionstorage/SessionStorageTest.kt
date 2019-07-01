@@ -33,16 +33,13 @@
 
 package com.virgilsecurity.ratchet.sessionstorage
 
-import com.virgilsecurity.ratchet.TestConfig
 import com.virgilsecurity.ratchet.generateIdentity
 import com.virgilsecurity.ratchet.generateText
 import com.virgilsecurity.ratchet.securechat.SecureSession
-import com.virgilsecurity.ratchet.utils.LogHelper
 import com.virgilsecurity.sdk.crypto.KeyType
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -51,12 +48,6 @@ class SessionStorageTest {
     private lateinit var identity: String
     private lateinit var identityKeyPair: VirgilKeyPair
     private lateinit var sessionStorage: SessionStorage
-
-    companion object {
-        @JvmStatic @BeforeAll fun globalSetup() {
-            LogHelper.instance().logLevel = TestConfig.logLevel
-        }
-    }
 
     @BeforeEach
     fun setup() {
