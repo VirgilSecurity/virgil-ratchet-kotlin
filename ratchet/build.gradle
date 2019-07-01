@@ -122,12 +122,14 @@ publishing {
 
             pom {
                 name = 'Virgil Double Ratchet Java/Kotlin SDK'
-                description = 'Virgil Security provides an SDK which allows you to communicate with Virgil Keyknox Service. Virgil Keyknox Service allows users to store their sensitive data (such as Private Key) encrypted (with end-to-end encryption) for using and sharing it between different devices.'
+                description = 'Virgil Security is presenting an implementation of the [Double Ratchet](https://signal.org/docs/specifications/doubleratchet/) algorithm, which is used by parties to exchange encrypted messages based on a shared secret key. The implementation includes:\n' +
+                        '- **Virgil Perfect Forward Secrecy (PFS) service** – a standalone web-service that is dedicated to managing one-time keys and long-time keys that are based on their Identity Public Keys (public keys that are contained in user cards published on Virgil Cards service);\n' +
+                        '- **Ratchet SDK** – interacts with PFS service for publishing and managing one-time keys and long-time keys and interacts with Virgil Cards service for retrieving user\'s indentity cards which the OTK and LTK are based on. The parties derive new keys for every Double Ratchet message so that previous private keys cannot be calculated from new ones. The parties that participate in the communication also send Diffie-Hellman public values attached to their messages. The results of Diffie-Hellman calculations are mixed into the derived keys so that the new private keys cannot be calculated from the previous ones.'
                 url = 'https://www.virgilsecurity.com/'
                 licenses {
                     license {
                         name = 'Virgil Security, Inc. license'
-                        url = 'https://github.com/VirgilSecurity/keyknox-kotlin/blob/master/LICENSE.txt'
+                        url = 'https://github.com/VirgilSecurity/virgil-ratchet-kotlin/blob/master/LICENSE.txt'
                     }
                 }
                 developers {
@@ -137,11 +139,17 @@ publishing {
                         email = 'andrii-iakovenko@gmail.com'
                         organizationUrl = 'https://github.com/andrii-iakovenko'
                     }
+                    developer {
+                        id = 'BuddahLD'
+                        name = 'Danylo Oliinyk'
+                        email = 'danylo.oliinyk@gmail.com'
+                        organizationUrl = 'https://github.com/buddahld'
+                    }
                 }
                 scm {
-                    connection = 'scm:git:https://github.com/VirgilSecurity/keyknox-kotlin.git'
-                    developerConnection = 'scm:git:git@github.com:VirgilSecurity/keyknox-kotlin.git'
-                    url = 'https://github.com/VirgilSecurity/keyknox-kotlin'
+                    connection = 'scm:git:https://github.com/VirgilSecurity/virgil-ratchet-kotlin.git'
+                    developerConnection = 'scm:git:git@github.com:VirgilSecurity/virgil-ratchet-kotlin.git'
+                    url = 'https://github.com/VirgilSecurity/virgil-ratchet-kotlin'
                 }
             }
         }

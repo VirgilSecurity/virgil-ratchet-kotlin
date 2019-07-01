@@ -130,9 +130,11 @@ publishing {
             artifact sourcesJar
             from components.android
 
-            pom { // TODO update info about ratchet
+            pom {
                 name = 'Virgil Double Ratchet Android SDK'
-                description = 'Virgil Security provides Double Ratchet SDK'
+                description = 'Virgil Security is presenting an implementation of the [Double Ratchet](https://signal.org/docs/specifications/doubleratchet/) algorithm, which is used by parties to exchange encrypted messages based on a shared secret key. The implementation includes:\n' +
+                        '- **Virgil Perfect Forward Secrecy (PFS) service** – a standalone web-service that is dedicated to managing one-time keys and long-time keys that are based on their Identity Public Keys (public keys that are contained in user cards published on Virgil Cards service);\n' +
+                        '- **Ratchet SDK** – interacts with PFS service for publishing and managing one-time keys and long-time keys and interacts with Virgil Cards service for retrieving user\'s indentity cards which the OTK and LTK are based on. The parties derive new keys for every Double Ratchet message so that previous private keys cannot be calculated from new ones. The parties that participate in the communication also send Diffie-Hellman public values attached to their messages. The results of Diffie-Hellman calculations are mixed into the derived keys so that the new private keys cannot be calculated from the previous ones.'
                 url = 'https://www.virgilsecurity.com/'
                 licenses {
                     license {
