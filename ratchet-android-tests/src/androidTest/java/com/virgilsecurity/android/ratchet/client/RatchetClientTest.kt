@@ -38,7 +38,7 @@ import com.virgilsecurity.android.ratchet.TestConfig
 import com.virgilsecurity.android.ratchet.generateIdentity
 import com.virgilsecurity.crypto.ratchet.RatchetKeyId
 import com.virgilsecurity.ratchet.client.RatchetClient
-import com.virgilsecurity.ratchet.data.SignedPublicKey
+import com.virgilsecurity.ratchet.client.data.SignedPublicKey
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier

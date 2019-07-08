@@ -35,7 +35,7 @@ package com.virgilsecurity.ratchet.client
 
 import com.virgilsecurity.crypto.ratchet.RatchetKeyId
 import com.virgilsecurity.ratchet.TestConfig
-import com.virgilsecurity.ratchet.data.SignedPublicKey
+import com.virgilsecurity.ratchet.client.data.SignedPublicKey
 import com.virgilsecurity.ratchet.generateIdentity
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager

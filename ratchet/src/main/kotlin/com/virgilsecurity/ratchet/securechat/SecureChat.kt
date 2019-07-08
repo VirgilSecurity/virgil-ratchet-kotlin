@@ -36,7 +36,7 @@ package com.virgilsecurity.ratchet.securechat
 import com.virgilsecurity.crypto.ratchet.*
 import com.virgilsecurity.ratchet.client.RatchetClient
 import com.virgilsecurity.ratchet.client.RatchetClientInterface
-import com.virgilsecurity.ratchet.data.SignedPublicKey
+import com.virgilsecurity.ratchet.client.data.SignedPublicKey
 import com.virgilsecurity.ratchet.exception.HexEncodingException
 import com.virgilsecurity.ratchet.exception.SecureChatException
 import com.virgilsecurity.ratchet.keystorage.*
@@ -87,13 +87,13 @@ class SecureChat {
         this.identityCard = context.identityCard
 
         this.longTermKeysStorage =
-                FileLongTermKeysStorage(context.identity, this.crypto, context.identityKeyPair, context.rootPath)
+                FileLongTermKeysStorage(context.identityCard.identifier, this.crypto, context.identityKeyPair, context.rootPath)
         this.oneTimeKeysStorage =
-                FileOneTimeKeysStorage(context.identity, this.crypto, context.identityKeyPair, context.rootPath)
+                FileOneTimeKeysStorage(context.identityCard.identifier, this.crypto, context.identityKeyPair, context.rootPath)
         this.sessionStorage =
-                FileSessionStorage(context.identity, crypto, context.identityKeyPair, context.rootPath)
+                FileSessionStorage(context.identityCard.identifier, crypto, context.identityKeyPair, context.rootPath)
         this.groupSessionStorage =
-                FileGroupSessionStorage(context.identity, crypto, context.identityKeyPair, context.rootPath)
+                FileGroupSessionStorage(context.identityCard.identifier, crypto, context.identityKeyPair, context.rootPath)
         this.keysRotator = KeysRotator(
                 crypto, context.identityKeyPair.privateKey, context.identityCard.identifier,
                 context.orphanedOneTimeKeyTtl, context.longTermKeyTtl, context.outdatedLongTermKeyTtl,
@@ -239,6 +239,16 @@ class SecureChat {
     }
 
     /**
+     * Deletes group session with given identifier.
+     *
+     * @param sessionId Session identifier.
+     */
+    fun deleteGroupSession(sessionId: ByteArray) {
+        logger.fine("Deleting group session with ${sessionId.hexEncodedString()}")
+        this.groupSessionStorage.deleteSession(sessionId)
+    }
+
+    /**
      * Starts new session with given participant using his identity card.
      *
      * NOTE: This operation doesn't store session to storage automatically. Use storeSession().
@@ -353,13 +363,10 @@ class SecureChat {
             identityPublicKeyData: ByteArray, longTermPublicKey: SignedPublicKey, oneTimePublicKey: ByteArray?
     ): SecureSession {
         if (!this.keyId.computePublicKeyId(identityPublicKeyData)!!.contentEquals(this.keyId.computePublicKeyId(this.crypto.exportPublicKey(identityPublicKey)))) {
-            throw SecureChatException(SecureChatException.IDENTITY_KEY_DOESNT_MATCH, "Wrong identity public key")
+            throw SecureChatException(SecureChatException.IDENTITY_KEY_DOESNT_MATCH)
         }
         if (!this.crypto.verifySignature(longTermPublicKey.signature, longTermPublicKey.publicKey, identityPublicKey)) {
-            throw SecureChatException(
-                    SecureChatException.INVALID_LONG_TERM_KEY_SIGNATURE,
-                    "Long term key signature is invalid"
-            )
+            throw SecureChatException(SecureChatException.INVALID_LONG_TERM_KEY_SIGNATURE)
         }
         if (oneTimePublicKey == null) {
             logger.warning("Creating weak session with $identity")

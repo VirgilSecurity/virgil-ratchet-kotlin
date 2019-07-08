@@ -61,7 +61,14 @@ class KeyStorageException @JvmOverloads constructor(
  */
 class SecureGroupSessionException @JvmOverloads constructor(
         val errorCode: Int = -1,
-        message: String? = "Unknown error"
+        message: String? = when (errorCode) {
+            NOT_CONSEQUENT_TICKET -> "Consequent tickets should be passed to updateMembers"
+            INVALID_MESSAGE_TYPE -> "Invalid message type"
+            INVALID_CARD_ID -> "Invalid card id"
+            PUBLIC_KEY_IS_NOT_VIRGIL -> "Public key is not VirgilPublicKey"
+            WRONG_SENDER -> "Message sender doesn't match"
+            else -> "Unknown error"
+        }
 ) : Exception(message) {
     companion object {
         const val NOT_CONSEQUENT_TICKET = 2
@@ -77,7 +84,18 @@ class SecureGroupSessionException @JvmOverloads constructor(
  */
 class SecureChatException @JvmOverloads constructor(
         val errorCode: Int = -1,
-        message: String? = "Unknown error"
+        message: String? = when(errorCode) {
+            SESSION_ALREADY_EXISTS -> "Session with this participant already exists"
+            WRONG_IDENTIRY_PUBLIC_KEY_CRYPTO -> "PublicKey is not VirgilPublicKey"
+            IDENTITY_KEY_DOESNT_MATCH -> "Identity key in the Card and on Ratchet Cloud doesn't match"
+            INVALID_LONG_TERM_KEY_SIGNATURE -> "Long-term key signature is invalid"
+            INVALID_MESSAGE_TYPE -> "Message type should be .prekey"
+            INVALID_KEY_TYPE -> "Invalid key type"
+            PUBLIC_KEY_SETS_MISMATCH -> "PublicKeysSets mismatch"
+            INVALID_SESSION_ID_LENGTH -> "Session Id should be 32-byte"
+            INVALID_CARD_ID -> "Invalid card id"
+            SESSION_ID_MISMATCH -> "Session id mismatch"
+            else -> "Unknown error"}
 ) : Exception(message) {
     companion object {
         const val SESSION_ALREADY_EXISTS = 1
@@ -89,6 +107,7 @@ class SecureChatException @JvmOverloads constructor(
         const val PUBLIC_KEY_SETS_MISMATCH = 7
         const val INVALID_SESSION_ID_LENGTH = 8
         const val INVALID_CARD_ID = 9
+        const val SESSION_ID_MISMATCH = 10
     }
 }
 

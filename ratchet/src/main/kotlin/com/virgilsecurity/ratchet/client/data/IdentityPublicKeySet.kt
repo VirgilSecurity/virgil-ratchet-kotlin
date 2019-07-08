@@ -31,19 +31,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.ratchet.data
+package com.virgilsecurity.ratchet.client.data
 
 import com.google.gson.annotations.SerializedName
 
 /**
  * Set of public keys for some receiver.
  *
+ * @param identity Identity.
  * @param identityPublicKey Identity public key.
  * @param longTermPublicKey Long-term public key.
  * @param oneTimePublicKey One-time public key.
  */
-class PublicKeySet(
+class IdentityPublicKeySet(
+        @SerializedName("identity") val identity: String,
         @SerializedName("identity_key") val identityPublicKey: ByteArray,
         @SerializedName("long_term_key") val longTermPublicKey: SignedPublicKey,
-        @SerializedName("one_time_key") val oneTimePublicKey: ByteArray? = null
+        @SerializedName("one_time_key") val oneTimePublicKey: ByteArray?
 )

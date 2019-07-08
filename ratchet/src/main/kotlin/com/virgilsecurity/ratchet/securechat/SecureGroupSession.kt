@@ -203,10 +203,7 @@ class SecureGroupSession {
                 val participantId = card.identifier.hexStringToByteArray()
 
                 if (card.publicKey !is VirgilPublicKey) {
-                    throw SecureGroupSessionException(
-                            SecureGroupSessionException.PUBLIC_KEY_IS_NOT_VIRGIL,
-                            "Card public key should be a VirgilPublicKey"
-                    )
+                    throw SecureGroupSessionException(SecureGroupSessionException.PUBLIC_KEY_IS_NOT_VIRGIL)
                 }
                 val publicKeyData = this.crypto.exportPublicKey(card.publicKey as VirgilPublicKey)
 

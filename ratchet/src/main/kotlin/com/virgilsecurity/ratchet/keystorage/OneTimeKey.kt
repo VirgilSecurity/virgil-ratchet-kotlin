@@ -40,7 +40,7 @@ import java.util.*
  *
  * @param identifier Key id.
  * @param key Private key.
- * @param orphanedFrom Date from which we found out that this key if orphaned.
+ * @param orphanedFrom Date from which we found out that this key is orphaned.
  */
 class OneTimeKey(
         val identifier: ByteArray,

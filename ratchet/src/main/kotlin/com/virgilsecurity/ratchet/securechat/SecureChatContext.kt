@@ -38,20 +38,31 @@ import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 
 /**
- * Create new instance.
  *
- * @param identity User's identity.
- * @param identityCard User's identity card id.
- * @param identityKeyPair User's identity key pair (corresponding to public key in identityCard).
- * @param accessTokenProvider Access token provider.
  */
-class SecureChatContext(
-        val identity: String,
-        val identityCard: Card,
-        val identityKeyPair: VirgilKeyPair,
-        val accessTokenProvider: AccessTokenProvider,
-        val rootPath: String? = null
-) {
+class SecureChatContext {
+
+    val identityCard: Card
+    val identityKeyPair: VirgilKeyPair
+    val accessTokenProvider: AccessTokenProvider
+    val rootPath: String?
+
+    /**
+     * Create new instance.
+     *
+     * @param identityCard User's identity card id.
+     * @param identityKeyPair User's identity key pair (corresponding to public key in identityCard).
+     * @param accessTokenProvider Access token provider.
+     */
+    constructor(identityCard: Card,
+                identityKeyPair: VirgilKeyPair,
+                accessTokenProvider: AccessTokenProvider,
+                rootPath: String? = null) {
+        this.identityCard = identityCard
+        this.identityKeyPair = identityKeyPair
+        this.accessTokenProvider = accessTokenProvider
+        this.rootPath = rootPath
+    }
 
     /**
      * Time that one-time key lives in the storage after been marked as orphaned in seconds.
@@ -72,9 +83,4 @@ class SecureChatContext(
      * Desired number of one-time keys.
      */
     var desiredNumberOfOneTimeKeys = 100
-
-    /**
-     * App name.
-     */
-    var appName: String? = null
 }

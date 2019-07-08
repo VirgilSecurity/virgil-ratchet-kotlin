@@ -31,45 +31,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.ratchet.data
+package com.virgilsecurity.ratchet.client.data
 
 import com.google.gson.annotations.SerializedName
 
 /**
- * Request for uploading public keys. Where [identityCardId] is *Card* id, [longTermPublicKey] is long term
- * public key and [oneTimePublicKeys] is one time public keys.
+ * Signed public key.
+ *
+ * @param publicKey Public key.
+ * @param signature Signature.
  */
-class UploadPublicKeysRequest(
-        @SerializedName("identity_card_id") val identityCardId: String?,
-        @SerializedName("long_term_key") val longTermPublicKey: SignedPublicKey?,
-        @SerializedName("one_time_keys") val oneTimePublicKeys: List<ByteArray>
+class SignedPublicKey(
+        @SerializedName("public_key") val publicKey: ByteArray,
+        @SerializedName("signature") val signature: ByteArray
 )
-
-/**
- * Response for public key validation. Where [usedLongTermKeyId] is the long-term public key id,
- * [usedOneTimeKeysIds] is one-time keys ids.
- */
-class ValidatePublicKeysRequest(
-        @SerializedName("long_term_key_id") val usedLongTermKeyId: ByteArray? = null,
-        @SerializedName("one_time_keys_ids") val usedOneTimeKeysIds: List<ByteArray>
-)
-
-/**
- * Response for public key validation. Where [usedLongTermKeyId] is the long-term public key id,
- * [usedOneTimeKeysIds] is one-time keys ids.
- */
-class ValidatePublicKeysResponse(
-        @SerializedName("used_long_term_key_id") val usedLongTermKeyId: ByteArray? = null,
-        @SerializedName("used_one_time_keys_ids") val usedOneTimeKeysIds: List<ByteArray>
-)
-
-/**
- * Request to get public keys set. Where [identity] is the identity by which keys set should be taken.
- */
-class GetPublicKeySetRequest(@SerializedName("identity") val identity: String)
-
-/**
- * Request to get multiple public keys sets. Where [identities] are identities by which multiple
- * keys sets should be taken.
- */
-class GetMultiplePublicKeysSetsRequest(@SerializedName("identities") val identities: List<String>)
