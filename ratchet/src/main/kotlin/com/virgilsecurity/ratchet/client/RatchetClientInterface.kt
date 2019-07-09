@@ -33,10 +33,10 @@
 
 package com.virgilsecurity.ratchet.client
 
-import com.virgilsecurity.ratchet.data.IdentityPublicKeySet
-import com.virgilsecurity.ratchet.data.PublicKeySet
-import com.virgilsecurity.ratchet.data.SignedPublicKey
-import com.virgilsecurity.ratchet.data.ValidatePublicKeysResponse
+import com.virgilsecurity.ratchet.client.data.IdentityPublicKeySet
+import com.virgilsecurity.ratchet.client.data.PublicKeySet
+import com.virgilsecurity.ratchet.client.data.SignedPublicKey
+import com.virgilsecurity.ratchet.client.data.ValidatePublicKeysResponse
 import com.virgilsecurity.ratchet.model.Completable
 import com.virgilsecurity.ratchet.model.Result
 

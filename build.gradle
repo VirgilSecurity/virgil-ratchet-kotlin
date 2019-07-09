@@ -41,8 +41,8 @@ buildscript {
             gradle            : '3.4.1',
 
             // Virgil
-            virgilSdk         : '5.1.1',
-            virgilCrypto      : '0.8.0-SNAPSHOT',
+            virgilSdk         : '5.1.2',
+            virgilCrypto      : '0.8.0',
 
             // Serializer
             gson              : '2.8.5',
@@ -60,7 +60,7 @@ buildscript {
             // Tests
             testsRunner       : '1.0.2',
             espresso          : '3.0.2',
-            junit             : '5.4.2',
+            junit             : '5.5.0',
             junitPlugin       : '1.0.0',
             junitOld          : '4.12',
     ]

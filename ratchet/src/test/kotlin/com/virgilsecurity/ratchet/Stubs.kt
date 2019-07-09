@@ -35,10 +35,10 @@ package com.virgilsecurity.ratchet
 
 import com.virgilsecurity.crypto.ratchet.RatchetKeyId
 import com.virgilsecurity.ratchet.client.RatchetClientInterface
-import com.virgilsecurity.ratchet.data.IdentityPublicKeySet
-import com.virgilsecurity.ratchet.data.PublicKeySet
-import com.virgilsecurity.ratchet.data.SignedPublicKey
-import com.virgilsecurity.ratchet.data.ValidatePublicKeysResponse
+import com.virgilsecurity.ratchet.client.data.IdentityPublicKeySet
+import com.virgilsecurity.ratchet.client.data.PublicKeySet
+import com.virgilsecurity.ratchet.client.data.SignedPublicKey
+import com.virgilsecurity.ratchet.client.data.ValidatePublicKeysResponse
 import com.virgilsecurity.ratchet.exception.KeyStorageException
 import com.virgilsecurity.ratchet.keystorage.LongTermKey
 import com.virgilsecurity.ratchet.keystorage.LongTermKeysStorage
@@ -58,10 +58,7 @@ import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.CardVerifier
 import com.virgilsecurity.sdk.client.VirgilCardClient
-import com.virgilsecurity.sdk.crypto.HashAlgorithm
-import com.virgilsecurity.sdk.crypto.KeyType
-import com.virgilsecurity.sdk.crypto.VirgilCrypto
-import com.virgilsecurity.sdk.crypto.VirgilPublicKey
+import com.virgilsecurity.sdk.crypto.*
 import com.virgilsecurity.sdk.jwt.Jwt
 import com.virgilsecurity.sdk.jwt.contract.AccessToken
 import com.virgilsecurity.sdk.utils.Tuple
@@ -404,13 +401,13 @@ fun generateKeyId(): ByteArray {
 fun generatePrivateKeyData(): ByteArray {
     val crypto = VirgilCrypto()
     val keyPair = crypto.generateKeyPair(KeyType.CURVE25519)
-    return keyPair.privateKey.privateKey.exportPrivateKey()
+    return crypto.exportPrivateKey(keyPair.privateKey)
 }
 
 fun generatePublicKeyData(): ByteArray {
     val crypto = VirgilCrypto()
     val keyPair = crypto.generateKeyPair(KeyType.CURVE25519)
-    return keyPair.publicKey.publicKey.exportPublicKey()
+    return crypto.exportPublicKey(keyPair.publicKey)
 }
 
 private inline fun returnNothing(): Nothing =

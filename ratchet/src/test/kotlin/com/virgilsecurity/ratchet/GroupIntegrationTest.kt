@@ -143,7 +143,7 @@ class GroupIntegrationTest {
             val localCards = cards1.toMutableList()
             localCards.removeAt(i)
 
-            val session = chats1[i].startGroupSession(localCards, initMsg)
+            val session = chats1[i].startGroupSession(localCards, sessionId, initMsg)
             sessions.add(session)
         }
 
@@ -162,7 +162,7 @@ class GroupIntegrationTest {
                 val localCards = cards2.toMutableList()
                 localCards.removeAt(i - num)
 
-                val session = chats2[i - num].startGroupSession(cards1 + localCards, ticket1)
+                val session = chats2[i - num].startGroupSession(cards1 + localCards, sessionId, ticket1)
 
                 sessions.add(session)
             }
@@ -184,7 +184,7 @@ class GroupIntegrationTest {
                 val localCards = cards3.toMutableList()
                 localCards.removeAt(i - num)
 
-                val session = chats3[i - num].startGroupSession(cards2 + localCards, ticket2)
+                val session = chats3[i - num].startGroupSession(cards2 + localCards, sessionId, ticket2)
 
                 sessions.add(session)
             }
@@ -207,7 +207,7 @@ class GroupIntegrationTest {
             val localCards = cards.toMutableList()
             localCards.removeAt(i)
 
-            val session = chats[i].startGroupSession(localCards, initMsg)
+            val session = chats[i].startGroupSession(localCards, sessionId, initMsg)
             sessions.add(session)
         }
 
@@ -235,7 +235,7 @@ class GroupIntegrationTest {
             session.updateParticipants(addTicket, listOf(experimentalCard), listOf())
         }
 
-        val newSession = chats.last().startGroupSession(cards.dropLast(1), addTicket)
+        val newSession = chats.last().startGroupSession(cards.dropLast(1), sessionId, addTicket)
         sessions.add(newSession)
 
         // Decrypt with new session message, encrypted for old session
@@ -260,7 +260,7 @@ class GroupIntegrationTest {
             val localCards = cards.toMutableList()
             localCards.removeAt(i)
 
-            val session = chats[i].startGroupSession(localCards, initMsg)
+            val session = chats[i].startGroupSession(localCards, sessionId, initMsg)
             sessions.add(session)
         }
 
@@ -284,7 +284,7 @@ class GroupIntegrationTest {
                 session.updateParticipants(addTicket, listOf(experimentalCard), listOf())
             }
 
-            val newSession = this.chats.last().startGroupSession(cards.dropLast(1), addTicket)
+            val newSession = this.chats.last().startGroupSession(cards.dropLast(1), sessionId, addTicket)
             sessions.add(newSession)
         }
     }
@@ -303,7 +303,7 @@ class GroupIntegrationTest {
             val localCards = cards.toMutableList()
             localCards.removeAt(i)
 
-            val session = chats[i].startGroupSession(localCards, initMsg)
+            val session = chats[i].startGroupSession(localCards, sessionId, initMsg)
             sessions.add(session)
         }
 
@@ -345,7 +345,7 @@ class GroupIntegrationTest {
             val localCards = this.cards.toMutableList()
             localCards.removeAt(i)
 
-            val session = this.chats[i].startGroupSession(localCards, initMsg)
+            val session = this.chats[i].startGroupSession(localCards, sessionId, initMsg)
             sessions.add(session)
 
             this.chats[i].storeGroupSession(session)

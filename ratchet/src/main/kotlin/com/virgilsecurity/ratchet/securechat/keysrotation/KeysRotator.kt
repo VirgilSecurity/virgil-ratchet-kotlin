@@ -35,7 +35,7 @@ package com.virgilsecurity.ratchet.securechat.keysrotation
 
 import com.virgilsecurity.crypto.ratchet.RatchetKeyId
 import com.virgilsecurity.ratchet.client.RatchetClientInterface
-import com.virgilsecurity.ratchet.data.SignedPublicKey
+import com.virgilsecurity.ratchet.client.data.SignedPublicKey
 import com.virgilsecurity.ratchet.keystorage.LongTermKey
 import com.virgilsecurity.ratchet.keystorage.LongTermKeysStorage
 import com.virgilsecurity.ratchet.keystorage.OneTimeKeysStorage

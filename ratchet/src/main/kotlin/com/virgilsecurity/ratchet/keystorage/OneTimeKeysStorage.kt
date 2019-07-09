@@ -90,7 +90,7 @@ interface OneTimeKeysStorage {
     /**
      * Marks key as orphaned.
      *
-     * @param date Date from which we found out that this key if orphaned.
+     * @param date Date from which we found out that this key is orphaned.
      * @param keyId Key id.
      */
     fun markKeyOrphaned(date: Date, keyId: ByteArray)
