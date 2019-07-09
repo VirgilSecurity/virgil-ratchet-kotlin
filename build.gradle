@@ -41,8 +41,8 @@ buildscript {
             gradle            : '3.4.1',
 
             // Virgil
-            virgilSdk         : '5.1.2-SNAPSHOT',
-            virgilCrypto      : '0.8.0-SNAPSHOT',
+            virgilSdk         : '5.1.2',
+            virgilCrypto      : '0.8.0',
 
             // Serializer
             gson              : '2.8.5',
