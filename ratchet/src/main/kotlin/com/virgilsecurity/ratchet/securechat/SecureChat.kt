@@ -550,16 +550,21 @@ class SecureChat {
      * RatchetGroupMessage should be of GROUP_INFO type. Such messages should be sent encrypted (using SecureSession).
      *
      * @param receiversCards Participant cards (excluding creating user itself).
+     * @param sessionId Session Id. Should be 32 byte.
      * @param ratchetMessage Ratchet group message of GROUP_INFO type.
      *
      * @return SecureGroupSession.
      */
-    fun startGroupSession(receiversCards: List<Card>, ratchetMessage: RatchetGroupMessage): SecureGroupSession {
+    fun startGroupSession(receiversCards: List<Card>, sessionId: ByteArray, ratchetMessage: RatchetGroupMessage): SecureGroupSession {
         if (ratchetMessage.type != GroupMsgType.GROUP_INFO) {
             throw SecureChatException(
                     SecureChatException.INVALID_MESSAGE_TYPE,
                     "Ratchet message should be GROUP_INFO type"
             )
+        }
+
+        if (!ratchetMessage.sessionId.contentEquals(sessionId)) {
+            throw SecureChatException(SecureChatException.SESSION_ID_MISMATCH)
         }
 
         val privateKeyData = this.crypto.exportPrivateKey(this.identityPrivateKey)
