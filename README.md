@@ -77,8 +77,7 @@ val rotateKeysListener = object : OnResultListener<RotationLog> {
     }
 }
 
-val context = SecureChatContext(identity = card.identity,
-                                identityCard = card,
+val context = SecureChatContext(identityCard = card,
                                 identityKeyPair = keyPair,
                                 accessTokenProvider = provider)
 
