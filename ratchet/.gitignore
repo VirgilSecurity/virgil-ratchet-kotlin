@@ -199,3 +199,5 @@ gradle-app.setting
 testsDev.sh
 testsStg.sh
 testsProd.sh
+
+.attach_pid*

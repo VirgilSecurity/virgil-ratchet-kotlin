@@ -1,2 +1,1 @@
-rootProject.name = 'ratchet'
-
+include ':ratchet', ':ratchet-android', ':ratchet-android-tests'

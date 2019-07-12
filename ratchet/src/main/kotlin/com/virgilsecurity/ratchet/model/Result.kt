@@ -31,66 +31,43 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-buildscript {
-    ext.versions = [
-            // Kotlin
-            kotlinVersion     : '1.3.40',
-            coroutines        : '1.3.0-M1',
+package com.virgilsecurity.ratchet.model
 
-            // Gradle
-            gradle            : '3.4.1',
+import com.virgilsecurity.ratchet.model.callback.OnResultListener
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
-            // Virgil
-            virgilSdk         : '5.1.2',
-            virgilCrypto      : '0.8.0',
+/**
+ * Result's class intent is to give possibility to call an operation that returns result in Success or Error in case of
+ * error *synchronously* or *asynchronously*.
+ */
+interface Result<T> {
 
-            // Serializer
-            gson              : '2.8.5',
+    /**
+     * Call this method to get result *synchronously*.
+     */
+    fun get(): T
 
-            // Network
-            fuel              : '1.15.1',
-
-            // Android
-            android           : '4.1.1.4',
-
-            // Publish
-            mavenPublishPlugin: '3.6.2',
-            dokka             : '0.9.17',
-
-            // Tests
-            testsRunner       : '1.0.2',
-            espresso          : '3.0.2',
-            junit             : '5.5.0',
-            junitPlugin       : '1.0.0',
-            junitOld          : '4.12',
-    ]
-
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
-        mavenLocal()
-    }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlinVersion"
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:$versions.dokka"
-        classpath "com.android.tools.build:gradle:$versions.gradle"
-        classpath "digital.wup:android-maven-publish:$versions.mavenPublishPlugin"
-    }
-}
-
-allprojects {
-    repositories {
-        mavenLocal()
-        maven {
-            url 'https://oss.sonatype.org/content/repositories/snapshots'
+    /**
+     * Call this method to get result *asynchronously*. You'll get the result of an operation in the
+     * [onResultListener]. Provided [scope] will be used to execute operation.
+     */
+    fun addCallback(onResultListener: OnResultListener<T>, scope: CoroutineScope = GlobalScope) {
+        scope.launch {
+            try {
+                val result = get()
+                onResultListener.onSuccess(result)
+            } catch (throwable: Throwable) {
+                onResultListener.onError(throwable)
+            }
         }
-        google()
-        jcenter()
-        mavenCentral()
     }
-}
 
-subprojects {
-    version = '0.1.0'
+    /**
+     * Call this method to get result *asynchronously*. You'll get the result of an operation in the
+     * [onResultListener].
+     */
+    fun addCallback(onResultListener: OnResultListener<T>) =
+            addCallback(onResultListener, GlobalScope)
 }

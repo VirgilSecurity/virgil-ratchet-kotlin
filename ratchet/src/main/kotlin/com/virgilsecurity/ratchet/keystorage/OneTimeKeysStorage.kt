@@ -31,66 +31,72 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-buildscript {
-    ext.versions = [
-            // Kotlin
-            kotlinVersion     : '1.3.40',
-            coroutines        : '1.3.0-M1',
+package com.virgilsecurity.ratchet.keystorage
 
-            // Gradle
-            gradle            : '3.4.1',
+import java.util.*
 
-            // Virgil
-            virgilSdk         : '5.1.2',
-            virgilCrypto      : '0.8.0',
+/**
+ * One-time keys storage.
+ */
+interface OneTimeKeysStorage {
 
-            // Serializer
-            gson              : '2.8.5',
+    /**
+     * Starts interaction with storage.
+     * This method should be called before any other interaction with storage.
+     * This method can be called many times and works like a stack.
+     */
+    fun startInteraction()
 
-            // Network
-            fuel              : '1.15.1',
+    /**
+     * Stops interaction with storage.
+     * This method should be called after all interactions with storage.
+     * This method can be called many times and works like a stack.
+     */
+    fun stopInteraction()
 
-            // Android
-            android           : '4.1.1.4',
+    /**
+     * Stores key.
+     *
+     * @param key Private key.
+     * @param keyId Key id.
+     *
+     * @return One-time private key.
+     */
+    fun storeKey(key: ByteArray, keyId: ByteArray): OneTimeKey
 
-            // Publish
-            mavenPublishPlugin: '3.6.2',
-            dokka             : '0.9.17',
+    /**
+     * Retrieves key.
+     *
+     * @param keyId Key id.
+     *
+     * @return One-time private key.
+     */
+    fun retrieveKey(keyId: ByteArray): OneTimeKey
 
-            // Tests
-            testsRunner       : '1.0.2',
-            espresso          : '3.0.2',
-            junit             : '5.5.0',
-            junitPlugin       : '1.0.0',
-            junitOld          : '4.12',
-    ]
+    /**
+     * Deletes key.
+     *
+     * @param keyId Key id.
+     */
+    fun deleteKey(keyId: ByteArray)
 
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
-        mavenLocal()
-    }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlinVersion"
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:$versions.dokka"
-        classpath "com.android.tools.build:gradle:$versions.gradle"
-        classpath "digital.wup:android-maven-publish:$versions.mavenPublishPlugin"
-    }
-}
+    /**
+     * Retrieves all keys.
+     *
+     * @return Returns all keys.
+     */
+    fun retrieveAllKeys(): List<OneTimeKey>
 
-allprojects {
-    repositories {
-        mavenLocal()
-        maven {
-            url 'https://oss.sonatype.org/content/repositories/snapshots'
-        }
-        google()
-        jcenter()
-        mavenCentral()
-    }
-}
+    /**
+     * Marks key as orphaned.
+     *
+     * @param date Date from which we found out that this key is orphaned.
+     * @param keyId Key id.
+     */
+    fun markKeyOrphaned(date: Date, keyId: ByteArray)
 
-subprojects {
-    version = '0.1.0'
+    /**
+     * Deletes all keys.
+     */
+    fun reset()
 }

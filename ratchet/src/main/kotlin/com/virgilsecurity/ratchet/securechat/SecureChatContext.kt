@@ -31,66 +31,56 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-buildscript {
-    ext.versions = [
-            // Kotlin
-            kotlinVersion     : '1.3.40',
-            coroutines        : '1.3.0-M1',
+package com.virgilsecurity.ratchet.securechat
 
-            // Gradle
-            gradle            : '3.4.1',
+import com.virgilsecurity.sdk.cards.Card
+import com.virgilsecurity.sdk.crypto.VirgilKeyPair
+import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 
-            // Virgil
-            virgilSdk         : '5.1.2',
-            virgilCrypto      : '0.8.0',
+/**
+ *
+ */
+class SecureChatContext {
 
-            // Serializer
-            gson              : '2.8.5',
+    val identityCard: Card
+    val identityKeyPair: VirgilKeyPair
+    val accessTokenProvider: AccessTokenProvider
+    val rootPath: String?
 
-            // Network
-            fuel              : '1.15.1',
-
-            // Android
-            android           : '4.1.1.4',
-
-            // Publish
-            mavenPublishPlugin: '3.6.2',
-            dokka             : '0.9.17',
-
-            // Tests
-            testsRunner       : '1.0.2',
-            espresso          : '3.0.2',
-            junit             : '5.5.0',
-            junitPlugin       : '1.0.0',
-            junitOld          : '4.12',
-    ]
-
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
-        mavenLocal()
+    /**
+     * Create new instance.
+     *
+     * @param identityCard User's identity card id.
+     * @param identityKeyPair User's identity key pair (corresponding to public key in identityCard).
+     * @param accessTokenProvider Access token provider.
+     */
+    constructor(identityCard: Card,
+                identityKeyPair: VirgilKeyPair,
+                accessTokenProvider: AccessTokenProvider,
+                rootPath: String? = null) {
+        this.identityCard = identityCard
+        this.identityKeyPair = identityKeyPair
+        this.accessTokenProvider = accessTokenProvider
+        this.rootPath = rootPath
     }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlinVersion"
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:$versions.dokka"
-        classpath "com.android.tools.build:gradle:$versions.gradle"
-        classpath "digital.wup:android-maven-publish:$versions.mavenPublishPlugin"
-    }
-}
 
-allprojects {
-    repositories {
-        mavenLocal()
-        maven {
-            url 'https://oss.sonatype.org/content/repositories/snapshots'
-        }
-        google()
-        jcenter()
-        mavenCentral()
-    }
-}
+    /**
+     * Time that one-time key lives in the storage after been marked as orphaned in seconds.
+     */
+    var orphanedOneTimeKeyTtl = 24 * 60 * 60
 
-subprojects {
-    version = '0.1.0'
+    /**
+     * Time that long-term key is been used before rotation in seconds.
+     */
+    var longTermKeyTtl = 5 * 24 * 60 * 60
+
+    /**
+     * Time that long-term key lives in the storage after been marked as outdated in seconds.
+     */
+    var outdatedLongTermKeyTtl = 24 * 60 * 60
+
+    /**
+     * Desired number of one-time keys.
+     */
+    var desiredNumberOfOneTimeKeys = 100
 }

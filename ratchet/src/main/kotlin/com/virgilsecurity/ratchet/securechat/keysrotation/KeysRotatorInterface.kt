@@ -31,66 +31,32 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-buildscript {
-    ext.versions = [
-            // Kotlin
-            kotlinVersion     : '1.3.40',
-            coroutines        : '1.3.0-M1',
+package com.virgilsecurity.ratchet.securechat.keysrotation
 
-            // Gradle
-            gradle            : '3.4.1',
+import com.virgilsecurity.ratchet.model.Result
+import com.virgilsecurity.sdk.jwt.contract.AccessToken
 
-            // Virgil
-            virgilSdk         : '5.1.2',
-            virgilCrypto      : '0.8.0',
+/**
+ * Keys rotation interface.
+ */
+interface KeysRotatorInterface {
 
-            // Serializer
-            gson              : '2.8.5',
-
-            // Network
-            fuel              : '1.15.1',
-
-            // Android
-            android           : '4.1.1.4',
-
-            // Publish
-            mavenPublishPlugin: '3.6.2',
-            dokka             : '0.9.17',
-
-            // Tests
-            testsRunner       : '1.0.2',
-            espresso          : '3.0.2',
-            junit             : '5.5.0',
-            junitPlugin       : '1.0.0',
-            junitOld          : '4.12',
-    ]
-
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
-        mavenLocal()
-    }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlinVersion"
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:$versions.dokka"
-        classpath "com.android.tools.build:gradle:$versions.gradle"
-        classpath "digital.wup:android-maven-publish:$versions.mavenPublishPlugin"
-    }
-}
-
-allprojects {
-    repositories {
-        mavenLocal()
-        maven {
-            url 'https://oss.sonatype.org/content/repositories/snapshots'
-        }
-        google()
-        jcenter()
-        mavenCentral()
-    }
-}
-
-subprojects {
-    version = '0.1.0'
+    /**
+     * Rotate keys.
+     *
+     * Rotation process:
+     * - Retrieve all one-time keys
+     * - Delete one-time keys that were marked as orphaned more than orphanedOneTimeKeyTtl seconds ago
+     * - Retrieve all long-term keys
+     * - Delete long-term keys that were marked as outdated more than outdatedLongTermKeyTtl seconds ago
+     * - Check that all relevant long-term and one-time keys are in the cloud
+     *   (still persistent in the cloud and were not used)
+     * - Mark used one-time keys as used
+     * - Decide on long-term key rotation
+     * - Generate needed number of one-time keys
+     * - Upload keys to the cloud
+     *
+     * @return Rotation log.
+     */
+    fun rotateKeys(token: AccessToken): Result<RotationLog>
 }
