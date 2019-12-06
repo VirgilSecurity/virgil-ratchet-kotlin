@@ -33,6 +33,7 @@
 
 package com.virgilsecurity.android.ratchet
 
+import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.crypto.ratchet.RatchetKeyId
 import com.virgilsecurity.ratchet.client.RatchetClientInterface
 import com.virgilsecurity.ratchet.client.data.IdentityPublicKeySet
@@ -44,8 +45,7 @@ import com.virgilsecurity.ratchet.keystorage.LongTermKey
 import com.virgilsecurity.ratchet.keystorage.LongTermKeysStorage
 import com.virgilsecurity.ratchet.keystorage.OneTimeKey
 import com.virgilsecurity.ratchet.keystorage.OneTimeKeysStorage
-import com.virgilsecurity.ratchet.model.Completable
-import com.virgilsecurity.ratchet.model.Result
+import com.virgilsecurity.common.model.Result
 import com.virgilsecurity.ratchet.securechat.SecureGroupSession
 import com.virgilsecurity.ratchet.securechat.SecureSession
 import com.virgilsecurity.ratchet.securechat.keysrotation.KeysRotatorInterface
@@ -413,5 +413,5 @@ fun generatePublicKeyData(): ByteArray {
     return crypto.exportPublicKey(keyPair.publicKey)
 }
 
-private inline fun returnNothing(): Nothing =
+private fun returnNothing(): Nothing =
     throw NotImplementedError("This method is supposed to not be called.")

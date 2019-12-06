@@ -38,11 +38,11 @@ import com.github.kittinunf.fuel.core.Method
 import com.github.kittinunf.fuel.core.Response
 import com.github.kittinunf.fuel.core.isSuccessful
 import com.google.gson.reflect.TypeToken
+import com.virgilsecurity.common.model.Completable
+import com.virgilsecurity.common.model.Result
 import com.virgilsecurity.ratchet.build.VersionVirgilAgent
 import com.virgilsecurity.ratchet.client.data.*
 import com.virgilsecurity.ratchet.exception.ProtocolException
-import com.virgilsecurity.ratchet.model.Completable
-import com.virgilsecurity.ratchet.model.Result
 import com.virgilsecurity.ratchet.utils.OsUtils
 import com.virgilsecurity.sdk.common.ErrorResponse
 import com.virgilsecurity.sdk.utils.ConvertionUtils

@@ -231,7 +231,7 @@ class KeysRotatorTest {
     }
 
     private fun rotate(rotator: KeysRotator, tokenProvider: AccessTokenProvider): RotationLog {
-        val tokenContext = TokenContext("ratchet", false, "rotate")
+        val tokenContext = TokenContext("ratchet", "rotate")
         val jwt = tokenProvider.getToken(tokenContext)
 
         return rotator.rotateKeys(jwt).get()

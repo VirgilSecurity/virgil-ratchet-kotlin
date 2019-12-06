@@ -33,7 +33,7 @@
 
 package com.virgilsecurity.ratchet.securechat.keysrotation
 
-import com.virgilsecurity.ratchet.model.Result
+import com.virgilsecurity.common.model.Result
 import com.virgilsecurity.sdk.jwt.contract.AccessToken
 
 /**

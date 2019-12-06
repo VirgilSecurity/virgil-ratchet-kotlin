@@ -75,7 +75,7 @@ dependencies {
 
     api "com.virgilsecurity.crypto:common-android:$versions.virgilCrypto"
     implementation "com.virgilsecurity.crypto:foundation-android:$versions.virgilCrypto"
-    implementation "com.virgilsecurity.crypto:ratchet-android:$versions.virgilCrypto"
+    api "com.virgilsecurity.crypto:ratchet-android:$versions.virgilCrypto"
 
     // Kotlin
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$versions.kotlinVersion"

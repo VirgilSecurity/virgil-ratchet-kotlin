@@ -45,13 +45,13 @@ class TestConfig {
     companion object {
         val virgilCrypto = VirgilCrypto(false)
 
-        const val appId: String = BuildConfig.APP_ID
+        val appId: String by lazy { BuildConfig.APP_ID }
 
         val apiPrivateKey: VirgilPrivateKey by lazy {
             virgilCrypto.importPrivateKey(Base64.decode(BuildConfig.API_PRIVATE_KEY, Base64.NO_WRAP)).privateKey
         }
 
-        const val apiPublicKeyId: String = BuildConfig.API_PUBLIC_KEY_ID
+        val apiPublicKeyId: String by lazy { BuildConfig.API_PUBLIC_KEY_ID }
 
         val serviceURL: String by lazy { BuildConfig.SERVICE_URL }
 

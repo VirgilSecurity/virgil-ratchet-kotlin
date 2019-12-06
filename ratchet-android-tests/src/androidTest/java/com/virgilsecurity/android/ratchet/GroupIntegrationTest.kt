@@ -294,13 +294,13 @@ class GroupIntegrationTest {
 
     @Test
     fun decrypt__wrong_sender__should_return_error() {
-        val num = 2
+        val num = 3
         init(num)
 
         val sessionId = this.crypto.generateRandomData(32)
         val initMsg = this.chats.first().startNewGroupSession(sessionId)
 
-        var sessions = mutableListOf<SecureGroupSession>()
+        val sessions = mutableListOf<SecureGroupSession>()
 
         for (i in 0 until num) {
             val localCards = cards.toMutableList()
@@ -319,18 +319,18 @@ class GroupIntegrationTest {
         val crypto = VirgilCrypto()
 
         try {
-            sessions[1].decryptString(message, sessions[1].myIdentifier())
+            sessions[1].decryptString(message, sessions[2].myIdentifier())
             fail()
-        } catch (e: SecureGroupSessionException) {
-            assertEquals(SecureGroupSessionException.WRONG_SENDER, e.errorCode)
+        } catch (e: RatchetException) {
+            assertEquals(RatchetException.ERROR_INVALID_SIGNATURE, e.statusCode)
         }
 
         try {
             val randomCardId = crypto.generateRandomData(32).hexEncodedString()
             sessions[1].decryptString(message, randomCardId)
             fail()
-        } catch (e: SecureGroupSessionException) {
-            assertEquals(SecureGroupSessionException.WRONG_SENDER, e.errorCode)
+        } catch (e: RatchetException) {
+            assertEquals(RatchetException.ERROR_SENDER_NOT_FOUND, e.statusCode)
         }
     }
 

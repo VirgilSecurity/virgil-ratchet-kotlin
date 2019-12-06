@@ -33,12 +33,12 @@
 
 package com.virgilsecurity.ratchet.client
 
+import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.ratchet.client.data.IdentityPublicKeySet
 import com.virgilsecurity.ratchet.client.data.PublicKeySet
 import com.virgilsecurity.ratchet.client.data.SignedPublicKey
 import com.virgilsecurity.ratchet.client.data.ValidatePublicKeysResponse
-import com.virgilsecurity.ratchet.model.Completable
-import com.virgilsecurity.ratchet.model.Result
+import com.virgilsecurity.common.model.Result
 
 /**
  *  Client used to communicate with ratchet service

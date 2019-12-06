@@ -235,7 +235,7 @@ class KeysRotatorTest {
     }
 
     private fun rotate(rotator: KeysRotator, tokenProvider: AccessTokenProvider): RotationLog {
-        val tokenContext = TokenContext("", false, "rotate")
+        val tokenContext = TokenContext("ratchet", "rotate")
         val jwt = tokenProvider.getToken(tokenContext)
 
         return rotator.rotateKeys(jwt).get()
@@ -265,7 +265,7 @@ class KeysRotatorTest {
                     return false
                 }
                 storedOneTimeKeysIds.forEachIndexed { i, value ->
-                    if (!cloudOneTimeKeysIds[i].contentEquals(value)) {
+                    if (!cloudOneTimeKeysIds[i]!!.contentEquals(value)) {
                         logger.warning("Could one time key $i doesn't match")
                         return false
                     }

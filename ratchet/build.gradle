@@ -49,6 +49,7 @@ dependencies {
     // Virgil
     api "com.virgilsecurity.sdk:crypto:$versions.virgilSdk"
     api "com.virgilsecurity.sdk:sdk:$versions.virgilSdk"
+    api "com.virgilsecurity:common:$versions.virgilSdk"
 
     implementation "com.virgilsecurity.crypto:common:$versions.virgilCrypto"
     implementation "com.virgilsecurity.crypto:foundation:$versions.virgilCrypto"
