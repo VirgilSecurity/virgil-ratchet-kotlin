@@ -394,19 +394,19 @@ fun generateText(): String {
 
 fun generateKeyId(): ByteArray {
     val crypto = VirgilCrypto()
-    val keyPair = crypto.generateKeyPair(KeyType.CURVE25519)
+    val keyPair = crypto.generateKeyPair(KeyPairType.CURVE25519)
     return keyPair.publicKey.identifier
 }
 
 fun generatePrivateKeyData(): ByteArray {
     val crypto = VirgilCrypto()
-    val keyPair = crypto.generateKeyPair(KeyType.CURVE25519)
+    val keyPair = crypto.generateKeyPair(KeyPairType.CURVE25519)
     return crypto.exportPrivateKey(keyPair.privateKey)
 }
 
 fun generatePublicKeyData(): ByteArray {
     val crypto = VirgilCrypto()
-    val keyPair = crypto.generateKeyPair(KeyType.CURVE25519)
+    val keyPair = crypto.generateKeyPair(KeyPairType.CURVE25519)
     return crypto.exportPublicKey(keyPair.publicKey)
 }
 

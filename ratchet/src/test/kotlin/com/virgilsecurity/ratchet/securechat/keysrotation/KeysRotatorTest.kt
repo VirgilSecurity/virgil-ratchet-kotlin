@@ -67,7 +67,7 @@ class KeysRotatorTest {
         this.keyId = RatchetKeyId()
         this.crypto = VirgilCrypto()
 
-        val identityKeyPair = this.crypto.generateKeyPair(KeyType.ED25519)
+        val identityKeyPair = this.crypto.generateKeyPair(KeyPairType.ED25519)
         this.identity = generateIdentity()
         this.privateKey = TestConfig.apiPrivateKey
         this.generator = JwtGenerator(

@@ -45,7 +45,7 @@ import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
 import com.virgilsecurity.sdk.client.VirgilCardClient
 import com.virgilsecurity.sdk.common.TimeSpan
-import com.virgilsecurity.sdk.crypto.KeyType
+import com.virgilsecurity.sdk.crypto.KeyPairType
 import com.virgilsecurity.sdk.crypto.VirgilAccessTokenSigner
 import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
@@ -314,7 +314,7 @@ class IntegrationTest {
         val client = RatchetClient(URL(TestConfig.serviceURL))
 
         val senderIdentity = generateIdentity()
-        val senderIdentityKeyPair = this.crypto.generateKeyPair(KeyType.ED25519)
+        val senderIdentityKeyPair = this.crypto.generateKeyPair(KeyPairType.ED25519)
 
         val senderTokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
             val generator = JwtGenerator(
@@ -360,7 +360,7 @@ class IntegrationTest {
         )
 
         val receiverIdentity = generateIdentity()
-        val receiverIdentityKeyPair = this.crypto.generateKeyPair(KeyType.ED25519)
+        val receiverIdentityKeyPair = this.crypto.generateKeyPair(KeyPairType.ED25519)
 
         val receiverTokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
             val generator = JwtGenerator(

@@ -52,7 +52,7 @@ import com.virgilsecurity.ratchet.sessionstorage.SessionStorage
 import com.virgilsecurity.ratchet.utils.hexEncodedString
 import com.virgilsecurity.ratchet.utils.hexStringToByteArray
 import com.virgilsecurity.sdk.cards.Card
-import com.virgilsecurity.sdk.crypto.KeyType
+import com.virgilsecurity.sdk.crypto.KeyPairType
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey
@@ -270,7 +270,7 @@ class SecureChat {
                             "Public key should be a VirgilPublicKey"
                     )
 
-            if (identityPublicKey.keyType != KeyType.ED25519) {
+            if (identityPublicKey.keyPairType != KeyPairType.ED25519) {
                 throw SecureChatException(SecureChatException.INVALID_KEY_TYPE, "Key type should be ED25519")
             }
 
@@ -308,7 +308,7 @@ class SecureChat {
                 }
                 if (it.publicKey is VirgilPublicKey) {
                     val identityPublicKey = it.publicKey as VirgilPublicKey
-                    if (identityPublicKey.keyType != KeyType.ED25519) {
+                    if (identityPublicKey.keyPairType != KeyPairType.ED25519) {
                         throw SecureChatException(SecureChatException.INVALID_KEY_TYPE,
                                                   "Public key should be ED25519 type")
                     }
@@ -385,7 +385,7 @@ class SecureChat {
                 this@SecureChat.oneTimeKeysStorage.startInteraction()
 
                 try {
-                    val keyPair = this@SecureChat.crypto.generateKeyPair(KeyType.CURVE25519)
+                    val keyPair = this@SecureChat.crypto.generateKeyPair(KeyPairType.CURVE25519)
                     val oneTimePrivateKey = this@SecureChat.crypto.exportPrivateKey(keyPair.privateKey)
                     oneTimePublicKey = this@SecureChat.crypto.exportPublicKey(keyPair.publicKey)
                     val keyId = this@SecureChat.keyId.computePublicKeyId(oneTimePublicKey)
@@ -460,7 +460,7 @@ class SecureChat {
         }
         val senderIdentityPublicKey = senderCard.publicKey as VirgilPublicKey
 
-        if (senderIdentityPublicKey.keyType != KeyType.ED25519) {
+        if (senderIdentityPublicKey.keyPairType != KeyPairType.ED25519) {
             throw SecureChatException(
                     SecureChatException.INVALID_KEY_TYPE,
                     "Identity public key should be a ED25519 type"

@@ -36,7 +36,7 @@ package com.virgilsecurity.ratchet.sessionstorage
 import com.virgilsecurity.ratchet.generateIdentity
 import com.virgilsecurity.ratchet.generateText
 import com.virgilsecurity.ratchet.securechat.SecureSession
-import com.virgilsecurity.sdk.crypto.KeyType
+import com.virgilsecurity.sdk.crypto.KeyPairType
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 import org.junit.jupiter.api.Assertions
@@ -53,16 +53,16 @@ class SessionStorageTest {
     fun setup() {
         this.crypto = VirgilCrypto()
         this.identity = generateIdentity()
-        this.identityKeyPair = this.crypto.generateKeyPair(KeyType.ED25519)
+        this.identityKeyPair = this.crypto.generateKeyPair(KeyPairType.ED25519)
         this.sessionStorage = FileSessionStorage(this.identity, this.crypto, this.identityKeyPair, createTempDir("sessionStorage").absolutePath)
     }
 
     @Test
     fun storeSession() {
         val participantIdentity = generateIdentity()
-        val receiverIdentityKeyPair = this.crypto.generateKeyPair(KeyType.ED25519)
-        val receiverLongTermKeyPair = this.crypto.generateKeyPair(KeyType.CURVE25519)
-        val receiverOneTimeKeyPair = this.crypto.generateKeyPair(KeyType.CURVE25519)
+        val receiverIdentityKeyPair = this.crypto.generateKeyPair(KeyPairType.ED25519)
+        val receiverLongTermKeyPair = this.crypto.generateKeyPair(KeyPairType.CURVE25519)
+        val receiverOneTimeKeyPair = this.crypto.generateKeyPair(KeyPairType.CURVE25519)
         val sessionName = generateText()
 
         val secureSession = SecureSession(this.crypto, participantIdentity, sessionName, this.crypto.exportPrivateKey(this.identityKeyPair.privateKey),
@@ -79,9 +79,9 @@ class SessionStorageTest {
     @Test
     fun deleteSession() {
         val participantIdentity = generateIdentity()
-        val receiverIdentityKeyPair = this.crypto.generateKeyPair(KeyType.ED25519)
-        val receiverLongTermKeyPair = this.crypto.generateKeyPair(KeyType.CURVE25519)
-        val receiverOneTimeKeyPair = this.crypto.generateKeyPair(KeyType.CURVE25519)
+        val receiverIdentityKeyPair = this.crypto.generateKeyPair(KeyPairType.ED25519)
+        val receiverLongTermKeyPair = this.crypto.generateKeyPair(KeyPairType.CURVE25519)
+        val receiverOneTimeKeyPair = this.crypto.generateKeyPair(KeyPairType.CURVE25519)
         val sessionName = generateText()
 
         val secureSession = SecureSession(this.crypto, participantIdentity, sessionName, this.crypto.exportPrivateKey(this.identityKeyPair.privateKey),
@@ -98,9 +98,9 @@ class SessionStorageTest {
     @Test
     fun reset() {
         val participantIdentity = generateIdentity()
-        val receiverIdentityKeyPair = this.crypto.generateKeyPair(KeyType.ED25519)
-        val receiverLongTermKeyPair = this.crypto.generateKeyPair(KeyType.CURVE25519)
-        val receiverOneTimeKeyPair = this.crypto.generateKeyPair(KeyType.CURVE25519)
+        val receiverIdentityKeyPair = this.crypto.generateKeyPair(KeyPairType.ED25519)
+        val receiverLongTermKeyPair = this.crypto.generateKeyPair(KeyPairType.CURVE25519)
+        val receiverOneTimeKeyPair = this.crypto.generateKeyPair(KeyPairType.CURVE25519)
         val sessionName = generateText()
 
         val secureSession = SecureSession(this.crypto, participantIdentity, sessionName, this.crypto.exportPrivateKey(this.identityKeyPair.privateKey),

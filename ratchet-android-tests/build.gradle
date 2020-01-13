@@ -47,10 +47,10 @@ static def getEnvironmentValue(String name) {
     }
 }
 
-def APP_ID = hasProperty('APP_ID') ? "\"$APP_ID\"" : getEnvironmentValue('APP_ID')
-def API_PRIVATE_KEY = hasProperty('API_PRIVATE_KEY') ? "\"$API_PRIVATE_KEY\"" : getEnvironmentValue('API_PRIVATE_KEY')
-def API_PUBLIC_KEY_ID = hasProperty('API_PUBLIC_KEY_ID') ? "\"$API_PUBLIC_KEY_ID\"" : getEnvironmentValue('API_PUBLIC_KEY_ID')
-def SERVICE_URL = hasProperty('SERVICE_URL') ? "\"$SERVICE_URL\"" : getEnvironmentValue('SERVICE_URL')
+def APP_ID = hasProperty('APP_ID') ? "\"${project.property("APP_ID")}\"" : getEnvironmentValue('APP_ID')
+def API_PRIVATE_KEY = hasProperty('API_PRIVATE_KEY') ? "\"${project.property("API_PRIVATE_KEY")}\"" : getEnvironmentValue('API_PRIVATE_KEY')
+def API_PUBLIC_KEY_ID = hasProperty('API_PUBLIC_KEY_ID') ? "\"${project.property("API_PUBLIC_KEY_ID")}\"" : getEnvironmentValue('API_PUBLIC_KEY_ID')
+def SERVICE_URL = hasProperty('SERVICE_URL') ? "\"${project.property("SERVICE_URL")}\"" : getEnvironmentValue('SERVICE_URL')
 
 android {
     compileSdkVersion 28
@@ -72,16 +72,11 @@ android {
 
 dependencies {
     // Internal
-    implementation project(':ratchet-android')
+    androidTestImplementation project(':ratchet-android')
 
     // Kotlin
     androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$versions.kotlinVersion"
     implementation 'com.android.support:appcompat-v7:28.0.0'
-
-    // Virgil
-    androidTestImplementation "com.virgilsecurity.crypto:common-android:$versions.virgilCrypto"
-    androidTestImplementation "com.virgilsecurity.crypto:foundation-android:$versions.virgilCrypto"
-    androidTestImplementation "com.virgilsecurity.crypto:ratchet-android:$versions.virgilCrypto"
 
     // Test
     testImplementation "junit:junit:$versions.junitOld"

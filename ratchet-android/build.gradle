@@ -68,13 +68,17 @@ group 'com.virgilsecurity'
 dependencies {
     // Inner dependencies
     api (project(':ratchet')) {
-        exclude group: 'com.virgilsecurity.crypto', module: 'common'
-        exclude group: 'com.virgilsecurity.crypto', module: 'foundation'
         exclude group: 'com.virgilsecurity.crypto', module: 'ratchet'
+
+        exclude group: 'com.virgilsecurity.sdk', module: 'sdk'
+        exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
     }
 
-    api "com.virgilsecurity.crypto:common-android:$versions.virgilCrypto"
-    implementation "com.virgilsecurity.crypto:foundation-android:$versions.virgilCrypto"
+    // Virgil SDK
+    api "com.virgilsecurity.sdk:sdk-android:$versions.virgilSdk"
+    api "com.virgilsecurity.sdk:crypto-android:$versions.virgilSdk"
+
+    // Virgil Crypto
     api "com.virgilsecurity.crypto:ratchet-android:$versions.virgilCrypto"
 
     // Kotlin

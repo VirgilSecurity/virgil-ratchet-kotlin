@@ -46,14 +46,12 @@ sourceCompatibility = 1.8
 group 'com.virgilsecurity'
 
 dependencies {
-    // Virgil
+    // Virgil SDK
     api "com.virgilsecurity.sdk:crypto:$versions.virgilSdk"
     api "com.virgilsecurity.sdk:sdk:$versions.virgilSdk"
-    api "com.virgilsecurity:common:$versions.virgilSdk"
 
-    implementation "com.virgilsecurity.crypto:common:$versions.virgilCrypto"
-    implementation "com.virgilsecurity.crypto:foundation:$versions.virgilCrypto"
-    implementation "com.virgilsecurity.crypto:ratchet:$versions.virgilCrypto"
+    // Virgil Crypto
+    api "com.virgilsecurity.crypto:ratchet:$versions.virgilCrypto"
 
     // Http
     implementation "com.google.code.gson:gson:$versions.gson"

@@ -49,7 +49,7 @@ import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
 import com.virgilsecurity.sdk.client.VirgilCardClient
 import com.virgilsecurity.sdk.common.TimeSpan
-import com.virgilsecurity.sdk.crypto.KeyType
+import com.virgilsecurity.sdk.crypto.KeyPairType
 import com.virgilsecurity.sdk.crypto.VirgilAccessTokenSigner
 import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
@@ -82,7 +82,7 @@ class GroupIntegrationTest {
 
         for (i in 0 until numberOfParticipants) {
             val identity = generateIdentity()
-            val keyPair = this.crypto.generateKeyPair(KeyType.ED25519)
+            val keyPair = this.crypto.generateKeyPair(KeyPairType.ED25519)
             val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
                 val generator = JwtGenerator(
                         TestConfig.appId,

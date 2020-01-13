@@ -41,8 +41,8 @@ buildscript {
             gradle            : '3.5.2',
 
             // Virgil
-            virgilSdk         : '6.0.1',
-            virgilCrypto      : '0.11.0',
+            virgilSdk         : '6.1.0',
+            virgilCrypto      : '0.12.0',
 
             // Serializer
             gson              : '2.8.5',
@@ -80,15 +80,13 @@ buildscript {
 
 allprojects {
     repositories {
-        maven {
-            url 'https://oss.sonatype.org/content/repositories/snapshots'
-        }
         google()
         jcenter()
         mavenCentral()
+        mavenLocal()
     }
 }
 
 subprojects {
-    version = '0.2.0'
+    version = '0.3.3'
 }
