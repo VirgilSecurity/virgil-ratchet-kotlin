@@ -64,6 +64,8 @@ dependencies {
     // Test
     testImplementation "org.junit.jupiter:junit-jupiter-api:$versions.junit"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$versions.junit"
+
+    testImplementation "com.virgilsecurity:test-common:$versions.virgilTestCommon"
 }
 
 test {
@@ -74,13 +76,13 @@ test {
 task generateVersionVirgilAgent {
     outputs.dir "$buildDir/generated"
     doFirst {
-        def versionFile = file("$buildDir/generated/com/virgilsecurity/ratchet/build/VersionVirgilAgent.kt")
+        def versionFile = file("$buildDir/generated/com/virgilsecurity/ratchet/build/VirgilInfo.kt")
         versionFile.parentFile.mkdirs()
         versionFile.text =
                 """
 package com.virgilsecurity.ratchet.build;
 
-object VersionVirgilAgent {
+object VirgilInfo {
     const val VERSION = "$project.version"
 }
 """

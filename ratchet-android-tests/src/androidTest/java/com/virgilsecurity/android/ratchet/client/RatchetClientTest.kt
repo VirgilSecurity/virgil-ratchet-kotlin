@@ -257,8 +257,8 @@ class RatchetClientTest {
         this.client = RatchetClient(URL(TestConfig.serviceURL))
 
         this.generator = JwtGenerator(
-                TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
-                TimeSpan.fromTime(10050, TimeUnit.MILLISECONDS), VirgilAccessTokenSigner(crypto)
+                TestConfig.appId, TestConfig.appPrivateKey, TestConfig.appPublicKeyId,
+                TimeSpan.fromTime(30, TimeUnit.MINUTES), VirgilAccessTokenSigner(crypto)
         )
 
         val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {

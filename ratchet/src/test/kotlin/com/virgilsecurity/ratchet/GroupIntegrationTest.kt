@@ -35,7 +35,6 @@ package com.virgilsecurity.ratchet
 
 import com.virgilsecurity.crypto.ratchet.RatchetException
 import com.virgilsecurity.ratchet.client.RatchetClient
-import com.virgilsecurity.ratchet.exception.SecureGroupSessionException
 import com.virgilsecurity.ratchet.keystorage.FileLongTermKeysStorage
 import com.virgilsecurity.ratchet.keystorage.FileOneTimeKeysStorage
 import com.virgilsecurity.ratchet.securechat.SecureChat
@@ -84,8 +83,8 @@ class GroupIntegrationTest {
             val keyPair = this.crypto.generateKeyPair(KeyPairType.ED25519)
             val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
                 val generator = JwtGenerator(
-                        TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
-                        TimeSpan.fromTime(10050, TimeUnit.MILLISECONDS), VirgilAccessTokenSigner(this.crypto)
+                        TestConfig.appId, TestConfig.appPrivateKey, TestConfig.appPublicKeyId,
+                        TimeSpan.fromTime(30, TimeUnit.MINUTES), VirgilAccessTokenSigner(this.crypto)
                 )
 
                 return@RenewJwtCallback generator.generateToken(identity)

@@ -80,8 +80,8 @@ class SecureChat {
      * @param context Contains info required to instantiate [SecureChat] object.
      */
     constructor(context: SecureChatContext) {
-        this.crypto = VirgilCrypto()
-        this.client = RatchetClient()
+        this.crypto = context.virgilCrypto
+        this.client = context.ratchetClient
         this.accessTokenProvider = context.accessTokenProvider
         this.identityPrivateKey = context.identityKeyPair.privateKey
         this.identityCard = context.identityCard

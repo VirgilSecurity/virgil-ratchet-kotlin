@@ -40,7 +40,7 @@ import com.github.kittinunf.fuel.core.isSuccessful
 import com.google.gson.reflect.TypeToken
 import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Result
-import com.virgilsecurity.ratchet.build.VersionVirgilAgent
+import com.virgilsecurity.ratchet.build.VirgilInfo
 import com.virgilsecurity.ratchet.client.data.*
 import com.virgilsecurity.ratchet.exception.ProtocolException
 import com.virgilsecurity.ratchet.utils.OsUtils
@@ -59,22 +59,14 @@ class RatchetClient : RatchetClientInterface {
 
     /**
      * Initializes a new `RatchetClient` instance.
-     */
-    constructor() {
-        serviceUrl = VIRGIL_API_BASE_URL
-        virgilAgentHeader =
-                "$VIRGIL_AGENT_PRODUCT;$VIRGIL_AGENT_FAMILY;${OsUtils.osAgentName};${VersionVirgilAgent.VERSION}"
-    }
-
-    /**
-     * Initializes a new `RatchetClient` instance.
      *
      * @param serviceUrl URL of service client will use.
      */
-    constructor(serviceUrl: URL) {
+    @JvmOverloads
+    constructor(serviceUrl: URL = URL(VIRGIL_API_BASE_URL), product: String = VIRGIL_AGENT_PRODUCT, version: String = VirgilInfo.VERSION) {
         this.serviceUrl = serviceUrl.toString()
         virgilAgentHeader =
-                "$VIRGIL_AGENT_PRODUCT;$VIRGIL_AGENT_FAMILY;${OsUtils.osAgentName};${VersionVirgilAgent.VERSION}"
+                "$product;$VIRGIL_AGENT_FAMILY;${OsUtils.osAgentName};$version"
     }
 
     /**

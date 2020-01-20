@@ -33,7 +33,9 @@
 
 package com.virgilsecurity.ratchet.securechat
 
+import com.virgilsecurity.ratchet.client.RatchetClient
 import com.virgilsecurity.sdk.cards.Card
+import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 
@@ -46,6 +48,8 @@ class SecureChatContext {
     val identityKeyPair: VirgilKeyPair
     val accessTokenProvider: AccessTokenProvider
     val rootPath: String?
+    val virgilCrypto: VirgilCrypto
+    val ratchetClient: RatchetClient
 
     /**
      * Create new instance.
@@ -54,14 +58,19 @@ class SecureChatContext {
      * @param identityKeyPair User's identity key pair (corresponding to public key in identityCard).
      * @param accessTokenProvider Access token provider.
      */
+    @JvmOverloads
     constructor(identityCard: Card,
                 identityKeyPair: VirgilKeyPair,
                 accessTokenProvider: AccessTokenProvider,
-                rootPath: String? = null) {
+                rootPath: String? = null,
+                virgilCrypto: VirgilCrypto = VirgilCrypto(),
+                ratchetClient: RatchetClient = RatchetClient()) {
         this.identityCard = identityCard
         this.identityKeyPair = identityKeyPair
         this.accessTokenProvider = accessTokenProvider
         this.rootPath = rootPath
+        this.virgilCrypto = virgilCrypto
+        this.ratchetClient = ratchetClient
     }
 
     /**

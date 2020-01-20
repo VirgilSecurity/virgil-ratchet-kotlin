@@ -33,48 +33,44 @@
 
 package com.virgilsecurity.ratchet
 
+import com.virgilsecurity.keyknox.utils.base64Decode
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
+import com.virgilsecurity.testcommon.property.EnvPropertyReader
+import com.virgilsecurity.testcommon.utils.PropertyUtils
 import java.util.*
 
 class TestConfig {
 
     companion object {
+        private const val APP_ID = "APP_ID"
+        private const val APP_PRIVATE_KEY = "APP_PRIVATE_KEY"
+        private const val APP_PUBLIC_KEY_ID = "APP_PUBLIC_KEY_ID"
+        private const val SERVICE_URL = "SERVICE_URL"
+
+        private const val ENVIRONMENT_PARAMETER = "environment"
+
+        private val propertyReader: EnvPropertyReader by lazy {
+            val environment = PropertyUtils.getSystemProperty(ENVIRONMENT_PARAMETER)
+
+            if (environment != null)
+                EnvPropertyReader.Builder()
+                        .environment(EnvPropertyReader.Environment.fromType(environment))
+                        .build()
+            else
+                EnvPropertyReader.Builder()
+                        .build()
+        }
+
         val virgilCrypto = VirgilCrypto(false)
-
-        val appId: String by lazy {
-            if (System.getProperty("APP_ID") != null)
-                System.getProperty("APP_ID")
-            else
-                System.getenv("APP_ID")
-        }
-
-        val apiPrivateKey: VirgilPrivateKey by lazy {
-            (if (System.getProperty("API_PRIVATE_KEY") != null)
-                System.getProperty("API_PRIVATE_KEY")
-            else
-                System.getenv("API_PRIVATE_KEY")).let {
-                this.virgilCrypto.importPrivateKey(Base64.getDecoder().decode(it)).privateKey
+        val appId: String by lazy { propertyReader.getProperty(APP_ID) }
+        val appPrivateKey: VirgilPrivateKey by lazy {
+            with(propertyReader.getProperty(APP_PRIVATE_KEY)) {
+                virgilCrypto.importPrivateKey(base64Decode(this)).privateKey
             }
         }
-
-        val apiPublicKeyId: String by lazy {
-            if (System.getProperty("API_PUBLIC_KEY_ID") != null)
-                System.getProperty("API_PUBLIC_KEY_ID")
-            else
-                System.getenv("API_PUBLIC_KEY_ID")
-        }
-
-        val serviceURL: String by lazy {
-            when {
-                System.getProperty("SERVICE_URL") != null -> System.getProperty("SERVICE_URL")
-                System.getenv("SERVICE_URL") != null -> System.getenv("SERVICE_URL")
-                else -> "https://api.virgilsecurity.com"
-            }
-        }
-
-        val cardsServiceURL: String by lazy {
-            "$serviceURL/card/v5/"
-        }
+        val appPublicKeyId: String by lazy { propertyReader.getProperty(APP_PUBLIC_KEY_ID) }
+        val serviceURL: String by lazy { propertyReader.getProperty(SERVICE_URL) }
+        val cardsServiceURL: String by lazy { "$serviceURL/card/v5/" }
     }
 }

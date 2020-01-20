@@ -316,9 +316,9 @@ class IntegrationTest {
         val senderTokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
             val generator = JwtGenerator(
                     TestConfig.appId,
-                    TestConfig.apiPrivateKey,
-                    TestConfig.apiPublicKeyId,
-                    TimeSpan.fromTime(10050, TimeUnit.MILLISECONDS),
+                    TestConfig.appPrivateKey,
+                    TestConfig.appPublicKeyId,
+                    TimeSpan.fromTime(30, TimeUnit.MINUTES),
                     VirgilAccessTokenSigner(this.crypto)
             )
 
@@ -361,9 +361,9 @@ class IntegrationTest {
         val receiverTokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
             val generator = JwtGenerator(
                     TestConfig.appId,
-                    TestConfig.apiPrivateKey,
-                    TestConfig.apiPublicKeyId,
-                    TimeSpan.fromTime(10050, TimeUnit.MILLISECONDS),
+                    TestConfig.appPrivateKey,
+                    TestConfig.appPublicKeyId,
+                    TimeSpan.fromTime(30, TimeUnit.MINUTES),
                     VirgilAccessTokenSigner(this.crypto)
             )
 

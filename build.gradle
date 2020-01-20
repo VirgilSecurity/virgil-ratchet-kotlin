@@ -41,7 +41,7 @@ buildscript {
             gradle            : '3.5.2',
 
             // Virgil
-            virgilSdk         : '7.0.0',
+            virgilSdk         : '7.1.0',
             virgilCrypto      : '0.12.0',
 
             // Serializer
@@ -52,6 +52,7 @@ buildscript {
 
             // Android
             android           : '4.1.1.4',
+            compatLibs        : '28.0.0',
 
             // Publish
             mavenPublishPlugin: '3.6.2',
@@ -63,6 +64,7 @@ buildscript {
             junit             : '5.5.0',
             junitPlugin       : '1.0.0',
             junitOld          : '4.12',
+            virgilTestCommon  : '0.1',
     ]
 
     repositories {
@@ -83,7 +85,6 @@ allprojects {
         google()
         jcenter()
         mavenCentral()
-        mavenLocal()
     }
 }
 

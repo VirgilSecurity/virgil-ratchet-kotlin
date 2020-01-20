@@ -69,8 +69,8 @@ class SecureSessionTest {
         val receiverTokenProvider = CallbackJwtProvider(
                 CallbackJwtProvider.GetTokenCallback {
                     val generator = JwtGenerator(
-                            TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
-                            TimeSpan.fromTime(10050, TimeUnit.SECONDS), VirgilAccessTokenSigner(crypto)
+                            TestConfig.appId, TestConfig.appPrivateKey, TestConfig.appPublicKeyId,
+                            TimeSpan.fromTime(30, TimeUnit.MINUTES), VirgilAccessTokenSigner(crypto)
                     )
 
                     return@GetTokenCallback generator.generateToken(receiverIdentity).stringRepresentation()
@@ -79,8 +79,8 @@ class SecureSessionTest {
         val senderTokenProvider = CallbackJwtProvider(
                 CallbackJwtProvider.GetTokenCallback {
                     val generator = JwtGenerator(
-                            TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
-                            TimeSpan.fromTime(10050, TimeUnit.SECONDS), VirgilAccessTokenSigner(crypto)
+                            TestConfig.appId, TestConfig.appPrivateKey, TestConfig.appPublicKeyId,
+                            TimeSpan.fromTime(30, TimeUnit.MINUTES), VirgilAccessTokenSigner(crypto)
                     )
 
                     return@GetTokenCallback generator.generateToken(senderIdentity).stringRepresentation()

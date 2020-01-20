@@ -76,10 +76,24 @@ dependencies {
 
     // Kotlin
     androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$versions.kotlinVersion"
-    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation "com.android.support:appcompat-v7:$versions.compatLibs"
 
     // Test
     testImplementation "junit:junit:$versions.junitOld"
     androidTestImplementation "com.android.support.test:runner:$versions.testsRunner"
     androidTestImplementation "com.android.support.test.espresso:espresso-core:$versions.espresso"
+
+    androidTestImplementation "com.virgilsecurity:test-common:$versions.virgilTestCommon"
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    dependsOn(copyEnvFile)
+}
+
+task copyEnvFile(type: Copy) {
+    def assetsFolder = new File(project.projectDir.absolutePath + '/src/androidTest/resources/testProperties')
+    if (!assetsFolder.exists()) assetsFolder.mkdirs()
+
+    from rootProject.projectDir.absolutePath + '/env.json'
+    into assetsFolder.absolutePath
 }

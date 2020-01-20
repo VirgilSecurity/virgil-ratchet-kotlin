@@ -69,12 +69,12 @@ class KeysRotatorTest {
 
         val identityKeyPair = this.crypto.generateKeyPair(KeyPairType.ED25519)
         this.identity = generateIdentity()
-        this.privateKey = TestConfig.apiPrivateKey
+        this.privateKey = TestConfig.appPrivateKey
         this.generator = JwtGenerator(
                 TestConfig.appId,
                 this.privateKey,
-                TestConfig.apiPublicKeyId,
-                TimeSpan.fromTime(10050, TimeUnit.MILLISECONDS),
+                TestConfig.appPublicKeyId,
+                TimeSpan.fromTime(30, TimeUnit.MINUTES),
                 VirgilAccessTokenSigner(this.crypto)
         )
 
