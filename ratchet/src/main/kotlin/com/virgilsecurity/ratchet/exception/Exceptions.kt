@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -66,7 +66,6 @@ class SecureGroupSessionException @JvmOverloads constructor(
             INVALID_MESSAGE_TYPE -> "Invalid message type"
             INVALID_CARD_ID -> "Invalid card id"
             PUBLIC_KEY_IS_NOT_VIRGIL -> "Public key is not VirgilPublicKey"
-            WRONG_SENDER -> "Message sender doesn't match"
             else -> "Unknown error"
         }
 ) : Exception(message) {
@@ -75,7 +74,6 @@ class SecureGroupSessionException @JvmOverloads constructor(
         const val INVALID_MESSAGE_TYPE = 3
         const val INVALID_CARD_ID = 4
         const val PUBLIC_KEY_IS_NOT_VIRGIL = 5
-        const val WRONG_SENDER = 6
     }
 }
 
@@ -115,3 +113,8 @@ class SecureChatException @JvmOverloads constructor(
  * Exception that is thrown when Hex encoding is failed.
  */
 class HexEncodingException(message: String? = "Hex encoding failed") : Exception(message)
+
+class FileDeletionException(
+        message: String? = "File deletion failed",
+        throwable: Throwable? = null
+) : Exception(message, throwable)

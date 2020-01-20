@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -41,6 +41,7 @@ import com.virgilsecurity.ratchet.utils.hexStringToByteArray
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey
+import com.virgilsecurity.sdk.utils.ConvertionUtils
 import java.nio.charset.StandardCharsets
 
 class SecureGroupSession {
@@ -116,6 +117,10 @@ class SecureGroupSession {
         return this.ratchetGroupSession.participantsCount
     }
 
+    fun currentEpoch(): Long {
+        return this.ratchetGroupSession.currentEpoch
+    }
+
     /**
      * Encrypts string.
      * This operation changes session state, so session should be updated in storage.
@@ -153,11 +158,14 @@ class SecureGroupSession {
         if (message.type != GroupMsgType.REGULAR) {
             throw SecureGroupSessionException(SecureGroupSessionException.INVALID_MESSAGE_TYPE, "Message should be a REGULAR type")
         }
-        if (senderCardId != message.senderId.hexEncodedString()) {
-            throw SecureGroupSessionException(SecureGroupSessionException.WRONG_SENDER, "Sender id doesn't match")
+        val senderId = try {
+            ConvertionUtils.hexToBytes(senderCardId)
+        } catch (exception: IllegalArgumentException) {
+            throw SecureGroupSessionException(SecureGroupSessionException.INVALID_CARD_ID)
         }
+
         synchronized(syncObj) {
-            return this.ratchetGroupSession.decrypt(message)
+            return this.ratchetGroupSession.decrypt(message, senderId)
         }
     }
 
@@ -182,11 +190,7 @@ class SecureGroupSession {
     }
 
     /**
-     * Set participants.
-     *
-     * NOTE: As this update is incremental, tickets should be applied strictly consequently.
-     * NOTE: This operation changes session state, so session should be updated in storage.
-     * Otherwise, use setParticipants()
+     * Sets participants.
      *
      * @param ticket Ticket.
      * @param cards Participants to set.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -39,10 +39,10 @@ import com.virgilsecurity.ratchet.client.data.SignedPublicKey
 import com.virgilsecurity.ratchet.keystorage.LongTermKey
 import com.virgilsecurity.ratchet.keystorage.LongTermKeysStorage
 import com.virgilsecurity.ratchet.keystorage.OneTimeKeysStorage
-import com.virgilsecurity.ratchet.model.Result
+import com.virgilsecurity.common.model.Result
 import com.virgilsecurity.ratchet.utils.addSeconds
 import com.virgilsecurity.ratchet.utils.hexEncodedString
-import com.virgilsecurity.sdk.crypto.KeyType
+import com.virgilsecurity.sdk.crypto.KeyPairType
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
 import com.virgilsecurity.sdk.jwt.contract.AccessToken
@@ -165,7 +165,7 @@ class KeysRotator(
                 val longTermSignedPublicKey: SignedPublicKey?
                 if (rotateLongTermKey) {
                     logger.fine("Rotating long-term key")
-                    val longTermKeyPair = this@KeysRotator.crypto.generateKeyPair(KeyType.CURVE25519)
+                    val longTermKeyPair = this@KeysRotator.crypto.generateKeyPair(KeyPairType.CURVE25519)
                     val longTermPrivateKey = this@KeysRotator.crypto.exportPrivateKey(longTermKeyPair.privateKey)
                     val longTermPublicKey = this@KeysRotator.crypto.exportPublicKey(longTermKeyPair.publicKey)
                     val longTermKeyId = this@KeysRotator.keyId.computePublicKeyId(longTermPublicKey)
@@ -189,7 +189,7 @@ class KeysRotator(
                     val publicKeys = mutableListOf<ByteArray>()
                     for (i in 1..numbOfOneTimeKeysToGen) {
                         logger.fine("Generation $i key of $numbOfOneTimeKeysToGen")
-                        val keyPair = this@KeysRotator.crypto.generateKeyPair(KeyType.CURVE25519)
+                        val keyPair = this@KeysRotator.crypto.generateKeyPair(KeyPairType.CURVE25519)
                         val oneTimePrivateKey = this@KeysRotator.crypto.exportPrivateKey(keyPair.privateKey)
                         val oneTimePublicKey = this@KeysRotator.crypto.exportPublicKey(keyPair.publicKey)
                         val keyId = this@KeysRotator.keyId.computePublicKeyId(oneTimePublicKey)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -39,7 +39,7 @@ import com.virgilsecurity.ratchet.securechat.keysrotation.KeysRotator
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.common.TimeSpan
-import com.virgilsecurity.sdk.crypto.KeyType
+import com.virgilsecurity.sdk.crypto.KeyPairType
 import com.virgilsecurity.sdk.crypto.VirgilAccessTokenSigner
 import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
 import com.virgilsecurity.sdk.jwt.JwtGenerator
@@ -59,8 +59,8 @@ class SecureSessionTest {
     @BeforeEach
     fun setup() {
         val crypto = TestConfig.virgilCrypto
-        val receiverIdentityKeyPair = crypto.generateKeyPair(KeyType.ED25519)
-        val senderIdentityKeyPair = crypto.generateKeyPair(KeyType.ED25519)
+        val receiverIdentityKeyPair = crypto.generateKeyPair(KeyPairType.ED25519)
+        val senderIdentityKeyPair = crypto.generateKeyPair(KeyPairType.ED25519)
 
         val senderIdentity = generateIdentity()
         val receiverIdentity = generateIdentity()
@@ -68,8 +68,8 @@ class SecureSessionTest {
         val receiverTokenProvider = CallbackJwtProvider(
                 CallbackJwtProvider.GetTokenCallback {
                     val generator = JwtGenerator(
-                            TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
-                            TimeSpan.fromTime(10050, TimeUnit.SECONDS), VirgilAccessTokenSigner(crypto)
+                            TestConfig.appId, TestConfig.appPrivateKey, TestConfig.appPublicKeyId,
+                            TimeSpan.fromTime(30, TimeUnit.MINUTES), VirgilAccessTokenSigner(crypto)
                     )
 
                     return@GetTokenCallback generator.generateToken(receiverIdentity).stringRepresentation()
@@ -78,8 +78,8 @@ class SecureSessionTest {
         val senderTokenProvider = CallbackJwtProvider(
                 CallbackJwtProvider.GetTokenCallback {
                     val generator = JwtGenerator(
-                            TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
-                            TimeSpan.fromTime(10050, TimeUnit.SECONDS), VirgilAccessTokenSigner(crypto)
+                            TestConfig.appId, TestConfig.appPrivateKey, TestConfig.appPublicKeyId,
+                            TimeSpan.fromTime(30, TimeUnit.MINUTES), VirgilAccessTokenSigner(crypto)
                     )
 
                     return@GetTokenCallback generator.generateToken(senderIdentity).stringRepresentation()

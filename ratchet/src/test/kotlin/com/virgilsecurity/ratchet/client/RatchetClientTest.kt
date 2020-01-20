@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -76,7 +76,7 @@ class RatchetClientTest {
 
     @Test
     fun full_cycle__long_term_key__should_succeed() {
-        val longTermKey = this.crypto.generateKeyPair(KeyType.CURVE25519)
+        val longTermKey = this.crypto.generateKeyPair(KeyPairType.CURVE25519)
         val longTermPublicKey = this.crypto.exportPublicKey(longTermKey.publicKey)
         val longTermKeyId = this.keyId.computePublicKeyId(longTermPublicKey)
         val signature = this.crypto.generateSignature(longTermPublicKey, this.identityPrivateKey)
@@ -97,9 +97,9 @@ class RatchetClientTest {
 
     @Test
     fun full_cycle__all_keys__should_succeed() {
-        val longTermKey = this.crypto.generateKeyPair(KeyType.CURVE25519)
-        val oneTimeKey1 = this.crypto.exportPublicKey(this.crypto.generateKeyPair(KeyType.CURVE25519).publicKey)!!
-        val oneTimeKey2 = this.crypto.exportPublicKey(this.crypto.generateKeyPair(KeyType.CURVE25519).publicKey)!!
+        val longTermKey = this.crypto.generateKeyPair(KeyPairType.CURVE25519)
+        val oneTimeKey1 = this.crypto.exportPublicKey(this.crypto.generateKeyPair(KeyPairType.CURVE25519).publicKey)!!
+        val oneTimeKey2 = this.crypto.exportPublicKey(this.crypto.generateKeyPair(KeyPairType.CURVE25519).publicKey)!!
 
         val oneTimeKeyId1 = this.keyId.computePublicKeyId(oneTimeKey1)
         val oneTimeKeyId2 = this.keyId.computePublicKeyId(oneTimeKey2)
@@ -157,9 +157,9 @@ class RatchetClientTest {
         val entries = mutableListOf<Entry>()
 
         for (i in 1..10) {
-            val longTermKey = this.crypto.generateKeyPair(KeyType.CURVE25519)
-            val oneTimeKey1 = this.crypto.exportPublicKey(this.crypto.generateKeyPair(KeyType.CURVE25519).publicKey)
-            val oneTimeKey2 = this.crypto.exportPublicKey(this.crypto.generateKeyPair(KeyType.CURVE25519).publicKey)
+            val longTermKey = this.crypto.generateKeyPair(KeyPairType.CURVE25519)
+            val oneTimeKey1 = this.crypto.exportPublicKey(this.crypto.generateKeyPair(KeyPairType.CURVE25519).publicKey)
+            val oneTimeKey2 = this.crypto.exportPublicKey(this.crypto.generateKeyPair(KeyPairType.CURVE25519).publicKey)
 
             val longTermPublicKey = this.crypto.exportPublicKey(longTermKey.publicKey)
             val signature = this.crypto.generateSignature(longTermPublicKey, identityPrivateKey)
@@ -213,8 +213,8 @@ class RatchetClientTest {
 
     @Test
     fun reset__all_keys__should_succeed() {
-        val longTermKey = this.crypto.generateKeyPair(KeyType.CURVE25519)
-        val oneTimeKey = this.crypto.exportPublicKey(this.crypto.generateKeyPair(KeyType.CURVE25519).publicKey)
+        val longTermKey = this.crypto.generateKeyPair(KeyPairType.CURVE25519)
+        val oneTimeKey = this.crypto.exportPublicKey(this.crypto.generateKeyPair(KeyPairType.CURVE25519).publicKey)
 
         val longTermPublicKey = this.crypto.exportPublicKey(longTermKey.publicKey)
         val signature = this.crypto.generateSignature(longTermPublicKey, identityPrivateKey)
@@ -244,13 +244,13 @@ class RatchetClientTest {
 
     private fun init() {
         this.identity = generateIdentity()
-        val identityKeyPair = crypto.generateKeyPair(KeyType.ED25519)
+        val identityKeyPair = crypto.generateKeyPair(KeyPairType.ED25519)
         this.identityPrivateKey = identityKeyPair.privateKey
         this.client = RatchetClient(URL(TestConfig.serviceURL))
 
         this.generator = JwtGenerator(
-                TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
-                TimeSpan.fromTime(10050, TimeUnit.MILLISECONDS), VirgilAccessTokenSigner(crypto)
+                TestConfig.appId, TestConfig.appPrivateKey, TestConfig.appPublicKeyId,
+                TimeSpan.fromTime(30, TimeUnit.MINUTES), VirgilAccessTokenSigner(crypto)
         )
 
         val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {

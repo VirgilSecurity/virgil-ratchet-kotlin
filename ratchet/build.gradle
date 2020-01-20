@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -46,13 +46,12 @@ sourceCompatibility = 1.8
 group 'com.virgilsecurity'
 
 dependencies {
-    // Virgil
+    // Virgil SDK
     api "com.virgilsecurity.sdk:crypto:$versions.virgilSdk"
     api "com.virgilsecurity.sdk:sdk:$versions.virgilSdk"
 
-    implementation "com.virgilsecurity.crypto:common:$versions.virgilCrypto"
-    implementation "com.virgilsecurity.crypto:foundation:$versions.virgilCrypto"
-    implementation "com.virgilsecurity.crypto:ratchet:$versions.virgilCrypto"
+    // Virgil Crypto
+    api "com.virgilsecurity.crypto:ratchet:$versions.virgilCrypto"
 
     // Http
     implementation "com.google.code.gson:gson:$versions.gson"
@@ -65,6 +64,8 @@ dependencies {
     // Test
     testImplementation "org.junit.jupiter:junit-jupiter-api:$versions.junit"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$versions.junit"
+
+    testImplementation "com.virgilsecurity:test-common:$versions.virgilTestCommon"
 }
 
 test {
@@ -75,13 +76,13 @@ test {
 task generateVersionVirgilAgent {
     outputs.dir "$buildDir/generated"
     doFirst {
-        def versionFile = file("$buildDir/generated/com/virgilsecurity/ratchet/build/VersionVirgilAgent.kt")
+        def versionFile = file("$buildDir/generated/com/virgilsecurity/ratchet/build/VirgilInfo.kt")
         versionFile.parentFile.mkdirs()
         versionFile.text =
                 """
 package com.virgilsecurity.ratchet.build;
 
-object VersionVirgilAgent {
+object VirgilInfo {
     const val VERSION = "$project.version"
 }
 """

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -47,8 +47,7 @@ import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.TokenContext
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import java.util.concurrent.TimeUnit
@@ -71,14 +70,14 @@ class KeysRotatorTest {
         this.keyId = RatchetKeyId()
         this.crypto = VirgilCrypto()
 
-        val identityKeyPair = this.crypto.generateKeyPair(KeyType.ED25519)
+        val identityKeyPair = this.crypto.generateKeyPair(KeyPairType.ED25519)
         this.identity = generateIdentity()
-        this.privateKey = TestConfig.apiPrivateKey
+        this.privateKey = TestConfig.appPrivateKey
         this.generator = JwtGenerator(
                 TestConfig.appId,
                 this.privateKey,
-                TestConfig.apiPublicKeyId,
-                TimeSpan.fromTime(10050, TimeUnit.MILLISECONDS),
+                TestConfig.appPublicKeyId,
+                TimeSpan.fromTime(30, TimeUnit.MINUTES),
                 VirgilAccessTokenSigner(this.crypto)
         )
 
@@ -235,7 +234,7 @@ class KeysRotatorTest {
     }
 
     private fun rotate(rotator: KeysRotator, tokenProvider: AccessTokenProvider): RotationLog {
-        val tokenContext = TokenContext("", false, "rotate")
+        val tokenContext = TokenContext("ratchet", "rotate")
         val jwt = tokenProvider.getToken(tokenContext)
 
         return rotator.rotateKeys(jwt).get()
@@ -265,6 +264,9 @@ class KeysRotatorTest {
                     return false
                 }
                 storedOneTimeKeysIds.forEachIndexed { i, value ->
+                    if (cloudOneTimeKeysIds[i] == null)
+                        fail("cloudOneTimeKeysIds should not contain null\'s")
+
                     if (!cloudOneTimeKeysIds[i].contentEquals(value)) {
                         logger.warning("Could one time key $i doesn't match")
                         return false

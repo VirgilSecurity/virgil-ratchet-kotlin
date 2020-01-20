@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -35,7 +35,6 @@ package com.virgilsecurity.ratchet
 
 import com.virgilsecurity.crypto.ratchet.RatchetException
 import com.virgilsecurity.ratchet.client.RatchetClient
-import com.virgilsecurity.ratchet.exception.SecureGroupSessionException
 import com.virgilsecurity.ratchet.keystorage.FileLongTermKeysStorage
 import com.virgilsecurity.ratchet.keystorage.FileOneTimeKeysStorage
 import com.virgilsecurity.ratchet.securechat.SecureChat
@@ -49,7 +48,7 @@ import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
 import com.virgilsecurity.sdk.client.VirgilCardClient
 import com.virgilsecurity.sdk.common.TimeSpan
-import com.virgilsecurity.sdk.crypto.KeyType
+import com.virgilsecurity.sdk.crypto.KeyPairType
 import com.virgilsecurity.sdk.crypto.VirgilAccessTokenSigner
 import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
@@ -81,11 +80,11 @@ class GroupIntegrationTest {
 
         for (i in 0 until numberOfParticipants) {
             val identity = generateIdentity()
-            val keyPair = this.crypto.generateKeyPair(KeyType.ED25519)
+            val keyPair = this.crypto.generateKeyPair(KeyPairType.ED25519)
             val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
                 val generator = JwtGenerator(
-                        TestConfig.appId, TestConfig.apiPrivateKey, TestConfig.apiPublicKeyId,
-                        TimeSpan.fromTime(10050, TimeUnit.MILLISECONDS), VirgilAccessTokenSigner(this.crypto)
+                        TestConfig.appId, TestConfig.appPrivateKey, TestConfig.appPublicKeyId,
+                        TimeSpan.fromTime(30, TimeUnit.MINUTES), VirgilAccessTokenSigner(this.crypto)
                 )
 
                 return@RenewJwtCallback generator.generateToken(identity)
@@ -291,13 +290,13 @@ class GroupIntegrationTest {
 
     @Test
     fun decrypt__wrong_sender__should_return_error() {
-        val num = 2
+        val num = 3
         init(num)
 
         val sessionId = this.crypto.generateRandomData(32)
         val initMsg = this.chats.first().startNewGroupSession(sessionId)
 
-        var sessions = mutableListOf<SecureGroupSession>()
+        val sessions = mutableListOf<SecureGroupSession>()
 
         for (i in 0 until num) {
             val localCards = cards.toMutableList()
@@ -316,18 +315,18 @@ class GroupIntegrationTest {
         val crypto = VirgilCrypto()
 
         try {
-            sessions[1].decryptString(message, sessions[1].myIdentifier())
+            sessions[1].decryptString(message, sessions[2].myIdentifier())
             Assertions.fail<String>()
-        } catch (e: SecureGroupSessionException) {
-            Assertions.assertEquals(SecureGroupSessionException.WRONG_SENDER, e.errorCode)
+        } catch (e: RatchetException) {
+            Assertions.assertEquals(RatchetException.ERROR_INVALID_SIGNATURE, e.statusCode)
         }
 
         try {
             val randomCardId = crypto.generateRandomData(32).hexEncodedString()
             sessions[1].decryptString(message, randomCardId)
             Assertions.fail<String>()
-        } catch (e: SecureGroupSessionException) {
-            Assertions.assertEquals(SecureGroupSessionException.WRONG_SENDER, e.errorCode)
+        } catch (e: RatchetException) {
+            Assertions.assertEquals(RatchetException.ERROR_SENDER_NOT_FOUND, e.statusCode)
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -33,6 +33,7 @@
 
 package com.virgilsecurity.ratchet.utils
 
+import com.virgilsecurity.ratchet.exception.FileDeletionException
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 import java.io.File
@@ -88,8 +89,9 @@ class SecureFileSystem constructor(
     fun delete(name: String, subDir: String? = null) {
         val filePath = getFullPath(name, subDir)
         val file = File(filePath)
-        if (file.exists())
-            file.delete()
+
+        val deleted = file.delete()
+        if (!deleted) throw FileDeletionException("\'$name\' file deletion failed.")
     }
 
     /**

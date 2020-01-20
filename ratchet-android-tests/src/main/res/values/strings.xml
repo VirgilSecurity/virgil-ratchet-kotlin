@@ -32,4 +32,6 @@
   ~ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   -->
 
-<manifest package="com.virgilsecurity.android.ratchet" />
+<resources>
+    <string name="app_name">ratchet-android-tests</string>
+</resources>

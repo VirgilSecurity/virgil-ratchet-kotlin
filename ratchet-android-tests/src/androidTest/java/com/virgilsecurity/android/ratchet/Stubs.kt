@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -33,6 +33,7 @@
 
 package com.virgilsecurity.android.ratchet
 
+import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.crypto.ratchet.RatchetKeyId
 import com.virgilsecurity.ratchet.client.RatchetClientInterface
 import com.virgilsecurity.ratchet.client.data.IdentityPublicKeySet
@@ -44,8 +45,7 @@ import com.virgilsecurity.ratchet.keystorage.LongTermKey
 import com.virgilsecurity.ratchet.keystorage.LongTermKeysStorage
 import com.virgilsecurity.ratchet.keystorage.OneTimeKey
 import com.virgilsecurity.ratchet.keystorage.OneTimeKeysStorage
-import com.virgilsecurity.ratchet.model.Completable
-import com.virgilsecurity.ratchet.model.Result
+import com.virgilsecurity.common.model.Result
 import com.virgilsecurity.ratchet.securechat.SecureGroupSession
 import com.virgilsecurity.ratchet.securechat.SecureSession
 import com.virgilsecurity.ratchet.securechat.keysrotation.KeysRotatorInterface
@@ -59,7 +59,7 @@ import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.CardVerifier
 import com.virgilsecurity.sdk.client.VirgilCardClient
 import com.virgilsecurity.sdk.crypto.HashAlgorithm
-import com.virgilsecurity.sdk.crypto.KeyType
+import com.virgilsecurity.sdk.crypto.KeyPairType
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import com.virgilsecurity.sdk.jwt.Jwt
@@ -397,21 +397,21 @@ fun generateText(): String {
 
 fun generateKeyId(): ByteArray {
     val crypto = VirgilCrypto()
-    val keyPair = crypto.generateKeyPair(KeyType.CURVE25519)
+    val keyPair = crypto.generateKeyPair(KeyPairType.CURVE25519)
     return keyPair.publicKey.identifier
 }
 
 fun generatePrivateKeyData(): ByteArray {
     val crypto = VirgilCrypto()
-    val keyPair = crypto.generateKeyPair(KeyType.CURVE25519)
+    val keyPair = crypto.generateKeyPair(KeyPairType.CURVE25519)
     return crypto.exportPrivateKey(keyPair.privateKey)
 }
 
 fun generatePublicKeyData(): ByteArray {
     val crypto = VirgilCrypto()
-    val keyPair = crypto.generateKeyPair(KeyType.CURVE25519)
+    val keyPair = crypto.generateKeyPair(KeyPairType.CURVE25519)
     return crypto.exportPublicKey(keyPair.publicKey)
 }
 
-private inline fun returnNothing(): Nothing =
+private fun returnNothing(): Nothing =
     throw NotImplementedError("This method is supposed to not be called.")
