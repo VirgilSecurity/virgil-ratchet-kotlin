@@ -559,7 +559,9 @@ class SecureChat {
             )
         }
 
-        if (!ratchetMessage.sessionId!!.contentEquals(sessionId)) {
+        if (ratchetMessage.sessionId == null) throw IllegalArgumentException("sessionId should not be null")
+
+        if (!ratchetMessage.sessionId.contentEquals(sessionId)) {
             throw SecureChatException(SecureChatException.SESSION_ID_MISMATCH)
         }
 

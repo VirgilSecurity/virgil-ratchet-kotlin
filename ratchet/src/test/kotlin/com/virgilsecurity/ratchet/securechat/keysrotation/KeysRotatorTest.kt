@@ -46,6 +46,8 @@ import com.virgilsecurity.sdk.jwt.TokenContext
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.concurrent.TimeUnit
@@ -255,12 +257,16 @@ class KeysRotatorTest {
 
                 val storedOneTimeKeysIds = oneTimeStorage.retrieveAllKeys().map { it.identifier }
                 val cloudOneTimeKeysIds = userStore.oneTimePublicKeys.map { this.keyId.computePublicKeyId(it) }
+                assertNotNull(cloudOneTimeKeysIds)
 
                 if (storedOneTimeKeysIds.size != cloudOneTimeKeysIds.size) {
                     logger.warning("One time keys cound doesn't match")
                     return false
                 }
                 storedOneTimeKeysIds.forEachIndexed { i, value ->
+                    if (cloudOneTimeKeysIds[i] == null)
+                        fail<NullPointerException>("${cloudOneTimeKeysIds[i]} should not be null")
+
                     if (!cloudOneTimeKeysIds[i].contentEquals(value)) {
                         logger.warning("Could one time key $i doesn't match")
                         return false

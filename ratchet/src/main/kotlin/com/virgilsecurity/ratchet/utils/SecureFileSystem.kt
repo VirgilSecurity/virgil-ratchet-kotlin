@@ -91,7 +91,7 @@ class SecureFileSystem constructor(
         val file = File(filePath)
 
         val deleted = file.delete()
-        if (!deleted) throw FileDeletionException()
+        if (!deleted) throw FileDeletionException("\'$name\' file deletion failed.")
     }
 
     /**

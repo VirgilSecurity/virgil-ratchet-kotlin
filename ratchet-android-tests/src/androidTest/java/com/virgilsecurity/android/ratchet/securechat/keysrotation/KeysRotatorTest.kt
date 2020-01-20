@@ -47,8 +47,7 @@ import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.TokenContext
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import java.util.concurrent.TimeUnit
@@ -265,7 +264,10 @@ class KeysRotatorTest {
                     return false
                 }
                 storedOneTimeKeysIds.forEachIndexed { i, value ->
-                    if (!cloudOneTimeKeysIds[i]!!.contentEquals(value)) {
+                    if (cloudOneTimeKeysIds[i] == null)
+                        fail("${cloudOneTimeKeysIds[i]} should not be null")
+
+                    if (!cloudOneTimeKeysIds[i].contentEquals(value)) {
                         logger.warning("Could one time key $i doesn't match")
                         return false
                     }
