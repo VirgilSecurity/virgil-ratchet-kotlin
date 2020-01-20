@@ -265,7 +265,7 @@ class KeysRotatorTest {
                 }
                 storedOneTimeKeysIds.forEachIndexed { i, value ->
                     if (cloudOneTimeKeysIds[i] == null)
-                        fail("${cloudOneTimeKeysIds[i]} should not be null")
+                        fail("cloudOneTimeKeysIds should not contain null\'s")
 
                     if (!cloudOneTimeKeysIds[i].contentEquals(value)) {
                         logger.warning("Could one time key $i doesn't match")
