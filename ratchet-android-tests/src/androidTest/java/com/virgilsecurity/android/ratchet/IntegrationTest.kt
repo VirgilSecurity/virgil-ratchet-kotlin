@@ -68,7 +68,7 @@ class IntegrationTest {
 
     @Before
     fun setup() {
-        this.crypto = VirgilCrypto()
+        this.crypto = VirgilCrypto(KeyPairType.CURVE25519)
 
         init()
     }

@@ -41,8 +41,8 @@ buildscript {
             gradle            : '3.5.2',
 
             // Virgil
-            virgilSdk         : '7.1.0',
-            virgilCrypto      : '0.12.0',
+            virgilSdk         : '7.2.0',
+            virgilCrypto      : '0.14.0',
 
             // Serializer
             gson              : '2.8.5',
@@ -71,6 +71,7 @@ buildscript {
         google()
         jcenter()
         mavenCentral()
+        mavenLocal()
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlinVersion"
@@ -85,9 +86,10 @@ allprojects {
         google()
         jcenter()
         mavenCentral()
+        mavenLocal()
     }
 }
 
 subprojects {
-    version = '0.1.1'
+    version = '0.1.2'
 }

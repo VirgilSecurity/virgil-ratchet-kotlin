@@ -34,7 +34,6 @@
 package com.virgilsecurity.android.ratchet
 
 import com.virgilsecurity.common.model.Completable
-import com.virgilsecurity.crypto.ratchet.RatchetKeyId
 import com.virgilsecurity.ratchet.client.RatchetClientInterface
 import com.virgilsecurity.ratchet.client.data.IdentityPublicKeySet
 import com.virgilsecurity.ratchet.client.data.PublicKeySet
@@ -230,7 +229,6 @@ class InMemoryRatchetClient(private val cardManager: CardManager) : RatchetClien
         var oneTimePublicKeys: MutableSet<ByteArray> = mutableSetOf()
     }
 
-    private val keyId = RatchetKeyId()
     private val crypto = VirgilCrypto()
     var users = mutableMapOf<String, UserStore>()
 
@@ -296,14 +294,16 @@ class InMemoryRatchetClient(private val cardManager: CardManager) : RatchetClien
             val usedLongTermKeyId: ByteArray?
 
             if (longTermKeyId != null && userStore.longTermPublicKey?.publicKey != null &&
-                    this@InMemoryRatchetClient.keyId.computePublicKeyId(userStore.longTermPublicKey!!.publicKey)!!.contentEquals(longTermKeyId)
+                    crypto.importPublicKey(userStore.longTermPublicKey!!.publicKey).identifier!!.contentEquals(longTermKeyId)
             ) {
                 usedLongTermKeyId = null
             } else {
                 usedLongTermKeyId = longTermKeyId
             }
 
-            val validOneTimeKeysId = userStore.oneTimePublicKeys.map { this@InMemoryRatchetClient.keyId.computePublicKeyId(it).hexEncodedString() }
+            val validOneTimeKeysId = userStore.oneTimePublicKeys.map {
+                crypto.importPublicKey(it).identifier.hexEncodedString()
+            }
             val usedOneTimeKeysIds = oneTimeKeysIds.filter { !validOneTimeKeysId.contains(it.hexEncodedString()) }.toList()
 
             return ValidatePublicKeysResponse(usedLongTermKeyId, usedOneTimeKeysIds)

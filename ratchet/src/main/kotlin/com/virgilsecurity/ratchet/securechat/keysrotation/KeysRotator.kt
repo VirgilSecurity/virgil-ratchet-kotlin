@@ -33,7 +33,6 @@
 
 package com.virgilsecurity.ratchet.securechat.keysrotation
 
-import com.virgilsecurity.crypto.ratchet.RatchetKeyId
 import com.virgilsecurity.ratchet.client.RatchetClientInterface
 import com.virgilsecurity.ratchet.client.data.SignedPublicKey
 import com.virgilsecurity.ratchet.keystorage.LongTermKey
@@ -76,8 +75,6 @@ class KeysRotator(
         private val oneTimeKeysStorage: OneTimeKeysStorage,
         private val client: RatchetClientInterface
 ) : KeysRotatorInterface {
-
-    private val keyId = RatchetKeyId()
 
     @Synchronized
     override fun rotateKeys(token: AccessToken) = object : Result<RotationLog> {
@@ -168,7 +165,7 @@ class KeysRotator(
                     val longTermKeyPair = this@KeysRotator.crypto.generateKeyPair(KeyPairType.CURVE25519)
                     val longTermPrivateKey = this@KeysRotator.crypto.exportPrivateKey(longTermKeyPair.privateKey)
                     val longTermPublicKey = this@KeysRotator.crypto.exportPublicKey(longTermKeyPair.publicKey)
-                    val longTermKeyId = this@KeysRotator.keyId.computePublicKeyId(longTermPublicKey)
+                    val longTermKeyId = longTermKeyPair.publicKey.identifier
 
                     this@KeysRotator.longTermKeysStorage.storeKey(longTermPrivateKey, longTermKeyId)
                     val longTermKeySignature =
@@ -192,7 +189,7 @@ class KeysRotator(
                         val keyPair = this@KeysRotator.crypto.generateKeyPair(KeyPairType.CURVE25519)
                         val oneTimePrivateKey = this@KeysRotator.crypto.exportPrivateKey(keyPair.privateKey)
                         val oneTimePublicKey = this@KeysRotator.crypto.exportPublicKey(keyPair.publicKey)
-                        val keyId = this@KeysRotator.keyId.computePublicKeyId(oneTimePublicKey)
+                        val keyId = keyPair.publicKey.identifier
 
                         this@KeysRotator.oneTimeKeysStorage.storeKey(oneTimePrivateKey, keyId)
                         publicKeys.add(oneTimePublicKey)

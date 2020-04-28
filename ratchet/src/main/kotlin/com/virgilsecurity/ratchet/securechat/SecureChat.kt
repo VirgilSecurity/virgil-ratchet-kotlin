@@ -71,7 +71,6 @@ class SecureChat {
     val groupSessionStorage: GroupSessionStorage
     val client: RatchetClientInterface
     val identityCard: Card
-    val keyId = RatchetKeyId()
     val keysRotator: KeysRotatorInterface
 
     /**
@@ -281,7 +280,7 @@ class SecureChat {
 
             return startNewSessionAsSender(
                     receiverCard.identity, identityPublicKey, name,
-                    publicKeySet.identityPublicKey, publicKeySet.longTermPublicKey, publicKeySet.oneTimePublicKey
+                    publicKeySet.longTermPublicKey, publicKeySet.oneTimePublicKey
             )
         }
     }
@@ -346,7 +345,6 @@ class SecureChat {
                         card.identity,
                         identityPublicKey,
                         name,
-                        publicKeySet.identityPublicKey,
                         publicKeySet.longTermPublicKey,
                         publicKeySet.oneTimePublicKey)
 
@@ -358,21 +356,17 @@ class SecureChat {
 
     private fun startNewSessionAsSender(
             identity: String, identityPublicKey: VirgilPublicKey, name: String?,
-            identityPublicKeyData: ByteArray, longTermPublicKey: SignedPublicKey, oneTimePublicKey: ByteArray?
+            longTermPublicKey: SignedPublicKey, oneTimePublicKey: ByteArray?
     ): SecureSession {
-        if (!this.keyId.computePublicKeyId(identityPublicKeyData)!!.contentEquals(this.keyId.computePublicKeyId(this.crypto.exportPublicKey(identityPublicKey)))) {
-            throw SecureChatException(SecureChatException.IDENTITY_KEY_DOESNT_MATCH)
-        }
         if (!this.crypto.verifySignature(longTermPublicKey.signature, longTermPublicKey.publicKey, identityPublicKey)) {
             throw SecureChatException(SecureChatException.INVALID_LONG_TERM_KEY_SIGNATURE)
         }
         if (oneTimePublicKey == null) {
             logger.warning("Creating weak session with $identity")
         }
-        val privateKeyData = this.crypto.exportPrivateKey(this.identityPrivateKey)
         return SecureSession(
                 crypto, identity, name ?: OPERATION_DEFAULT_SESSION_NAME,
-                privateKeyData, identityPublicKeyData, longTermPublicKey.publicKey, oneTimePublicKey
+                this.identityPrivateKey, identityPublicKey, longTermPublicKey.publicKey, oneTimePublicKey
         )
     }
 
@@ -388,7 +382,7 @@ class SecureChat {
                     val keyPair = this@SecureChat.crypto.generateKeyPair(KeyPairType.CURVE25519)
                     val oneTimePrivateKey = this@SecureChat.crypto.exportPrivateKey(keyPair.privateKey)
                     oneTimePublicKey = this@SecureChat.crypto.exportPublicKey(keyPair.publicKey)
-                    val keyId = this@SecureChat.keyId.computePublicKeyId(oneTimePublicKey)
+                    val keyId = keyPair.publicKey.identifier
 
                     this@SecureChat.oneTimeKeysStorage.storeKey(oneTimePrivateKey, keyId)
 
@@ -474,16 +468,9 @@ class SecureChat {
             )
         }
 
-        val receiverLongTermPublicKey = ratchetMessage.longTermPublicKey
-        val longTermKeyId = this.keyId.computePublicKeyId(receiverLongTermPublicKey)
+        val longTermKeyId = ratchetMessage.receiverLongTermKeyId
         val receiverLongTermPrivateKey = this.longTermKeysStorage.retrieveKey(longTermKeyId)
-        val receiverOneTimePublicKey = ratchetMessage.oneTimePublicKey
-
-        val receiverOneTimeKeyId = if (receiverOneTimePublicKey.isEmpty()) {
-            null
-        } else {
-            this.keyId.computePublicKeyId(receiverOneTimePublicKey)
-        }
+        val receiverOneTimeKeyId = ratchetMessage.receiverOneTimeKeyId
         val receiverOneTimePrivateKey: OneTimeKey?
         var interactionStarted = false
         try {
@@ -499,10 +486,10 @@ class SecureChat {
                     this.crypto,
                     senderCard.identity,
                     name ?: OPERATION_DEFAULT_SESSION_NAME,
+                    senderIdentityPublicKey,
                     this.identityPrivateKey,
                     receiverLongTermPrivateKey,
                     receiverOneTimePrivateKey,
-                    this.crypto.exportPublicKey(senderIdentityPublicKey),
                     ratchetMessage
             )
 

@@ -224,7 +224,7 @@ class RatchetClient : RatchetClientInterface {
         private const val VIRGIL_AUTHORIZATION_HEADER_KEY = "Authorization"
 
         private const val VIRGIL_API_BASE_URL = "https://api.virgilsecurity.com"
-        private const val PFS_BASE_URL = "/pfs/v2/keys"
+        private const val PFS_BASE_URL = "/pfs/v3/keys"
         private const val ACTIONS_VALIDATE = "/actions/validate"
         private const val ACTIONS_PICK_ONE = "/actions/pick-one"
         private const val ACTIONS_PICK_BATCH = "/actions/pick-batch"

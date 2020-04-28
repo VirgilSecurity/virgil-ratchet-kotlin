@@ -39,6 +39,7 @@ import com.virgilsecurity.ratchet.keystorage.LongTermKey
 import com.virgilsecurity.ratchet.keystorage.OneTimeKey
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
+import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import java.nio.charset.StandardCharsets
 
 /**
@@ -69,31 +70,39 @@ class SecureSession {
      * @param crypto VirgilCrypto
      * @param participantIdentity Participant identity.
      * @param name Session name.
+     * @param senderIdentityPublicKey Sender identity public key.
      * @param receiverIdentityPrivateKey Receiver identity private key.
      * @param receiverLongTermPrivateKey Receiver long-term private key.
      * @param receiverOneTimePrivateKey Receiver one-time private key.
-     * @param senderIdentityPublicKey Sender identity public key.
      * @param ratchetMessage RatchetMessage.
      */
     constructor(
             crypto: VirgilCrypto, participantIdentity: String,
-            name: String, receiverIdentityPrivateKey: VirgilPrivateKey, receiverLongTermPrivateKey: LongTermKey,
+            name: String,
+            senderIdentityPublicKey: VirgilPublicKey,
+            receiverIdentityPrivateKey: VirgilPrivateKey,
+            receiverLongTermPrivateKey: LongTermKey,
             receiverOneTimePrivateKey: OneTimeKey?,
-            senderIdentityPublicKey: ByteArray, ratchetMessage: RatchetMessage
+            ratchetMessage: RatchetMessage
     ) {
-
         this.crypto = crypto
         this.participantIdentity = participantIdentity
         this.name = name
 
+        val longTermKey = crypto.importPrivateKey(receiverLongTermPrivateKey.key)
+
         this.ratchetSession = RatchetSession()
         ratchetSession.setRng(crypto.rng)
 
-        this.ratchetSession.respond(senderIdentityPublicKey,
-                this.crypto.exportPrivateKey(receiverIdentityPrivateKey),
-                receiverLongTermPrivateKey.key,
-                receiverOneTimePrivateKey?.key ?: byteArrayOf(),
-                ratchetMessage)
+        if (receiverOneTimePrivateKey != null) {
+            val oneTimeKey = crypto.importPrivateKey(receiverOneTimePrivateKey.key)
+
+            ratchetSession.respond(senderIdentityPublicKey.publicKey, receiverIdentityPrivateKey.privateKey,
+                    longTermKey.privateKey.privateKey, oneTimeKey.privateKey.privateKey, ratchetMessage, false)
+        } else {
+            ratchetSession.respondNoOneTimeKey(senderIdentityPublicKey.publicKey, receiverIdentityPrivateKey.privateKey,
+                    longTermKey.privateKey.privateKey, ratchetMessage, false)
+        }
     }
 
     /**
@@ -109,7 +118,7 @@ class SecureSession {
      */
     constructor(
             crypto: VirgilCrypto, participantIdentity: String,
-            name: String, senderIdentityPrivateKey: ByteArray, receiverIdentityPublicKey: ByteArray,
+            name: String, senderIdentityPrivateKey: VirgilPrivateKey, receiverIdentityPublicKey: VirgilPublicKey,
             receiverLongTermPublicKey: ByteArray, receiverOneTimePublicKey: ByteArray?
     ) {
         this.crypto = crypto
@@ -119,10 +128,29 @@ class SecureSession {
         this.ratchetSession = RatchetSession()
         ratchetSession.setRng(crypto.rng)
 
-        ratchetSession.initiate(
-                senderIdentityPrivateKey, receiverIdentityPublicKey, receiverLongTermPublicKey,
-                receiverOneTimePublicKey
-        )
+        val longTermKey = crypto.importPublicKey(receiverLongTermPublicKey)
+
+        if (receiverOneTimePublicKey != null) {
+            val oneTimeKey = crypto.importPublicKey(receiverOneTimePublicKey)
+
+            ratchetSession.initiate(senderIdentityPrivateKey.privateKey,
+                    senderIdentityPrivateKey.identifier,
+                    receiverIdentityPublicKey.publicKey,
+                    receiverIdentityPublicKey.identifier,
+                    longTermKey.publicKey,
+                    longTermKey.identifier,
+                    oneTimeKey.publicKey,
+                    oneTimeKey.identifier,
+                    false)
+        } else {
+            ratchetSession.initiateNoOneTimeKey(senderIdentityPrivateKey.privateKey,
+                    senderIdentityPrivateKey.identifier,
+                    receiverIdentityPublicKey.publicKey,
+                    receiverIdentityPublicKey.identifier,
+                    longTermKey.publicKey,
+                    longTermKey.identifier,
+                    false)
+        }
     }
 
     /**

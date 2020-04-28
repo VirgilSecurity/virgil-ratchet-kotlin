@@ -33,7 +33,6 @@
 
 package com.virgilsecurity.ratchet.securechat.keysrotation
 
-import com.virgilsecurity.crypto.ratchet.RatchetKeyId
 import com.virgilsecurity.ratchet.*
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
@@ -54,8 +53,6 @@ import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
 
 class KeysRotatorTest {
-
-    private lateinit var keyId: RatchetKeyId
     private lateinit var crypto: VirgilCrypto
     private lateinit var cardManager: CardManager
     private lateinit var tokenProvider: AccessTokenProvider
@@ -66,7 +63,6 @@ class KeysRotatorTest {
 
     @BeforeEach
     fun setup() {
-        this.keyId = RatchetKeyId()
         this.crypto = VirgilCrypto()
 
         val identityKeyPair = this.crypto.generateKeyPair(KeyPairType.ED25519)
@@ -248,7 +244,7 @@ class KeysRotatorTest {
         val longTermKey = userStore.longTermPublicKey?.publicKey
         try {
             if (longTermKey != null) {
-                val keyId = this.keyId.computePublicKeyId(longTermKey)
+                val keyId = this.crypto.importPublicKey(longTermKey).identifier
 
                 if (!longTermStorage.retrieveKey(keyId).identifier.contentEquals(keyId)) {
                     logger.warning("Wrong long term key ID")
@@ -256,7 +252,9 @@ class KeysRotatorTest {
                 }
 
                 val storedOneTimeKeysIds = oneTimeStorage.retrieveAllKeys().map { it.identifier }
-                val cloudOneTimeKeysIds = userStore.oneTimePublicKeys.map { this.keyId.computePublicKeyId(it) }
+                val cloudOneTimeKeysIds = userStore.oneTimePublicKeys.map {
+                    crypto.importPublicKey(it).identifier
+                }
                 assertNotNull(cloudOneTimeKeysIds)
 
                 if (storedOneTimeKeysIds.size != cloudOneTimeKeysIds.size) {
