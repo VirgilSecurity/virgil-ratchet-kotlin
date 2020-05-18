@@ -106,7 +106,7 @@ class SecureSessionTest {
         this.senderSecureChat = SecureChat(
                 crypto, senderIdentityKeyPair.privateKey, senderCard,
                 senderTokenProvider, fakeClient, InMemoryLongTermKeysStorage(),
-                InMemoryOneTimeKeysStorage(), InMemorySessionStorage(), InMemoryGroupSessionStorage(),
+                InMemoryOneTimeKeysStorage(), InMemorySessionStorage(),
                 FakeKeysRotator()
         )
 
@@ -120,7 +120,7 @@ class SecureSessionTest {
                 crypto, receiverIdentityKeyPair.privateKey,
                 receiverCard, receiverTokenProvider, fakeClient, receiverLongTermKeysStorage,
                 receiverOneTimeKeysStorage, InMemorySessionStorage(),
-                InMemoryGroupSessionStorage(), receiverKeysRotator
+                receiverKeysRotator
         )
     }
 

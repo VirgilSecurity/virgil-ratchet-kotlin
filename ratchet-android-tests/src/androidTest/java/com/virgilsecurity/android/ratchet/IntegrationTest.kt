@@ -38,7 +38,6 @@ import com.virgilsecurity.ratchet.keystorage.FileLongTermKeysStorage
 import com.virgilsecurity.ratchet.keystorage.FileOneTimeKeysStorage
 import com.virgilsecurity.ratchet.securechat.SecureChat
 import com.virgilsecurity.ratchet.securechat.keysrotation.KeysRotator
-import com.virgilsecurity.ratchet.sessionstorage.FileGroupSessionStorage
 import com.virgilsecurity.ratchet.sessionstorage.FileSessionStorage
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
@@ -355,7 +354,6 @@ class IntegrationTest {
                 this.crypto, senderIdentityKeyPair.privateKey, this.senderCard,
                 senderTokenProvider, client, senderLongTermKeysStorage, senderOneTimeKeysStorage,
                 FileSessionStorage(senderIdentity, this.crypto, senderIdentityKeyPair, File(TestConfig.context.filesDir, "senderSS").absolutePath),
-                FileGroupSessionStorage(senderIdentity, this.crypto, senderIdentityKeyPair, File(TestConfig.context.filesDir, "senderGSS").absolutePath),
                 senderKeysRotator
         )
 
@@ -402,7 +400,6 @@ class IntegrationTest {
                 this.crypto, receiverIdentityKeyPair.privateKey, this.receiverCard,
                 receiverTokenProvider, client, receiverLongTermKeysStorage, receiverOneTimeKeysStorage,
                 FileSessionStorage(receiverIdentity, this.crypto, receiverIdentityKeyPair, File(TestConfig.context.filesDir, "receiverSS").absolutePath),
-                FileGroupSessionStorage(receiverIdentity, this.crypto, receiverIdentityKeyPair, File(TestConfig.context.filesDir, "receiverGSS").absolutePath),
                 receiverKeysRotator
         )
     }

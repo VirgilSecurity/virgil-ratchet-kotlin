@@ -34,6 +34,7 @@
 package com.virgilsecurity.android.ratchet
 
 import com.virgilsecurity.common.model.Completable
+import com.virgilsecurity.common.model.Result
 import com.virgilsecurity.ratchet.client.RatchetClientInterface
 import com.virgilsecurity.ratchet.client.data.IdentityPublicKeySet
 import com.virgilsecurity.ratchet.client.data.PublicKeySet
@@ -44,12 +45,9 @@ import com.virgilsecurity.ratchet.keystorage.LongTermKey
 import com.virgilsecurity.ratchet.keystorage.LongTermKeysStorage
 import com.virgilsecurity.ratchet.keystorage.OneTimeKey
 import com.virgilsecurity.ratchet.keystorage.OneTimeKeysStorage
-import com.virgilsecurity.common.model.Result
-import com.virgilsecurity.ratchet.securechat.SecureGroupSession
 import com.virgilsecurity.ratchet.securechat.SecureSession
 import com.virgilsecurity.ratchet.securechat.keysrotation.KeysRotatorInterface
 import com.virgilsecurity.ratchet.securechat.keysrotation.RotationLog
-import com.virgilsecurity.ratchet.sessionstorage.GroupSessionStorage
 import com.virgilsecurity.ratchet.sessionstorage.SessionStorage
 import com.virgilsecurity.ratchet.utils.hexEncodedString
 import com.virgilsecurity.sdk.cards.Card
@@ -84,27 +82,6 @@ class InMemorySessionStorage : SessionStorage {
 
     override fun reset() {
         map.clear()
-    }
-}
-
-class InMemoryGroupSessionStorage : GroupSessionStorage {
-    val map = mutableMapOf<String, SecureGroupSession>()
-
-    override fun storeSession(session: SecureGroupSession) {
-        this.map[session.identifier().hexEncodedString()] = session
-    }
-
-    override fun retrieveSession(identifier: ByteArray): SecureGroupSession? {
-        return this.map[identifier.hexEncodedString()]
-    }
-
-    override fun deleteSession(identifier: ByteArray) {
-        val hexId = identifier.hexEncodedString()
-        this.map.remove(hexId) ?: throw RuntimeException("Session $hexId not found")
-    }
-
-    override fun reset() {
-        this.map.clear()
     }
 }
 

@@ -33,12 +33,12 @@
 
 package com.virgilsecurity.ratchet.securechat.keysrotation
 
+import com.virgilsecurity.common.model.Result
 import com.virgilsecurity.ratchet.client.RatchetClientInterface
 import com.virgilsecurity.ratchet.client.data.SignedPublicKey
 import com.virgilsecurity.ratchet.keystorage.LongTermKey
 import com.virgilsecurity.ratchet.keystorage.LongTermKeysStorage
 import com.virgilsecurity.ratchet.keystorage.OneTimeKeysStorage
-import com.virgilsecurity.common.model.Result
 import com.virgilsecurity.ratchet.utils.addSeconds
 import com.virgilsecurity.ratchet.utils.hexEncodedString
 import com.virgilsecurity.sdk.crypto.KeyPairType
