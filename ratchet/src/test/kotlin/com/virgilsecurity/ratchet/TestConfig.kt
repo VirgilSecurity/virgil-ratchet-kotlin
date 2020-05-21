@@ -38,7 +38,6 @@ import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
 import com.virgilsecurity.testcommon.property.EnvPropertyReader
 import com.virgilsecurity.testcommon.utils.PropertyUtils
-import java.util.*
 
 class TestConfig {
 

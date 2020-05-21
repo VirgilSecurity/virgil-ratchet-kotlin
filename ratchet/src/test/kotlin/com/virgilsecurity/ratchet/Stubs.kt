@@ -34,7 +34,7 @@
 package com.virgilsecurity.ratchet
 
 import com.virgilsecurity.common.model.Completable
-import com.virgilsecurity.crypto.ratchet.RatchetKeyId
+import com.virgilsecurity.common.model.Result
 import com.virgilsecurity.ratchet.client.RatchetClientInterface
 import com.virgilsecurity.ratchet.client.data.IdentityPublicKeySet
 import com.virgilsecurity.ratchet.client.data.PublicKeySet
@@ -45,12 +45,9 @@ import com.virgilsecurity.ratchet.keystorage.LongTermKey
 import com.virgilsecurity.ratchet.keystorage.LongTermKeysStorage
 import com.virgilsecurity.ratchet.keystorage.OneTimeKey
 import com.virgilsecurity.ratchet.keystorage.OneTimeKeysStorage
-import com.virgilsecurity.common.model.Result
-import com.virgilsecurity.ratchet.securechat.SecureGroupSession
 import com.virgilsecurity.ratchet.securechat.SecureSession
 import com.virgilsecurity.ratchet.securechat.keysrotation.KeysRotatorInterface
 import com.virgilsecurity.ratchet.securechat.keysrotation.RotationLog
-import com.virgilsecurity.ratchet.sessionstorage.GroupSessionStorage
 import com.virgilsecurity.ratchet.sessionstorage.SessionStorage
 import com.virgilsecurity.ratchet.utils.hexEncodedString
 import com.virgilsecurity.sdk.cards.Card
@@ -58,7 +55,10 @@ import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.CardVerifier
 import com.virgilsecurity.sdk.client.VirgilCardClient
-import com.virgilsecurity.sdk.crypto.*
+import com.virgilsecurity.sdk.crypto.HashAlgorithm
+import com.virgilsecurity.sdk.crypto.KeyPairType
+import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import com.virgilsecurity.sdk.jwt.Jwt
 import com.virgilsecurity.sdk.jwt.contract.AccessToken
 import com.virgilsecurity.sdk.utils.Tuple
@@ -82,27 +82,6 @@ class InMemorySessionStorage : SessionStorage {
 
     override fun reset() {
         map.clear()
-    }
-}
-
-class InMemoryGroupSessionStorage : GroupSessionStorage {
-    val map = mutableMapOf<String, SecureGroupSession>()
-
-    override fun storeSession(session: SecureGroupSession) {
-        this.map[session.identifier().hexEncodedString()] = session
-    }
-
-    override fun retrieveSession(identifier: ByteArray): SecureGroupSession? {
-        return this.map[identifier.hexEncodedString()]
-    }
-
-    override fun deleteSession(identifier: ByteArray) {
-        val hexId = identifier.hexEncodedString()
-        this.map.remove(hexId) ?: throw RuntimeException("Session $hexId not found")
-    }
-
-    override fun reset() {
-        this.map.clear()
     }
 }
 
@@ -227,7 +206,6 @@ class InMemoryRatchetClient(private val cardManager: CardManager) : RatchetClien
         var oneTimePublicKeys: MutableSet<ByteArray> = mutableSetOf()
     }
 
-    private val keyId = RatchetKeyId()
     private val crypto = VirgilCrypto()
     var users = mutableMapOf<String, UserStore>()
 
@@ -293,14 +271,16 @@ class InMemoryRatchetClient(private val cardManager: CardManager) : RatchetClien
             val usedLongTermKeyId: ByteArray?
 
             if (longTermKeyId != null && userStore.longTermPublicKey?.publicKey != null &&
-                    this@InMemoryRatchetClient.keyId.computePublicKeyId(userStore.longTermPublicKey!!.publicKey)!!.contentEquals(longTermKeyId)
+                    crypto.importPublicKey(userStore.longTermPublicKey!!.publicKey).identifier!!.contentEquals(longTermKeyId)
             ) {
                 usedLongTermKeyId = null
             } else {
                 usedLongTermKeyId = longTermKeyId
             }
 
-            val validOneTimeKeysId = userStore.oneTimePublicKeys.map { this@InMemoryRatchetClient.keyId.computePublicKeyId(it).hexEncodedString() }
+            val validOneTimeKeysId = userStore.oneTimePublicKeys.map {
+                crypto.importPublicKey(it).identifier.hexEncodedString()
+            }
             val usedOneTimeKeysIds = oneTimeKeysIds.filter { !validOneTimeKeysId.contains(it.hexEncodedString()) }.toList()
 
             return ValidatePublicKeysResponse(usedLongTermKeyId, usedOneTimeKeysIds)

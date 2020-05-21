@@ -36,7 +36,6 @@ package com.virgilsecurity.android.ratchet.client
 import android.support.test.runner.AndroidJUnit4
 import com.virgilsecurity.android.ratchet.TestConfig
 import com.virgilsecurity.android.ratchet.generateIdentity
-import com.virgilsecurity.crypto.ratchet.RatchetKeyId
 import com.virgilsecurity.ratchet.client.RatchetClient
 import com.virgilsecurity.ratchet.client.data.SignedPublicKey
 import com.virgilsecurity.sdk.cards.Card
@@ -58,7 +57,6 @@ import java.util.concurrent.TimeUnit
 @RunWith(AndroidJUnit4::class)
 class RatchetClientTest {
     private lateinit var crypto: VirgilCrypto
-    private lateinit var keyId: RatchetKeyId
     private lateinit var generator: JwtGenerator
     private lateinit var identity: String
     private lateinit var identityPrivateKey: VirgilPrivateKey
@@ -68,21 +66,19 @@ class RatchetClientTest {
     @Before
     fun setup() {
         this.crypto = VirgilCrypto()
-        this.keyId = RatchetKeyId()
 
         init()
     }
 
     @After
     fun tearDown() {
-        this.keyId.close()
     }
 
     @Test
     fun full_cycle__long_term_key__should_succeed() {
         val longTermKey = this.crypto.generateKeyPair(KeyPairType.CURVE25519)
         val longTermPublicKey = this.crypto.exportPublicKey(longTermKey.publicKey)
-        val longTermKeyId = this.keyId.computePublicKeyId(longTermPublicKey)
+        val longTermKeyId = longTermKey.publicKey.identifier
         val signature = this.crypto.generateSignature(longTermPublicKey, this.identityPrivateKey)
 
         val signedLongTermKey = SignedPublicKey(longTermPublicKey, signature)
@@ -102,14 +98,16 @@ class RatchetClientTest {
     @Test
     fun full_cycle__all_keys__should_succeed() {
         val longTermKey = this.crypto.generateKeyPair(KeyPairType.CURVE25519)
-        val oneTimeKey1 = this.crypto.exportPublicKey(this.crypto.generateKeyPair(KeyPairType.CURVE25519).publicKey)!!
-        val oneTimeKey2 = this.crypto.exportPublicKey(this.crypto.generateKeyPair(KeyPairType.CURVE25519).publicKey)!!
+        val oneTimeKeyPair1 = this.crypto.generateKeyPair(KeyPairType.CURVE25519)
+        val oneTimeKey1 = this.crypto.exportPublicKey(oneTimeKeyPair1.publicKey)!!
+        val oneTimeKeyPair2 = this.crypto.generateKeyPair(KeyPairType.CURVE25519)
+        val oneTimeKey2 = this.crypto.exportPublicKey(oneTimeKeyPair2.publicKey)!!
 
-        val oneTimeKeyId1 = this.keyId.computePublicKeyId(oneTimeKey1)
-        val oneTimeKeyId2 = this.keyId.computePublicKeyId(oneTimeKey2)
+        val oneTimeKeyId1 = oneTimeKeyPair1.publicKey.identifier
+        val oneTimeKeyId2 = oneTimeKeyPair2.publicKey.identifier
 
         val longTermPublicKey = this.crypto.exportPublicKey(longTermKey.publicKey)
-        val longTermKeyId = this.keyId.computePublicKeyId(longTermPublicKey)
+        val longTermKeyId = longTermKey.publicKey.identifier
         val signature = this.crypto.generateSignature(longTermPublicKey, identityPrivateKey)
 
         val signedLongTermKey = SignedPublicKey(longTermPublicKey, signature)

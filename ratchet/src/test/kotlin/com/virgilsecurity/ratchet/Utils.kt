@@ -34,7 +34,6 @@
 package com.virgilsecurity.ratchet
 
 import com.virgilsecurity.ratchet.securechat.SecureChat
-import com.virgilsecurity.ratchet.securechat.SecureGroupSession
 import com.virgilsecurity.ratchet.securechat.SecureSession
 import org.junit.jupiter.api.Assertions
 import kotlin.random.Random
@@ -60,29 +59,6 @@ class Utils {
                 val decryptedMessage = receiver.decryptString(message)
 
                 Assertions.assertEquals(plainText, decryptedMessage)
-            }
-        }
-
-        fun encryptDecrypt100Times(groupSessions: List<SecureGroupSession>) {
-            for (i in 1..100) {
-                val senderNum = Random.nextInt(0, groupSessions.size)
-
-                val sender = groupSessions[senderNum]
-
-                val plainText = generateText()
-
-                val message = sender.encrypt(plainText)
-
-                for (j in 0 until groupSessions.size) {
-                    if (j == senderNum) {
-                        continue
-                    }
-
-                    val receiver = groupSessions[j]
-                    val decryptedMessage = receiver.decryptString(message, sender.myIdentifier())
-
-                    Assertions.assertEquals(plainText, decryptedMessage)
-                }
             }
         }
 
@@ -114,36 +90,5 @@ class Utils {
 
             }
         }
-
-        fun encryptDecrypt100TimesRestored(secureChats: List<SecureChat>, sessionId: ByteArray) {
-            for (j in 0 until 100) {
-                val senderNum = Random.nextInt(0, secureChats.size)
-
-                val sender = secureChats[senderNum].existingGroupSession(sessionId)
-                Assertions.assertNotNull(sender)
-                sender!!
-
-                val plainText = generateText()
-                val message = sender.encrypt(plainText)
-
-                secureChats[senderNum].storeGroupSession(sender)
-
-                for (i in 0 until secureChats.size) {
-                    if (i == senderNum) {
-                        continue
-                    }
-
-                    val receiver = secureChats[i].existingGroupSession(sessionId)
-                    Assertions.assertNotNull(receiver)
-                    receiver!!
-
-                    val decryptedMessage = receiver.decryptString(message, sender.myIdentifier())
-                    Assertions.assertEquals(plainText, decryptedMessage)
-
-                    secureChats[i].storeGroupSession(receiver)
-                }
-            }
-        }
     }
-
 }
