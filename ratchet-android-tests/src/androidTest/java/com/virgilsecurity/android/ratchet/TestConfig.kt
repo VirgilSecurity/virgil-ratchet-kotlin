@@ -57,25 +57,24 @@ class TestConfig {
         private val propertyReader: EnvPropertyReader by lazy {
             val environment = PropertyUtils.getSystemProperty(ENVIRONMENT_PARAMETER)
 
-            val resourceEnvStream =
-                    this.javaClass.classLoader.getResourceAsStream("testProperties/env.json")
+            val resourceEnvStream = TestConfig::class.java.classLoader
+                    ?.getResourceAsStream("testProperties/env.json")
+                    ?: error("Resource testProperties/env.json not found on classpath")
             val tempEnvDirectory = File(context.filesDir, "tempEnvDir")
             tempEnvDirectory.mkdirs()
 
             val tempEnvFile = File(tempEnvDirectory, "env.json")
 
-            val outputStream = FileOutputStream(tempEnvFile)
-            outputStream.write(resourceEnvStream.readBytes())
-            outputStream.close()
+            FileOutputStream(tempEnvFile).use { it.write(resourceEnvStream.readBytes()) }
 
             if (environment != null)
                 EnvPropertyReader.Builder()
                         .environment(EnvPropertyReader.Environment.fromType(environment))
-                        .filePath(tempEnvFile.parent)
+                        .filePath(tempEnvDirectory.absolutePath)
                         .build()
             else
                 EnvPropertyReader.Builder()
-                        .filePath(tempEnvFile.parent)
+                        .filePath(tempEnvDirectory.absolutePath)
                         .build()
         }
 

@@ -136,15 +136,10 @@ class RatchetClientTest {
         assertArrayEquals(signedLongTermKey.signature, response2.longTermPublicKey.signature)
         assertNotNull(response2.oneTimePublicKey)
 
-        val usedKeyId: ByteArray
-        when {
-            oneTimeKey1.contentEquals(response2.oneTimePublicKey!!) -> usedKeyId = oneTimeKeyId1
-            oneTimeKey2.contentEquals(response2.oneTimePublicKey!!) -> usedKeyId = oneTimeKeyId2
-            else -> {
-                usedKeyId = byteArrayOf()
-                fail()
-            }
-        }
+        assertTrue(
+                oneTimeKey1.contentEquals(response2.oneTimePublicKey!!)
+                        || oneTimeKey2.contentEquals(response2.oneTimePublicKey!!)
+        )
 
         val response3 = this.client.validatePublicKeys(longTermKeyId,
                                                        listOf(oneTimeKeyId1, oneTimeKeyId2),

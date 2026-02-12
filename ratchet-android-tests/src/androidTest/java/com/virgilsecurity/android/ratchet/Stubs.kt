@@ -271,7 +271,7 @@ class InMemoryRatchetClient(private val cardManager: CardManager) : RatchetClien
             val userStore = this@InMemoryRatchetClient.users[jwt.identity] ?: UserStore()
 
             val usedLongTermKeyId = if (longTermKeyId != null && userStore.longTermPublicKey?.publicKey != null &&
-                    this@InMemoryRatchetClient.keyId.computePublicKeyId(userStore.longTermPublicKey!!.publicKey)!!
+                    this@InMemoryRatchetClient.keyId.computePublicKeyId(userStore.longTermPublicKey!!.publicKey)
                             .contentEquals(longTermKeyId)
             ) {
                 longTermKeyId
