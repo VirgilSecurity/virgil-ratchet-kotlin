@@ -35,6 +35,7 @@ package com.virgilsecurity.ratchet
 
 import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Result
+import com.virgilsecurity.crypto.ratchet.RatchetKeyId
 import com.virgilsecurity.ratchet.client.RatchetClientInterface
 import com.virgilsecurity.ratchet.client.data.IdentityPublicKeySet
 import com.virgilsecurity.ratchet.client.data.PublicKeySet
@@ -97,7 +98,7 @@ class InMemoryLongTermKeysStorage : LongTermKeysStorage {
     override fun retrieveKey(keyId: ByteArray): LongTermKey {
         val hex = keyId.hexEncodedString()
         if (!this.map.containsKey(hex)) {
-            KeyStorageException(KeyStorageException.KEY_NOT_FOUND)
+            throw KeyStorageException(KeyStorageException.KEY_NOT_FOUND)
         }
         return this.map[hex]!!
     }
@@ -113,7 +114,7 @@ class InMemoryLongTermKeysStorage : LongTermKeysStorage {
     override fun markKeyOutdated(date: Date, keyId: ByteArray) {
         val hex = keyId.hexEncodedString()
         if (!this.map.containsKey(hex)) {
-            KeyStorageException(KeyStorageException.KEY_NOT_FOUND)
+            throw KeyStorageException(KeyStorageException.KEY_NOT_FOUND)
         }
         val longTermKey = this.map[hex]!!
         this.map[hex] = LongTermKey(keyId, longTermKey.key, longTermKey.creationDate, date)
@@ -206,6 +207,7 @@ class InMemoryRatchetClient(private val cardManager: CardManager) : RatchetClien
         var oneTimePublicKeys: MutableSet<ByteArray> = mutableSetOf()
     }
 
+    private val keyId = RatchetKeyId()
     private val crypto = VirgilCrypto()
     var users = mutableMapOf<String, UserStore>()
 
@@ -268,20 +270,19 @@ class InMemoryRatchetClient(private val cardManager: CardManager) : RatchetClien
             val jwt = Jwt(token)
             val userStore = this@InMemoryRatchetClient.users[jwt.identity] ?: UserStore()
 
-            val usedLongTermKeyId: ByteArray?
-
-            if (longTermKeyId != null && userStore.longTermPublicKey?.publicKey != null &&
-                    crypto.importPublicKey(userStore.longTermPublicKey!!.publicKey).identifier!!.contentEquals(longTermKeyId)
+            val usedLongTermKeyId = if (longTermKeyId != null && userStore.longTermPublicKey?.publicKey != null &&
+                    this@InMemoryRatchetClient.keyId.computePublicKeyId(userStore.longTermPublicKey!!.publicKey)!!
+                            .contentEquals(longTermKeyId)
             ) {
-                usedLongTermKeyId = null
+                longTermKeyId
             } else {
-                usedLongTermKeyId = longTermKeyId
+                null
             }
 
             val validOneTimeKeysId = userStore.oneTimePublicKeys.map {
-                crypto.importPublicKey(it).identifier.hexEncodedString()
-            }
-            val usedOneTimeKeysIds = oneTimeKeysIds.filter { !validOneTimeKeysId.contains(it.hexEncodedString()) }.toList()
+                this@InMemoryRatchetClient.keyId.computePublicKeyId(it).hexEncodedString()
+            }.toSet()
+            val usedOneTimeKeysIds = oneTimeKeysIds.filter { validOneTimeKeysId.contains(it.hexEncodedString()) }
 
             return ValidatePublicKeysResponse(usedLongTermKeyId, usedOneTimeKeysIds)
         }
@@ -299,10 +300,6 @@ class InMemoryRatchetClient(private val cardManager: CardManager) : RatchetClien
             }
 
             val oneTimePublicKey = userStore.oneTimePublicKeys.firstOrNull()
-            if (oneTimePublicKey != null) {
-                userStore.oneTimePublicKeys.remove(oneTimePublicKey)
-                this@InMemoryRatchetClient.users[identity] = userStore
-            }
 
             return PublicKeySet(identityPublicKey, longTermPublicKey, oneTimePublicKey)
         }

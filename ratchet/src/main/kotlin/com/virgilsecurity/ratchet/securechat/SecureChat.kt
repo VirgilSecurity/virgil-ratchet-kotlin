@@ -43,6 +43,7 @@ import com.virgilsecurity.ratchet.exception.SecureChatException
 import com.virgilsecurity.ratchet.keystorage.*
 import com.virgilsecurity.ratchet.securechat.keysrotation.KeysRotator
 import com.virgilsecurity.ratchet.securechat.keysrotation.KeysRotatorInterface
+import com.virgilsecurity.ratchet.securechat.keysrotation.RatchetKeyIdCompat
 import com.virgilsecurity.ratchet.securechat.keysrotation.RotationLog
 import com.virgilsecurity.ratchet.sessionstorage.FileSessionStorage
 import com.virgilsecurity.ratchet.sessionstorage.SessionStorage
@@ -104,7 +105,6 @@ class SecureChat {
      * @param longTermKeysStorage Long-term keys storage.
      * @param oneTimeKeysStorage One-time keys storage.
      * @param sessionStorage Session storage.
-     * @param groupSessionStorage Group session storage.
      * @param keysRotator Keys rotation
      */
     constructor(
@@ -245,7 +245,7 @@ class SecureChat {
 
             return startNewSessionAsSender(
                     receiverCard.identity, identityPublicKey, name,
-                    publicKeySet.longTermPublicKey, publicKeySet.oneTimePublicKey
+                    publicKeySet.identityPublicKey, publicKeySet.longTermPublicKey, publicKeySet.oneTimePublicKey
             )
         }
     }
@@ -310,6 +310,7 @@ class SecureChat {
                         card.identity,
                         identityPublicKey,
                         name,
+                        publicKeySet.identityPublicKey,
                         publicKeySet.longTermPublicKey,
                         publicKeySet.oneTimePublicKey)
 
@@ -321,17 +322,28 @@ class SecureChat {
 
     private fun startNewSessionAsSender(
             identity: String, identityPublicKey: VirgilPublicKey, name: String?,
-            longTermPublicKey: SignedPublicKey, oneTimePublicKey: ByteArray?
+            identityPublicKeyData: ByteArray, longTermPublicKey: SignedPublicKey, oneTimePublicKey: ByteArray?
     ): SecureSession {
+        if (!RatchetKeyIdCompat.computePublicKeyId(identityPublicKeyData).contentEquals(
+                        RatchetKeyIdCompat.computePublicKeyId(this.crypto.exportPublicKey(identityPublicKey))
+                )) {
+            throw SecureChatException(SecureChatException.IDENTITY_KEY_DOESNT_MATCH)
+        }
         if (!this.crypto.verifySignature(longTermPublicKey.signature, longTermPublicKey.publicKey, identityPublicKey)) {
             throw SecureChatException(SecureChatException.INVALID_LONG_TERM_KEY_SIGNATURE)
         }
         if (oneTimePublicKey == null) {
             logger.warning("Creating weak session with $identity")
         }
+        val privateKeyData = this.crypto.exportPrivateKey(this.identityPrivateKey)
+        val senderIdentityKeyId = RatchetKeyIdCompat.computePublicKeyId(this.crypto.exportPublicKey(this.crypto.extractPublicKey(this.identityPrivateKey)))
+        val receiverIdentityKeyId = RatchetKeyIdCompat.computePublicKeyId(identityPublicKeyData)
+        val receiverLongTermKeyId = RatchetKeyIdCompat.computePublicKeyId(longTermPublicKey.publicKey)
+        val receiverOneTimeKeyId = oneTimePublicKey?.let { RatchetKeyIdCompat.computePublicKeyId(it) }
         return SecureSession(
                 crypto, identity, name ?: OPERATION_DEFAULT_SESSION_NAME,
-                this.identityPrivateKey, identityPublicKey, longTermPublicKey.publicKey, oneTimePublicKey
+                privateKeyData, senderIdentityKeyId, identityPublicKeyData, receiverIdentityKeyId,
+                longTermPublicKey.publicKey, receiverLongTermKeyId, oneTimePublicKey, receiverOneTimeKeyId
         )
     }
 
@@ -347,7 +359,7 @@ class SecureChat {
                     val keyPair = this@SecureChat.crypto.generateKeyPair(KeyPairType.CURVE25519)
                     val oneTimePrivateKey = this@SecureChat.crypto.exportPrivateKey(keyPair.privateKey)
                     oneTimePublicKey = this@SecureChat.crypto.exportPublicKey(keyPair.publicKey)
-                    val keyId = keyPair.publicKey.identifier
+                    val keyId = RatchetKeyIdCompat.computePublicKeyId(oneTimePublicKey)
 
                     this@SecureChat.oneTimeKeysStorage.storeKey(oneTimePrivateKey, keyId)
 
@@ -435,7 +447,11 @@ class SecureChat {
 
         val longTermKeyId = ratchetMessage.receiverLongTermKeyId
         val receiverLongTermPrivateKey = this.longTermKeysStorage.retrieveKey(longTermKeyId)
-        val receiverOneTimeKeyId = ratchetMessage.receiverOneTimeKeyId
+        val receiverOneTimeKeyId = if (ratchetMessage.receiverOneTimeKeyId.isEmpty()) {
+            null
+        } else {
+            ratchetMessage.receiverOneTimeKeyId
+        }
         val receiverOneTimePrivateKey: OneTimeKey?
         var interactionStarted = false
         try {

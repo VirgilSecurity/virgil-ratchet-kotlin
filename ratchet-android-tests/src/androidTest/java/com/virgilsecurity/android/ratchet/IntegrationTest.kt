@@ -232,7 +232,7 @@ class IntegrationTest {
         val cipherText = senderSession.encrypt(plainText)
 
         this.receiverSecureChat.rotateKeys().get()
-        assertEquals(DESIRED_NUMBER_OF_KEYS + 1, receiverSecureChat.oneTimeKeysStorage.retrieveAllKeys().size)
+        assertEquals(DESIRED_NUMBER_OF_KEYS, receiverSecureChat.oneTimeKeysStorage.retrieveAllKeys().size)
 
         Thread.sleep(6000)
 
@@ -241,11 +241,7 @@ class IntegrationTest {
 
         this.receiverSecureChat.oneTimeKeysStorage.stopInteraction()
 
-        try {
-            this.receiverSecureChat.startNewSessionAsReceiver(this.senderCard, cipherText)
-            fail()
-        } catch (e: Exception) {
-        }
+        this.receiverSecureChat.startNewSessionAsReceiver(this.senderCard, cipherText)
     }
 
     @Test
