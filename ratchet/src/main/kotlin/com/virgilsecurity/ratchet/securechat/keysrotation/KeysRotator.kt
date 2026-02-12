@@ -33,12 +33,12 @@
 
 package com.virgilsecurity.ratchet.securechat.keysrotation
 
-import com.virgilsecurity.common.model.Result
 import com.virgilsecurity.ratchet.client.RatchetClientInterface
 import com.virgilsecurity.ratchet.client.data.SignedPublicKey
 import com.virgilsecurity.ratchet.keystorage.LongTermKey
 import com.virgilsecurity.ratchet.keystorage.LongTermKeysStorage
 import com.virgilsecurity.ratchet.keystorage.OneTimeKeysStorage
+import com.virgilsecurity.common.model.Result
 import com.virgilsecurity.ratchet.utils.addSeconds
 import com.virgilsecurity.ratchet.utils.hexEncodedString
 import com.virgilsecurity.sdk.crypto.KeyPairType
@@ -143,7 +143,11 @@ class KeysRotator(
                         token.stringRepresentation()
                 ).get()
 
-                validateResponse.usedOneTimeKeysIds.forEach {
+                val consumedOneTimeKeysIds = oneTimeKeysIds.filter { localId ->
+                    validateResponse.usedOneTimeKeysIds.none { cloudId -> cloudId.contentEquals(localId) }
+                }
+
+                consumedOneTimeKeysIds.forEach {
                     logger.fine("Marking one-time key as orphaned ${it.hexEncodedString()}")
                     this@KeysRotator.oneTimeKeysStorage.markKeyOrphaned(now, it)
                     rotationLog.oneTimeKeysMarkedOrphaned += 1
@@ -151,7 +155,12 @@ class KeysRotator(
                 }
 
                 var rotateLongTermKey = false
-                if (validateResponse.usedLongTermKeyId != null || lastLongTermKey == null) {
+                if (lastLongTermKey == null) {
+                    rotateLongTermKey = true
+                }
+                if (validateResponse.usedLongTermKeyId != null
+                        && lastLongTermKey != null
+                        && !validateResponse.usedLongTermKeyId.contentEquals(lastLongTermKey!!.identifier)) {
                     rotateLongTermKey = true
                 }
                 if (lastLongTermKey != null
@@ -165,7 +174,7 @@ class KeysRotator(
                     val longTermKeyPair = this@KeysRotator.crypto.generateKeyPair(KeyPairType.CURVE25519)
                     val longTermPrivateKey = this@KeysRotator.crypto.exportPrivateKey(longTermKeyPair.privateKey)
                     val longTermPublicKey = this@KeysRotator.crypto.exportPublicKey(longTermKeyPair.publicKey)
-                    val longTermKeyId = longTermKeyPair.publicKey.identifier
+                    val longTermKeyId = RatchetKeyIdCompat.computePublicKeyId(longTermPublicKey)
 
                     this@KeysRotator.longTermKeysStorage.storeKey(longTermPrivateKey, longTermKeyId)
                     val longTermKeySignature =
@@ -176,7 +185,7 @@ class KeysRotator(
                     longTermSignedPublicKey = null
                 }
 
-                val numOfRelevantOneTimeKeys = oneTimeKeysIds.size - validateResponse.usedOneTimeKeysIds.size
+                val numOfRelevantOneTimeKeys = oneTimeKeysIds.size - consumedOneTimeKeysIds.size
                 val numbOfOneTimeKeysToGen =
                         max(this@KeysRotator.desiredNumberOfOneTimeKeys - numOfRelevantOneTimeKeys, 0)
 
@@ -189,7 +198,7 @@ class KeysRotator(
                         val keyPair = this@KeysRotator.crypto.generateKeyPair(KeyPairType.CURVE25519)
                         val oneTimePrivateKey = this@KeysRotator.crypto.exportPrivateKey(keyPair.privateKey)
                         val oneTimePublicKey = this@KeysRotator.crypto.exportPublicKey(keyPair.publicKey)
-                        val keyId = keyPair.publicKey.identifier
+                        val keyId = RatchetKeyIdCompat.computePublicKeyId(oneTimePublicKey)
 
                         this@KeysRotator.oneTimeKeysStorage.storeKey(oneTimePrivateKey, keyId)
                         publicKeys.add(oneTimePublicKey)

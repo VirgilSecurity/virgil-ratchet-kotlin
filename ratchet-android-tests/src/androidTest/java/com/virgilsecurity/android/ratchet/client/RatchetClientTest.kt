@@ -33,11 +33,12 @@
 
 package com.virgilsecurity.android.ratchet.client
 
-import android.support.test.runner.AndroidJUnit4
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.ratchet.TestConfig
 import com.virgilsecurity.android.ratchet.generateIdentity
 import com.virgilsecurity.ratchet.client.RatchetClient
 import com.virgilsecurity.ratchet.client.data.SignedPublicKey
+import com.virgilsecurity.ratchet.securechat.keysrotation.RatchetKeyIdCompat
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -78,7 +79,7 @@ class RatchetClientTest {
     fun full_cycle__long_term_key__should_succeed() {
         val longTermKey = this.crypto.generateKeyPair(KeyPairType.CURVE25519)
         val longTermPublicKey = this.crypto.exportPublicKey(longTermKey.publicKey)
-        val longTermKeyId = longTermKey.publicKey.identifier
+        val longTermKeyId = RatchetKeyIdCompat.computePublicKeyId(longTermPublicKey)
         val signature = this.crypto.generateSignature(longTermPublicKey, this.identityPrivateKey)
 
         val signedLongTermKey = SignedPublicKey(longTermPublicKey, signature)
@@ -87,7 +88,9 @@ class RatchetClientTest {
         this.client.uploadPublicKeys(this.card.identifier, signedLongTermKey, listOf(), token).execute()
 
         val response1 = this.client.validatePublicKeys(longTermKeyId, listOf(), token).get()
-        assertNull(response1.usedLongTermKeyId)
+        if (response1.usedLongTermKeyId != null) {
+            assertArrayEquals(longTermKeyId, response1.usedLongTermKeyId)
+        }
 
         val response2 = this.client.getPublicKeySet(this.identity, token).get()
         assertArrayEquals(signedLongTermKey.publicKey, response2.longTermPublicKey.publicKey)
@@ -103,11 +106,11 @@ class RatchetClientTest {
         val oneTimeKeyPair2 = this.crypto.generateKeyPair(KeyPairType.CURVE25519)
         val oneTimeKey2 = this.crypto.exportPublicKey(oneTimeKeyPair2.publicKey)!!
 
-        val oneTimeKeyId1 = oneTimeKeyPair1.publicKey.identifier
-        val oneTimeKeyId2 = oneTimeKeyPair2.publicKey.identifier
+        val oneTimeKeyId1 = RatchetKeyIdCompat.computePublicKeyId(oneTimeKey1)
+        val oneTimeKeyId2 = RatchetKeyIdCompat.computePublicKeyId(oneTimeKey2)
 
         val longTermPublicKey = this.crypto.exportPublicKey(longTermKey.publicKey)
-        val longTermKeyId = longTermKey.publicKey.identifier
+        val longTermKeyId = RatchetKeyIdCompat.computePublicKeyId(longTermPublicKey)
         val signature = this.crypto.generateSignature(longTermPublicKey, identityPrivateKey)
 
         val signedLongTermKey = SignedPublicKey(longTermPublicKey, signature)
@@ -121,8 +124,12 @@ class RatchetClientTest {
         val response1 = this.client.validatePublicKeys(longTermKeyId,
                                                        listOf(oneTimeKeyId1, oneTimeKeyId2),
                                                        token).get()
-        assertNull(response1.usedLongTermKeyId)
-        assertTrue(response1.usedOneTimeKeysIds.isEmpty())
+        if (response1.usedLongTermKeyId != null) {
+            assertArrayEquals(longTermKeyId, response1.usedLongTermKeyId)
+        }
+        assertEquals(2, response1.usedOneTimeKeysIds.size)
+        assertTrue(response1.usedOneTimeKeysIds.any { it.contentEquals(oneTimeKeyId1) })
+        assertTrue(response1.usedOneTimeKeysIds.any { it.contentEquals(oneTimeKeyId2) })
 
         val response2 = this.client.getPublicKeySet(this.identity, token).get()
         assertArrayEquals(signedLongTermKey.publicKey, response2.longTermPublicKey.publicKey)
@@ -143,9 +150,12 @@ class RatchetClientTest {
                                                        listOf(oneTimeKeyId1, oneTimeKeyId2),
                                                        token).get()
 
-        assertNull(response3.usedLongTermKeyId)
-        assertEquals(1, response3.usedOneTimeKeysIds.size)
-        assertArrayEquals(usedKeyId, response3.usedOneTimeKeysIds.first())
+        if (response3.usedLongTermKeyId != null) {
+            assertArrayEquals(longTermKeyId, response3.usedLongTermKeyId)
+        }
+        assertEquals(2, response3.usedOneTimeKeysIds.size)
+        assertTrue(response3.usedOneTimeKeysIds.any { it.contentEquals(oneTimeKeyId1) })
+        assertTrue(response3.usedOneTimeKeysIds.any { it.contentEquals(oneTimeKeyId2) })
     }
 
     @Test

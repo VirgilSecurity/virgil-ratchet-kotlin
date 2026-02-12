@@ -34,62 +34,88 @@
 buildscript {
     ext.versions = [
             // Kotlin
-            kotlinVersion     : '1.3.61',
-            coroutines        : '1.3.2',
+            kotlin          : '1.9.24',
+            coroutines      : '1.8.1',
 
             // Gradle
-            gradle            : '3.5.2',
+            agp             : '8.5.2',
+            gradle          : '8.7',
 
             // Virgil
-            virgilSdk         : '7.3.1',
-            virgilCrypto      : '0.15.2',
+            virgilSdk       : '7.4.0',
+            virgilCrypto    : '0.17.2',
 
             // Serializer
-            gson              : '2.8.5',
+            gson            : '2.10.1',
 
             // Network
-            fuel              : '1.15.1',
+            fuel            : '1.15.1',
 
             // Android
-            android           : '4.1.1.4',
-            compatLibs        : '28.0.0',
+            appCompat       : '1.7.1',
 
-            // Publish
-            mavenPublishPlugin: '3.6.2',
-            dokka             : '0.9.17',
+            // Docs
+            dokka           : '1.9.20',
 
             // Tests
-            testsRunner       : '1.0.2',
-            espresso          : '3.0.2',
-            junit             : '5.5.0',
-            junitPlugin       : '1.0.0',
-            junitOld          : '4.12',
-            virgilTestCommon  : '0.1',
+            testsRunner     : '1.5.2',
+            testsExtJunit   : '1.1.5',
+            testsRules      : '1.5.0',
+            espresso        : '3.6.1',
+            junit           : '5.10.2',
+            junitOld        : '4.13.2',
+            virgilTestCommon: '0.1',
+    ]
+
+    ext.androidOptions = [
+            compileSdkVersion: 34,
+            minSdkVersion    : 21,
+            targetSdkVersion : 34,
     ]
 
     repositories {
         google()
-        jcenter()
         mavenCentral()
         mavenLocal()
     }
     dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlinVersion"
+        classpath "com.android.tools.build:gradle:$versions.agp"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:$versions.dokka"
-        classpath "com.android.tools.build:gradle:$versions.gradle"
-        classpath "digital.wup:android-maven-publish:$versions.mavenPublishPlugin"
     }
 }
 
 allprojects {
     repositories {
         google()
-        jcenter()
         mavenCentral()
-        mavenLocal()
+
+        // Fuel 1.15.1 and some legacy transitive dependencies are no longer fully available on Maven Central.
+        maven {
+            url "https://maven.aliyun.com/repository/public"
+        }
+        maven {
+            url "https://jitpack.io"
+        }
+        maven {
+            url "https://jcenter.bintray.com/"
+        }
+    }
+
+    configurations.configureEach {
+        resolutionStrategy.eachDependency { details ->
+            if (details.requested.group == 'com.virgilsecurity.sdk') {
+                details.useVersion(versions.virgilSdk)
+                details.because("Pin Virgil SDK artifacts to ${versions.virgilSdk}")
+            }
+        }
     }
 }
 
+final String BASE_VIRGIL_PACKAGE = 'com.virgilsecurity'
+final String SDK_VERSION = '0.3.0-rc1'
+
 subprojects {
-    version = '0.1.4'
+    group = BASE_VIRGIL_PACKAGE
+    version = SDK_VERSION
 }

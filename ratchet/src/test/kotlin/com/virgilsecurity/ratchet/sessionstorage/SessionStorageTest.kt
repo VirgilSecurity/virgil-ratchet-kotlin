@@ -66,8 +66,8 @@ class SessionStorageTest {
         val sessionName = generateText()
 
         val secureSession = SecureSession(this.crypto, participantIdentity, sessionName,
-                this.identityKeyPair.privateKey,
-                receiverIdentityKeyPair.publicKey,
+                this.crypto.exportPrivateKey(this.identityKeyPair.privateKey),
+                this.crypto.exportPublicKey(receiverIdentityKeyPair.publicKey),
                 this.crypto.exportPublicKey(receiverLongTermKeyPair.publicKey),
                 this.crypto.exportPublicKey(receiverOneTimeKeyPair.publicKey))
 
@@ -88,8 +88,8 @@ class SessionStorageTest {
         val sessionName = generateText()
 
         val secureSession = SecureSession(this.crypto, participantIdentity, sessionName,
-                this.identityKeyPair.privateKey,
-                receiverIdentityKeyPair.publicKey,
+                this.crypto.exportPrivateKey(this.identityKeyPair.privateKey),
+                this.crypto.exportPublicKey(receiverIdentityKeyPair.publicKey),
                 this.crypto.exportPublicKey(receiverLongTermKeyPair.publicKey),
                 this.crypto.exportPublicKey(receiverOneTimeKeyPair.publicKey))
 
@@ -110,8 +110,8 @@ class SessionStorageTest {
         val sessionName = generateText()
 
         val secureSession = SecureSession(this.crypto, participantIdentity, sessionName,
-                this.identityKeyPair.privateKey,
-                receiverIdentityKeyPair.publicKey,
+                this.crypto.exportPrivateKey(this.identityKeyPair.privateKey),
+                this.crypto.exportPublicKey(receiverIdentityKeyPair.publicKey),
                 this.crypto.exportPublicKey(receiverLongTermKeyPair.publicKey),
                 this.crypto.exportPublicKey(receiverOneTimeKeyPair.publicKey))
 

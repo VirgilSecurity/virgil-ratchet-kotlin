@@ -1,0 +1,114 @@
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+      - dev
+      - "release/**"
+      - "hotfix/**"
+      - "feature/**"
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+      - dev
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      ENV_JSON_PASSPHRASE:
+        required: false
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
+        run: |
+          yes | sdkmanager --licenses >/dev/null
+          yes | sdkmanager \
+            "platform-tools" \
+            "platforms;android-34" \
+            "build-tools;34.0.0"
+
+      - name: Decrypt env.json for integration tests
+        id: decrypt_env
+        if: hashFiles('env.json.enc') != ''
+        env:
+          ENV_JSON_PASSPHRASE: ${{ secrets.ENV_JSON_PASSPHRASE }}
+        run: |
+          echo "decrypted=false" >> "$GITHUB_OUTPUT"
+          if [ -z "${ENV_JSON_PASSPHRASE:-}" ]; then
+            echo "ENV_JSON_PASSPHRASE is not set. Integration tests that need env.json will be skipped."
+            exit 0
+          fi
+          ./.ci/decrypt-env.sh
+          echo "decrypted=true" >> "$GITHUB_OUTPUT"
+
+      - name: Build modules
+        run: |
+          ./gradlew :ratchet:assemble :ratchet-android:assembleRelease :ratchet-android-tests:assembleDebug --no-daemon --stacktrace
+
+      - name: Run JVM unit tests
+        run: |
+          ./gradlew :ratchet:test --no-daemon --stacktrace
+
+      - name: Run connected Android tests (env.json-dependent)
+        if: steps.decrypt_env.outputs.decrypted == 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          # Reduce emulator flakiness in CI runners.
+          emulator-options: -no-snapshot -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect
+          script: |
+            ./gradlew :ratchet-android-tests:connectedCheck --no-daemon --stacktrace
+
+      - name: Connected Android tests skipped (missing env.json)
+        if: steps.decrypt_env.outputs.decrypted != 'true'
+        run: |
+          echo "Skipping connected Android tests because env.json could not be decrypted."
+
+      # Emulator shutdown is occasionally flaky (adb can exit non-zero during teardown).
+      # Ensure cleanup doesn't fail the whole job.
+      - name: ADB cleanup (best-effort)
+        if: always()
+        run: |
+          adb devices || true
+          adb kill-server || true
+      
+      - name: Cleanup decrypted env.json
+        if: always()
+        run: rm -f env.json
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            **/build/reports/tests/**/*
+            **/build/test-results/**/*
+            **/build/reports/androidTests/**/*
+            **/build/outputs/androidTest-results/**/*
+          if-no-files-found: warn

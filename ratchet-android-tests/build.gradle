@@ -31,42 +31,29 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
-
-static def getEnvironmentValue(String name) {
-    if (System.getenv(name) != null) {
-        def value = System.getenv(name)
-        return "\"$value\""
-    } else if (System.getProperty(name) != null) {
-        def value = System.getProperty(name)
-        return "\"$value\""
-    } else {
-        System.out.println("Please, provide argument: " + name)
-    }
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
 }
 
-def APP_ID = hasProperty('APP_ID') ? "\"${project.property("APP_ID")}\"" : getEnvironmentValue('APP_ID')
-def API_PRIVATE_KEY = hasProperty('API_PRIVATE_KEY') ? "\"${project.property("API_PRIVATE_KEY")}\"" : getEnvironmentValue('API_PRIVATE_KEY')
-def API_PUBLIC_KEY_ID = hasProperty('API_PUBLIC_KEY_ID') ? "\"${project.property("API_PUBLIC_KEY_ID")}\"" : getEnvironmentValue('API_PUBLIC_KEY_ID')
-def SERVICE_URL = hasProperty('SERVICE_URL') ? "\"${project.property("SERVICE_URL")}\"" : getEnvironmentValue('SERVICE_URL')
-
 android {
-    compileSdkVersion 28
+    namespace 'com.virgilsecurity.ratchet_android_tests'
+    compileSdk rootProject.ext.androidOptions.compileSdkVersion
+
     defaultConfig {
-        applicationId "com.virgilsecurity.ratchet_android_tests"
-        minSdkVersion 21
-        targetSdkVersion 28
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        applicationId 'com.virgilsecurity.ratchet_android_tests'
+        minSdk rootProject.ext.androidOptions.minSdkVersion
+        targetSdk rootProject.ext.androidOptions.targetSdkVersion
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
-    buildTypes {
-        buildTypes.each {
-            it.buildConfigField "String", "APP_ID", "$APP_ID"
-            it.buildConfigField "String", "API_PRIVATE_KEY", "$API_PRIVATE_KEY"
-            it.buildConfigField "String", "API_PUBLIC_KEY_ID", "$API_PUBLIC_KEY_ID"
-            it.buildConfigField "String", "SERVICE_URL", "$SERVICE_URL"
-        }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
     }
 }
 
@@ -75,25 +62,38 @@ dependencies {
     androidTestImplementation project(':ratchet-android')
 
     // Kotlin
-    androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$versions.kotlinVersion"
-    implementation "com.android.support:appcompat-v7:$versions.compatLibs"
+    androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
+    implementation "androidx.appcompat:appcompat:$versions.appCompat"
 
     // Test
     testImplementation "junit:junit:$versions.junitOld"
-    androidTestImplementation "com.android.support.test:runner:$versions.testsRunner"
-    androidTestImplementation "com.android.support.test.espresso:espresso-core:$versions.espresso"
+    androidTestImplementation "androidx.test:runner:$versions.testsRunner"
+    androidTestImplementation "androidx.test.ext:junit:$versions.testsExtJunit"
+    androidTestImplementation "androidx.test:rules:$versions.testsRules"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$versions.espresso"
 
     androidTestImplementation "com.virgilsecurity:test-common:$versions.virgilTestCommon"
 }
 
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
-    dependsOn(copyEnvFile)
+tasks.register('copyEnvFile', Copy) {
+    def assetsFolder = file("$projectDir/src/androidTest/resources/testProperties")
+
+    onlyIf {
+        file("${rootProject.projectDir}/env.json").exists()
+    }
+
+    doFirst {
+        if (!assetsFolder.exists()) {
+            assetsFolder.mkdirs()
+        }
+    }
+
+    from("${rootProject.projectDir}/env.json")
+    into(assetsFolder)
 }
 
-task copyEnvFile(type: Copy) {
-    def assetsFolder = new File(project.projectDir.absolutePath + '/src/androidTest/resources/testProperties')
-    if (!assetsFolder.exists()) assetsFolder.mkdirs()
-
-    from rootProject.projectDir.absolutePath + '/env.json'
-    into assetsFolder.absolutePath
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    if (name.toLowerCase().contains('androidtest')) {
+        dependsOn(tasks.named('copyEnvFile'))
+    }
 }
