@@ -80,7 +80,8 @@ jobs:
           profile: pixel_6
           disable-animations: true
           # Reduce emulator flakiness in CI runners.
-          emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -no-snapshot-load -no-snapshot-save
+          # Provide explicit DNS to reduce "UnknownHostException" flakiness in emulators.
+          emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -no-snapshot-load -no-snapshot-save -dns-server 8.8.8.8
           script: |
             ./gradlew :ratchet-android-tests:connectedCheck --no-daemon --stacktrace
 

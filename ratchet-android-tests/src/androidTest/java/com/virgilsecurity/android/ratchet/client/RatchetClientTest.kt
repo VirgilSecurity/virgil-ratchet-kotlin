@@ -34,6 +34,7 @@
 package com.virgilsecurity.android.ratchet.client
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.virgilsecurity.android.ratchet.TestAssumptions
 import com.virgilsecurity.android.ratchet.TestConfig
 import com.virgilsecurity.android.ratchet.generateIdentity
 import com.virgilsecurity.ratchet.client.RatchetClient
@@ -66,6 +67,7 @@ class RatchetClientTest {
 
     @Before
     fun setup() {
+        TestAssumptions.assumeServiceReachableForTests()
         this.crypto = VirgilCrypto()
 
         init()

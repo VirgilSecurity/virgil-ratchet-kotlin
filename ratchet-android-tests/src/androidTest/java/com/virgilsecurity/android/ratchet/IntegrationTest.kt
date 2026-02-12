@@ -67,6 +67,7 @@ class IntegrationTest {
 
     @Before
     fun setup() {
+        TestAssumptions.assumeServiceReachableForTests()
         this.crypto = VirgilCrypto(KeyPairType.CURVE25519)
 
         init()
