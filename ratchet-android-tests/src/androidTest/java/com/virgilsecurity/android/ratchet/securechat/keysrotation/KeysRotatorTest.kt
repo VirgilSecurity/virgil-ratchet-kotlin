@@ -65,6 +65,7 @@ class KeysRotatorTest {
 
     @Before
     fun setup() {
+        TestAssumptions.assumeServiceReachableForTests()
         this.crypto = VirgilCrypto()
 
         val identityKeyPair = this.crypto.generateKeyPair(KeyPairType.ED25519)
