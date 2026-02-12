@@ -113,7 +113,7 @@ allprojects {
 }
 
 final String BASE_VIRGIL_PACKAGE = 'com.virgilsecurity'
-final String SDK_VERSION = '0.3.0-rc2'
+final String SDK_VERSION = '0.3.0'
 
 subprojects {
     group = BASE_VIRGIL_PACKAGE
