@@ -108,10 +108,26 @@ tasks.register('sourcesJar', Jar) {
     archiveClassifier = 'sources'
 }
 
+// sourcesJar packages sources from sourceSets.main, which includes $buildDir/generated.
+// Make the dependency explicit for Gradle 8 validation.
+tasks.named('sourcesJar').configure {
+    dependsOn(tasks.named('generateVersionVirgilAgent'))
+    dependsOn(tasks.named('compileKotlin'))
+    dependsOn(tasks.named('compileJava'))
+}
+
 tasks.register('javadocJar', Jar) {
     dependsOn(tasks.named('dokkaHtml'))
     from(layout.buildDirectory.dir('dokka/html'))
     archiveClassifier = 'javadoc'
+}
+
+// Dokka reads sources that include $buildDir/generated. Make the dependency explicit for Gradle 8 validation.
+tasks.named('dokkaHtml').configure {
+    dependsOn(tasks.named('generateVersionVirgilAgent'))
+    // Dokka resolves classpath/source sets that include compiled outputs; ensure they're ready.
+    dependsOn(tasks.named('compileKotlin'))
+    dependsOn(tasks.named('compileJava'))
 }
 
 // Central bundle upload uses Maven repository layout; Gradle module metadata is unnecessary.

@@ -133,6 +133,17 @@ tasks.register('javadocJar', Jar) {
     archiveClassifier = 'javadoc'
 }
 
+// Dokka reads sources that include generated version file. Make the dependency explicit for Gradle 8 validation.
+tasks.named('dokkaHtml').configure {
+    dependsOn(tasks.named('generateVersionVirgilAgent'))
+}
+
+// AGP creates a SourceJarTask for publishing (sourceReleaseJar) that also reads from generated sources dir.
+// Make the dependency explicit for Gradle 8 validation.
+tasks.matching { it.name == 'sourceReleaseJar' }.configureEach {
+    dependsOn(tasks.named('generateVersionVirgilAgent'))
+}
+
 // Central bundle upload uses Maven repository layout; Gradle module metadata is unnecessary.
 tasks.withType(org.gradle.api.publish.tasks.GenerateModuleMetadata).configureEach {
     enabled = false

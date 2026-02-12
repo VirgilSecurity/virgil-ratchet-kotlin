@@ -79,10 +79,7 @@ jobs:
       - name: Install Android SDK packages
         run: |
           yes | sdkmanager --licenses >/dev/null
-          yes | sdkmanager \
-            "platform-tools" \
-            "platforms;android-34" \
-            "build-tools;34.0.0"
+          yes | sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
       - name: Verify Central bundle publish tasks exist
         run: |
@@ -95,11 +92,7 @@ jobs:
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.CENTRAL_SONATYPE_SIGNING_PASSWORD }}
         run: |
           rm -rf build/central-bundle-repo build/central-bundle.zip
-          ./gradlew \
-            :ratchet:publishMavenJavaPublicationToCentralBundleRepository \
-            :ratchet-android:publishMavenJavaPublicationToCentralBundleRepository \
-            --no-daemon \
-            --stacktrace
+          ./gradlew :ratchet:publishMavenJavaPublicationToCentralBundleRepository :ratchet-android:publishMavenJavaPublicationToCentralBundleRepository --no-daemon --stacktrace
 
       - name: Validate bundle repo contains POMs
         run: |
