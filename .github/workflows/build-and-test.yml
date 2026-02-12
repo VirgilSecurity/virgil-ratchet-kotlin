@@ -78,6 +78,7 @@ jobs:
           api-level: 34
           arch: x86_64
           profile: pixel_6
+          disable-multidisplay: true
           disable-animations: true
           # Reduce emulator flakiness in CI runners.
           # Provide explicit DNS to reduce "UnknownHostException" flakiness in emulators.
