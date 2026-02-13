@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Virgil Security, Inc.
+ * Copyright (c) 2015-2026, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -31,39 +31,33 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.ratchet.sessionstorage
+package com.virgilsecurity.android.ratchet
 
-import com.virgilsecurity.ratchet.securechat.SecureGroupSession
+import org.junit.Assume.assumeTrue
+import java.net.InetAddress
+import java.net.URI
 
-/**
- * Group session storage interface.
- */
-interface GroupSessionStorage {
+object TestAssumptions {
+    fun assumeServiceReachableForTests() {
+        val urls = mutableListOf<String>()
+        runCatching { urls.add(TestConfig.serviceURL) }
+        runCatching { urls.add(TestConfig.cardsServiceURL) }
 
-    /**
-     * Stores session.
-     *
-     * @param session Session to store.
-     */
-    fun storeSession(session: SecureGroupSession)
+        assumeTrue("env.json is not configured; skipping integration tests", urls.isNotEmpty())
 
-    /**
-     * Retrieves session.
-     *
-     * @param identifier Session identifier.
-     * @return Stored session if found, null otherwise.
-     */
-    fun retrieveSession(identifier: ByteArray): SecureGroupSession?
+        val hosts = urls.mapNotNull { runCatching { URI(it).host }.getOrNull() }.distinct()
+        assumeTrue("No service hosts extracted from urls=$urls", hosts.isNotEmpty())
 
-    /**
-     * Deletes session.
-     *
-     * @param identifier Session identifier.
-     */
-    fun deleteSession(identifier: ByteArray)
+        val unresolved = hosts.filterNot { canResolve(it) }
+        assumeTrue("Unable to resolve hosts $unresolved; skipping integration tests", unresolved.isEmpty())
+    }
 
-    /**
-     * Removes all sessions.
-     */
-    fun reset()
+    private fun canResolve(host: String): Boolean =
+        try {
+            InetAddress.getByName(host)
+            true
+        } catch (_: Exception) {
+            false
+        }
 }
+

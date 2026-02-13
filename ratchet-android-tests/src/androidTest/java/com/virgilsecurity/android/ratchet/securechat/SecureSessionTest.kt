@@ -110,7 +110,6 @@ class SecureSessionTest {
                 InMemoryLongTermKeysStorage(),
                 InMemoryOneTimeKeysStorage(),
                 InMemorySessionStorage(),
-                InMemoryGroupSessionStorage(),
                 FakeKeysRotator()
         )
 
@@ -124,7 +123,7 @@ class SecureSessionTest {
                 crypto, receiverIdentityKeyPair.privateKey,
                 receiverCard, receiverTokenProvider, fakeClient, receiverLongTermKeysStorage,
                 receiverOneTimeKeysStorage, InMemorySessionStorage(),
-                InMemoryGroupSessionStorage(), receiverKeysRotator
+                receiverKeysRotator
         )
     }
 

@@ -38,7 +38,6 @@ import com.virgilsecurity.ratchet.keystorage.FileLongTermKeysStorage
 import com.virgilsecurity.ratchet.keystorage.FileOneTimeKeysStorage
 import com.virgilsecurity.ratchet.securechat.SecureChat
 import com.virgilsecurity.ratchet.securechat.keysrotation.KeysRotator
-import com.virgilsecurity.ratchet.sessionstorage.FileGroupSessionStorage
 import com.virgilsecurity.ratchet.sessionstorage.FileSessionStorage
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
@@ -230,7 +229,7 @@ class IntegrationTest {
         val cipherText = senderSession.encrypt(plainText)
 
         this.receiverSecureChat.rotateKeys().get()
-        Assertions.assertEquals(IntegrationTest.DESIRED_NUMBER_OF_KEYS + 1, receiverSecureChat.oneTimeKeysStorage.retrieveAllKeys().size)
+        Assertions.assertEquals(IntegrationTest.DESIRED_NUMBER_OF_KEYS, receiverSecureChat.oneTimeKeysStorage.retrieveAllKeys().size)
 
         Thread.sleep(6000)
 
@@ -239,11 +238,7 @@ class IntegrationTest {
 
         this.receiverSecureChat.oneTimeKeysStorage.stopInteraction()
 
-        try {
-            this.receiverSecureChat.startNewSessionAsReceiver(this.senderCard, cipherText)
-            Assertions.fail<String>()
-        } catch (e: Exception) {
-        }
+        this.receiverSecureChat.startNewSessionAsReceiver(this.senderCard, cipherText)
     }
 
     @Test
@@ -351,7 +346,6 @@ class IntegrationTest {
                 this.crypto, senderIdentityKeyPair.privateKey, this.senderCard,
                 senderTokenProvider, client, senderLongTermKeysStorage, senderOneTimeKeysStorage,
                 FileSessionStorage(senderIdentity, this.crypto, senderIdentityKeyPair),
-                FileGroupSessionStorage(senderIdentity, this.crypto, senderIdentityKeyPair),
                 senderKeysRotator
         )
 
@@ -397,7 +391,6 @@ class IntegrationTest {
                 this.crypto, receiverIdentityKeyPair.privateKey, this.receiverCard,
                 receiverTokenProvider, client, receiverLongTermKeysStorage, receiverOneTimeKeysStorage,
                 FileSessionStorage(receiverIdentity, this.crypto, receiverIdentityKeyPair),
-                FileGroupSessionStorage(receiverIdentity, this.crypto, receiverIdentityKeyPair),
                 receiverKeysRotator
         )
     }

@@ -32,42 +32,61 @@
  */
 
 plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.dokka'
+    id 'maven-publish'
     id 'signing'
 }
 
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
-
-apply plugin: 'maven-publish'
-apply plugin: 'digital.wup.android-maven-publish'
-apply plugin: 'org.jetbrains.dokka'
-
 android {
-    compileSdkVersion 28
-    buildToolsVersion "28.0.3"
+    namespace 'com.virgilsecurity.android.ratchet'
+    compileSdk rootProject.ext.androidOptions.compileSdkVersion
 
     defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 28
+        minSdk rootProject.ext.androidOptions.minSdkVersion
+        targetSdk rootProject.ext.androidOptions.targetSdkVersion
         consumerProguardFiles 'proguard-rules.txt'
     }
 
-    compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+        release {
+            minifyEnabled false
+        }
     }
-    packagingOptions {
-        exclude 'META-INF/LICENSE.md'
-        exclude 'META-INF/LICENSE-notice.md'
+
+    lint {
+        abortOnError false
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    packaging {
+        resources {
+            excludes += ['META-INF/LICENSE.md', 'META-INF/LICENSE-notice.md']
+        }
+    }
+
+    publishing {
+        singleVariant('release') {
+            withSourcesJar()
+        }
     }
 }
 
-group 'com.virgilsecurity'
-
 dependencies {
     // Inner dependencies
-    api (project(':ratchet')) {
+    api(project(':ratchet')) {
         exclude group: 'com.virgilsecurity.crypto', module: 'ratchet'
 
         exclude group: 'com.virgilsecurity.sdk', module: 'sdk'
@@ -82,16 +101,14 @@ dependencies {
     api "com.virgilsecurity.crypto:ratchet-android:$versions.virgilCrypto"
 
     // Kotlin
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$versions.kotlinVersion"
-
-    // Android
-    compileOnly "com.google.android:android:$versions.android"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
 }
 
-task generateVersionVirgilAgent {
-    outputs.dir "$buildDir/generated"
-    doFirst {
-        def versionFile = file("$buildDir/generated/release/com/virgilsecurity/android/ratchet/build/VersionVirgilAgent.kt")
+tasks.register('generateVersionVirgilAgent') {
+    def versionFile = file("$buildDir/generated/release/com/virgilsecurity/android/ratchet/build/VersionVirgilAgent.kt")
+    outputs.file(versionFile)
+
+    doLast {
         versionFile.parentFile.mkdirs()
         versionFile.text =
                 """
@@ -104,60 +121,62 @@ object VersionVirgilAgent {
     }
 }
 
-project.android.sourceSets.main.java.srcDirs = ["${buildDir}/generated/release/", "src/main/java"]
+android.sourceSets.main.java.srcDirs += ["$buildDir/generated/release"]
 
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
-    dependsOn(generateVersionVirgilAgent)
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    dependsOn(tasks.named('generateVersionVirgilAgent'))
 }
 
-sourceCompatibility = "8"
-targetCompatibility = "8"
-
-task sourcesJar(type: Jar) {
-    from(project.android.sourceSets.main.java.srcDirs)
-    classifier = 'sources'
+tasks.register('javadocJar', Jar) {
+    dependsOn(tasks.named('dokkaHtml'))
+    from(layout.buildDirectory.dir('dokka/html'))
+    archiveClassifier = 'javadoc'
 }
 
-task javadocJar(type: Jar, dependsOn: 'dokka') {
-    from("$buildDir/javadoc")
-    classifier = 'javadoc'
+// Dokka reads sources that include generated version file. Make the dependency explicit for Gradle 8 validation.
+tasks.named('dokkaHtml').configure {
+    dependsOn(tasks.named('generateVersionVirgilAgent'))
 }
 
-def authentication_username = hasProperty('authentication_username') ? authentication_username : System.getenv('authentication_username')
-def authentication_password = hasProperty('authentication_password') ? authentication_password : System.getenv('authentication_password')
+// AGP creates a SourceJarTask for publishing (sourceReleaseJar) that also reads from generated sources dir.
+// Make the dependency explicit for Gradle 8 validation.
+tasks.matching { it.name == 'sourceReleaseJar' }.configureEach {
+    dependsOn(tasks.named('generateVersionVirgilAgent'))
+}
+
+// Central bundle upload uses Maven repository layout; Gradle module metadata is unnecessary.
+tasks.withType(org.gradle.api.publish.tasks.GenerateModuleMetadata).configureEach {
+    enabled = false
+}
 
 publishing {
     publications {
         mavenJava(MavenPublication) {
             artifactId = 'ratchet-android'
-            artifact javadocJar
-            artifact sourcesJar
-            from components.android
+            artifact(tasks.named('javadocJar'))
+
+            afterEvaluate {
+                from components.release
+            }
 
             pom {
                 name = 'Virgil Double Ratchet Android SDK'
                 description = 'Virgil Security is presenting an implementation of the [Double Ratchet](https://signal.org/docs/specifications/doubleratchet/) algorithm, which is used by parties to exchange encrypted messages based on a shared secret key. The implementation includes:\n' +
-                        '- **Virgil Perfect Forward Secrecy (PFS) service** – a standalone web-service that is dedicated to managing one-time keys and long-time keys that are based on their Identity Public Keys (public keys that are contained in user cards published on Virgil Cards service);\n' +
-                        '- **Ratchet SDK** – interacts with PFS service for publishing and managing one-time keys and long-time keys and interacts with Virgil Cards service for retrieving user\'s indentity cards which the OTK and LTK are based on. The parties derive new keys for every Double Ratchet message so that previous private keys cannot be calculated from new ones. The parties that participate in the communication also send Diffie-Hellman public values attached to their messages. The results of Diffie-Hellman calculations are mixed into the derived keys so that the new private keys cannot be calculated from the previous ones.'
+                        '- **Virgil Perfect Forward Secrecy (PFS) service** - a standalone web-service that is dedicated to managing one-time keys and long-time keys that are based on their Identity Public Keys (public keys that are contained in user cards published on Virgil Cards service);\n' +
+                        '- **Ratchet SDK** - interacts with PFS service for publishing and managing one-time keys and long-time keys and interacts with Virgil Cards service for retrieving user\'s indentity cards which the OTK and LTK are based on. The parties derive new keys for every Double Ratchet message so that previous private keys cannot be calculated from new ones. The parties that participate in the communication also send Diffie-Hellman public values attached to their messages. The results of Diffie-Hellman calculations are mixed into the derived keys so that the new private keys cannot be calculated from the previous ones.'
                 url = 'https://www.virgilsecurity.com/'
                 licenses {
                     license {
                         name = 'Virgil Security, Inc. license'
-                        url = 'https://github.com/VirgilSecurity/virgil-ratchet-kotlin/blob/master/LICENSE.txt'
+                        url = 'https://github.com/VirgilSecurity/virgil-ratchet-kotlin/blob/master/LICENSE'
                     }
                 }
                 developers {
                     developer {
-                        id = 'BuddahLD'
-                        name = 'Danylo Oliinyk'
-                        email = 'doliinyk@virgilsecurity.com'
-                        organizationUrl = 'https://github.com/BuddahLD'
-                    }
-                    developer {
-                        id = 'andrii-iakovenko'
-                        name = 'Andrii Iakovenko'
-                        email = 'andrii-iakovenko@gmail.com'
-                        organizationUrl = 'https://github.com/andrii-iakovenko'
+                        id = 'virgil-security-inc'
+                        name = 'Virgil Security, Inc.'
+                        email = 'support@virgilsecurity.com'
+                        organizationUrl = 'https://www.virgilsecurity.com/'
                     }
                 }
                 scm {
@@ -171,23 +190,25 @@ publishing {
 
     repositories {
         maven {
-            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
-            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-            credentials {
-                username "${authentication_username}"
-                password "${authentication_password}"
-            }
+            name = 'centralBundle'
+            url = uri("${rootProject.buildDir}/central-bundle-repo")
         }
     }
 }
 
 signing {
+    def signingKey = providers.gradleProperty('signingKey').orNull ?: System.getenv('signingKey')
+    def signingPassword = providers.gradleProperty('signingPassword').orNull ?: System.getenv('signingPassword')
+
+    if (signingKey != null && signingPassword != null) {
+        useInMemoryPgpKeys(signingKey, signingPassword)
+    }
+
     sign publishing.publications.mavenJava
 }
 
-dokka {
-    outputFormat = 'html'
-    outputDirectory = "$buildDir/javadoc"
-    reportUndocumented = false
+tasks.withType(org.jetbrains.dokka.gradle.DokkaTask).configureEach {
+    dokkaSourceSets.configureEach {
+        reportUndocumented.set(false)
+    }
 }

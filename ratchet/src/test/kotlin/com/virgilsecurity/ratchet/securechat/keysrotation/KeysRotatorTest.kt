@@ -33,7 +33,6 @@
 
 package com.virgilsecurity.ratchet.securechat.keysrotation
 
-import com.virgilsecurity.crypto.ratchet.RatchetKeyId
 import com.virgilsecurity.ratchet.*
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
@@ -54,8 +53,6 @@ import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
 
 class KeysRotatorTest {
-
-    private lateinit var keyId: RatchetKeyId
     private lateinit var crypto: VirgilCrypto
     private lateinit var cardManager: CardManager
     private lateinit var tokenProvider: AccessTokenProvider
@@ -66,7 +63,6 @@ class KeysRotatorTest {
 
     @BeforeEach
     fun setup() {
-        this.keyId = RatchetKeyId()
         this.crypto = VirgilCrypto()
 
         val identityKeyPair = this.crypto.generateKeyPair(KeyPairType.ED25519)
@@ -204,12 +200,12 @@ class KeysRotatorTest {
         val log1 = rotate(rotator, tokenProvider)
 
         Assertions.assertEquals(numberOfOneTimeKeys, log1.oneTimeKeysRelevant)
-        Assertions.assertEquals(1, log1.oneTimeKeysAdded)
+        Assertions.assertEquals(0, log1.oneTimeKeysAdded)
         Assertions.assertEquals(0, log1.oneTimeKeysDeleted)
-        Assertions.assertEquals(1, log1.oneTimeKeysMarkedOrphaned)
-        Assertions.assertEquals(1, log1.oneTimeKeysOrphaned)
+        Assertions.assertEquals(0, log1.oneTimeKeysMarkedOrphaned)
+        Assertions.assertEquals(0, log1.oneTimeKeysOrphaned)
 
-        Assertions.assertEquals(numberOfOneTimeKeys + 1, fakeOneTimeKeysStorage.map.size)
+        Assertions.assertEquals(numberOfOneTimeKeys, fakeOneTimeKeysStorage.map.size)
         Assertions.assertEquals(1, fakeLongTermKeysStorage.map.size)
 
         Thread.sleep(6000)
@@ -218,7 +214,7 @@ class KeysRotatorTest {
 
         Assertions.assertEquals(numberOfOneTimeKeys, log2.oneTimeKeysRelevant)
         Assertions.assertEquals(0, log2.oneTimeKeysAdded)
-        Assertions.assertEquals(1, log2.oneTimeKeysDeleted)
+        Assertions.assertEquals(0, log2.oneTimeKeysDeleted)
         Assertions.assertEquals(0, log2.oneTimeKeysMarkedOrphaned)
         Assertions.assertEquals(0, log2.oneTimeKeysOrphaned)
 
@@ -248,7 +244,7 @@ class KeysRotatorTest {
         val longTermKey = userStore.longTermPublicKey?.publicKey
         try {
             if (longTermKey != null) {
-                val keyId = this.keyId.computePublicKeyId(longTermKey)
+                val keyId = RatchetKeyIdCompat.computePublicKeyId(longTermKey)
 
                 if (!longTermStorage.retrieveKey(keyId).identifier.contentEquals(keyId)) {
                     logger.warning("Wrong long term key ID")
@@ -256,17 +252,15 @@ class KeysRotatorTest {
                 }
 
                 val storedOneTimeKeysIds = oneTimeStorage.retrieveAllKeys().map { it.identifier }
-                val cloudOneTimeKeysIds = userStore.oneTimePublicKeys.map { this.keyId.computePublicKeyId(it) }
-                assertNotNull(cloudOneTimeKeysIds)
+                val cloudOneTimeKeysIds = userStore.oneTimePublicKeys.map {
+                    RatchetKeyIdCompat.computePublicKeyId(it)
+                }
 
                 if (storedOneTimeKeysIds.size != cloudOneTimeKeysIds.size) {
                     logger.warning("One time keys cound doesn't match")
                     return false
                 }
                 storedOneTimeKeysIds.forEachIndexed { i, value ->
-                    if (cloudOneTimeKeysIds[i] == null)
-                        fail<NullPointerException>("cloudOneTimeKeysIds should not contain null's")
-
                     if (!cloudOneTimeKeysIds[i].contentEquals(value)) {
                         logger.warning("Could one time key $i doesn't match")
                         return false

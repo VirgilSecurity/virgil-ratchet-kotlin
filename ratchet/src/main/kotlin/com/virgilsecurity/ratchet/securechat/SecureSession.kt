@@ -37,8 +37,10 @@ import com.virgilsecurity.crypto.ratchet.RatchetMessage
 import com.virgilsecurity.crypto.ratchet.RatchetSession
 import com.virgilsecurity.ratchet.keystorage.LongTermKey
 import com.virgilsecurity.ratchet.keystorage.OneTimeKey
+import com.virgilsecurity.ratchet.securechat.keysrotation.RatchetKeyIdCompat
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
+import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import java.nio.charset.StandardCharsets
 
 /**
@@ -69,19 +71,21 @@ class SecureSession {
      * @param crypto VirgilCrypto
      * @param participantIdentity Participant identity.
      * @param name Session name.
+     * @param senderIdentityPublicKey Sender identity public key.
      * @param receiverIdentityPrivateKey Receiver identity private key.
      * @param receiverLongTermPrivateKey Receiver long-term private key.
      * @param receiverOneTimePrivateKey Receiver one-time private key.
-     * @param senderIdentityPublicKey Sender identity public key.
      * @param ratchetMessage RatchetMessage.
      */
     constructor(
             crypto: VirgilCrypto, participantIdentity: String,
-            name: String, receiverIdentityPrivateKey: VirgilPrivateKey, receiverLongTermPrivateKey: LongTermKey,
+            name: String,
+            senderIdentityPublicKey: VirgilPublicKey,
+            receiverIdentityPrivateKey: VirgilPrivateKey,
+            receiverLongTermPrivateKey: LongTermKey,
             receiverOneTimePrivateKey: OneTimeKey?,
-            senderIdentityPublicKey: ByteArray, ratchetMessage: RatchetMessage
+            ratchetMessage: RatchetMessage
     ) {
-
         this.crypto = crypto
         this.participantIdentity = participantIdentity
         this.name = name
@@ -89,11 +93,29 @@ class SecureSession {
         this.ratchetSession = RatchetSession()
         ratchetSession.setRng(crypto.rng)
 
-        this.ratchetSession.respond(senderIdentityPublicKey,
-                this.crypto.exportPrivateKey(receiverIdentityPrivateKey),
-                receiverLongTermPrivateKey.key,
-                receiverOneTimePrivateKey?.key ?: byteArrayOf(),
-                ratchetMessage)
+        val senderIdentityPublicKeyObj = senderIdentityPublicKey.publicKey
+        val receiverIdentityPrivateKeyObj = receiverIdentityPrivateKey.privateKey
+        val receiverLongTermPrivateKeyObj = this.crypto.importPrivateKey(receiverLongTermPrivateKey.key).privateKey.privateKey
+
+        if (receiverOneTimePrivateKey == null) {
+            this.ratchetSession.respondNoOneTimeKey(
+                    senderIdentityPublicKeyObj,
+                    receiverIdentityPrivateKeyObj,
+                    receiverLongTermPrivateKeyObj,
+                    ratchetMessage,
+                    false
+            )
+        } else {
+            val receiverOneTimePrivateKeyObj = this.crypto.importPrivateKey(receiverOneTimePrivateKey.key).privateKey.privateKey
+            this.ratchetSession.respond(
+                    senderIdentityPublicKeyObj,
+                    receiverIdentityPrivateKeyObj,
+                    receiverLongTermPrivateKeyObj,
+                    receiverOneTimePrivateKeyObj,
+                    ratchetMessage,
+                    false
+            )
+        }
     }
 
     /**
@@ -109,8 +131,10 @@ class SecureSession {
      */
     constructor(
             crypto: VirgilCrypto, participantIdentity: String,
-            name: String, senderIdentityPrivateKey: ByteArray, receiverIdentityPublicKey: ByteArray,
-            receiverLongTermPublicKey: ByteArray, receiverOneTimePublicKey: ByteArray?
+            name: String, senderIdentityPrivateKey: ByteArray, senderIdentityKeyId: ByteArray,
+            receiverIdentityPublicKey: ByteArray, receiverIdentityKeyId: ByteArray,
+            receiverLongTermPublicKey: ByteArray, receiverLongTermKeyId: ByteArray,
+            receiverOneTimePublicKey: ByteArray?, receiverOneTimeKeyId: ByteArray?
     ) {
         this.crypto = crypto
         this.participantIdentity = participantIdentity
@@ -119,11 +143,62 @@ class SecureSession {
         this.ratchetSession = RatchetSession()
         ratchetSession.setRng(crypto.rng)
 
-        ratchetSession.initiate(
-                senderIdentityPrivateKey, receiverIdentityPublicKey, receiverLongTermPublicKey,
-                receiverOneTimePublicKey
-        )
+        val senderIdentityPrivateKeyObj = this.crypto.importPrivateKey(senderIdentityPrivateKey).privateKey.privateKey
+        val receiverIdentityPublicKeyObj = this.crypto.importPublicKey(receiverIdentityPublicKey).publicKey
+        val receiverLongTermPublicKeyObj = this.crypto.importPublicKey(receiverLongTermPublicKey).publicKey
+
+        if (receiverOneTimePublicKey == null || receiverOneTimeKeyId == null) {
+            ratchetSession.initiateNoOneTimeKey(
+                    senderIdentityPrivateKeyObj,
+                    senderIdentityKeyId,
+                    receiverIdentityPublicKeyObj,
+                    receiverIdentityKeyId,
+                    receiverLongTermPublicKeyObj,
+                    receiverLongTermKeyId,
+                    false
+            )
+        } else {
+            val receiverOneTimePublicKeyObj = this.crypto.importPublicKey(receiverOneTimePublicKey).publicKey
+            ratchetSession.initiate(
+                    senderIdentityPrivateKeyObj,
+                    senderIdentityKeyId,
+                    receiverIdentityPublicKeyObj,
+                    receiverIdentityKeyId,
+                    receiverLongTermPublicKeyObj,
+                    receiverLongTermKeyId,
+                    receiverOneTimePublicKeyObj,
+                    receiverOneTimeKeyId,
+                    false
+            )
+        }
     }
+
+    /**
+     * Backward-compatible sender constructor that computes key ids from provided keys.
+     */
+    constructor(
+            crypto: VirgilCrypto,
+            participantIdentity: String,
+            name: String,
+            senderIdentityPrivateKey: ByteArray,
+            receiverIdentityPublicKey: ByteArray,
+            receiverLongTermPublicKey: ByteArray,
+            receiverOneTimePublicKey: ByteArray?
+    ) : this(
+            crypto,
+            participantIdentity,
+            name,
+            senderIdentityPrivateKey,
+            RatchetKeyIdCompat.computePublicKeyId(
+                    crypto.exportPublicKey(crypto.extractPublicKey(crypto.importPrivateKey(senderIdentityPrivateKey).privateKey))
+            ),
+            receiverIdentityPublicKey,
+            RatchetKeyIdCompat.computePublicKeyId(receiverIdentityPublicKey),
+            receiverLongTermPublicKey,
+            RatchetKeyIdCompat.computePublicKeyId(receiverLongTermPublicKey),
+            receiverOneTimePublicKey,
+            receiverOneTimePublicKey?.let { RatchetKeyIdCompat.computePublicKeyId(it) }
+    )
 
     /**
      * Restore session from serialized representation.

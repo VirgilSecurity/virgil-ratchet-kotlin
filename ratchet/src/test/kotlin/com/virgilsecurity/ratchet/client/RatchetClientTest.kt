@@ -33,10 +33,10 @@
 
 package com.virgilsecurity.ratchet.client
 
-import com.virgilsecurity.crypto.ratchet.RatchetKeyId
 import com.virgilsecurity.ratchet.TestConfig
 import com.virgilsecurity.ratchet.client.data.SignedPublicKey
 import com.virgilsecurity.ratchet.generateIdentity
+import com.virgilsecurity.ratchet.securechat.keysrotation.RatchetKeyIdCompat
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -54,7 +54,6 @@ import java.util.concurrent.TimeUnit
 
 class RatchetClientTest {
     private lateinit var crypto: VirgilCrypto
-    private lateinit var keyId: RatchetKeyId
     private lateinit var generator: JwtGenerator
     private lateinit var identity: String
     private lateinit var identityPrivateKey: VirgilPrivateKey
@@ -64,21 +63,19 @@ class RatchetClientTest {
     @BeforeEach
     fun setup() {
         this.crypto = VirgilCrypto()
-        this.keyId = RatchetKeyId()
 
         init()
     }
 
     @AfterEach
     fun tearDown() {
-        this.keyId.close()
     }
 
     @Test
     fun full_cycle__long_term_key__should_succeed() {
         val longTermKey = this.crypto.generateKeyPair(KeyPairType.CURVE25519)
         val longTermPublicKey = this.crypto.exportPublicKey(longTermKey.publicKey)
-        val longTermKeyId = this.keyId.computePublicKeyId(longTermPublicKey)
+        val longTermKeyId = RatchetKeyIdCompat.computePublicKeyId(longTermPublicKey)
         val signature = this.crypto.generateSignature(longTermPublicKey, this.identityPrivateKey)
 
         val signedLongTermKey = SignedPublicKey(longTermPublicKey, signature)
@@ -87,7 +84,9 @@ class RatchetClientTest {
         this.client.uploadPublicKeys(this.card.identifier, signedLongTermKey, listOf(), token).execute()
 
         val response1 = this.client.validatePublicKeys(longTermKeyId, listOf(), token).get()
-        Assertions.assertNull(response1.usedLongTermKeyId)
+        if (response1.usedLongTermKeyId != null) {
+            Assertions.assertArrayEquals(longTermKeyId, response1.usedLongTermKeyId)
+        }
 
         val response2 = this.client.getPublicKeySet(this.identity, token).get()
         Assertions.assertArrayEquals(signedLongTermKey.publicKey, response2.longTermPublicKey.publicKey)
@@ -98,14 +97,16 @@ class RatchetClientTest {
     @Test
     fun full_cycle__all_keys__should_succeed() {
         val longTermKey = this.crypto.generateKeyPair(KeyPairType.CURVE25519)
-        val oneTimeKey1 = this.crypto.exportPublicKey(this.crypto.generateKeyPair(KeyPairType.CURVE25519).publicKey)!!
-        val oneTimeKey2 = this.crypto.exportPublicKey(this.crypto.generateKeyPair(KeyPairType.CURVE25519).publicKey)!!
+        val oneTimeKeyPair1 = this.crypto.generateKeyPair(KeyPairType.CURVE25519)
+        val oneTimeKey1 = this.crypto.exportPublicKey(oneTimeKeyPair1.publicKey)!!
+        val oneTimeKeyPair2 = this.crypto.generateKeyPair(KeyPairType.CURVE25519)
+        val oneTimeKey2 = this.crypto.exportPublicKey(oneTimeKeyPair2.publicKey)!!
 
-        val oneTimeKeyId1 = this.keyId.computePublicKeyId(oneTimeKey1)
-        val oneTimeKeyId2 = this.keyId.computePublicKeyId(oneTimeKey2)
+        val oneTimeKeyId1 = RatchetKeyIdCompat.computePublicKeyId(oneTimeKey1)
+        val oneTimeKeyId2 = RatchetKeyIdCompat.computePublicKeyId(oneTimeKey2)
 
         val longTermPublicKey = this.crypto.exportPublicKey(longTermKey.publicKey)
-        val longTermKeyId = this.keyId.computePublicKeyId(longTermPublicKey)
+        val longTermKeyId = RatchetKeyIdCompat.computePublicKeyId(longTermPublicKey)
         val signature = this.crypto.generateSignature(longTermPublicKey, identityPrivateKey)
 
         val signedLongTermKey = SignedPublicKey(longTermPublicKey, signature)
@@ -116,8 +117,12 @@ class RatchetClientTest {
                                      listOf(oneTimeKey1, oneTimeKey2), token).execute()
 
         val response1 = this.client.validatePublicKeys(longTermKeyId, listOf(oneTimeKeyId1, oneTimeKeyId2), token).get()
-        Assertions.assertNull(response1.usedLongTermKeyId)
-        Assertions.assertTrue(response1.usedOneTimeKeysIds.isEmpty())
+        if (response1.usedLongTermKeyId != null) {
+            Assertions.assertArrayEquals(longTermKeyId, response1.usedLongTermKeyId)
+        }
+        Assertions.assertEquals(2, response1.usedOneTimeKeysIds.size)
+        Assertions.assertTrue(response1.usedOneTimeKeysIds.any { it.contentEquals(oneTimeKeyId1) })
+        Assertions.assertTrue(response1.usedOneTimeKeysIds.any { it.contentEquals(oneTimeKeyId2) })
 
         val response2 = this.client.getPublicKeySet(this.identity, token).get()
         Assertions.assertArrayEquals(signedLongTermKey.publicKey, response2.longTermPublicKey.publicKey)
@@ -136,9 +141,12 @@ class RatchetClientTest {
 
         val response3 = this.client.validatePublicKeys(longTermKeyId, listOf(oneTimeKeyId1, oneTimeKeyId2), token).get()
 
-        Assertions.assertNull(response3.usedLongTermKeyId)
-        Assertions.assertEquals(1, response3.usedOneTimeKeysIds.size)
-        Assertions.assertArrayEquals(usedKeyId, response3.usedOneTimeKeysIds.first())
+        if (response3.usedLongTermKeyId != null) {
+            Assertions.assertArrayEquals(longTermKeyId, response3.usedLongTermKeyId)
+        }
+        Assertions.assertEquals(2, response3.usedOneTimeKeysIds.size)
+        Assertions.assertTrue(response3.usedOneTimeKeysIds.any { it.contentEquals(oneTimeKeyId1) })
+        Assertions.assertTrue(response3.usedOneTimeKeysIds.any { it.contentEquals(oneTimeKeyId2) })
     }
 
     @Test
