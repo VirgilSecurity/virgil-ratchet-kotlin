@@ -42,8 +42,8 @@ buildscript {
             gradle          : '8.7',
 
             // Virgil
-            virgilSdk       : '7.4.0',
-            virgilCrypto    : '0.17.2',
+            virgilSdk       : '7.5.0',
+            virgilCrypto    : '0.19.0-rc.8',
 
             // Serializer
             gson            : '2.10.1',
@@ -113,7 +113,7 @@ allprojects {
 }
 
 final String BASE_VIRGIL_PACKAGE = 'com.virgilsecurity'
-final String SDK_VERSION = '0.3.0'
+final String SDK_VERSION = '0.4.0'
 
 subprojects {
     group = BASE_VIRGIL_PACKAGE
