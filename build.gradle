@@ -43,7 +43,7 @@ buildscript {
 
             // Virgil
             virgilSdk       : '7.5.0',
-            virgilCrypto    : '0.19.0-rc.8',
+            virgilCrypto    : '0.19.0-rc.10',
 
             // Serializer
             gson            : '2.10.1',
