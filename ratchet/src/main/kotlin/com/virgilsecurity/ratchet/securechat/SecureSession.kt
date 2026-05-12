@@ -102,8 +102,7 @@ class SecureSession {
                     senderIdentityPublicKeyObj,
                     receiverIdentityPrivateKeyObj,
                     receiverLongTermPrivateKeyObj,
-                    ratchetMessage,
-                    false
+                    ratchetMessage
             )
         } else {
             val receiverOneTimePrivateKeyObj = this.crypto.importPrivateKey(receiverOneTimePrivateKey.key).privateKey.privateKey
@@ -112,8 +111,7 @@ class SecureSession {
                     receiverIdentityPrivateKeyObj,
                     receiverLongTermPrivateKeyObj,
                     receiverOneTimePrivateKeyObj,
-                    ratchetMessage,
-                    false
+                    ratchetMessage
             )
         }
     }
@@ -154,8 +152,7 @@ class SecureSession {
                     receiverIdentityPublicKeyObj,
                     receiverIdentityKeyId,
                     receiverLongTermPublicKeyObj,
-                    receiverLongTermKeyId,
-                    false
+                    receiverLongTermKeyId
             )
         } else {
             val receiverOneTimePublicKeyObj = this.crypto.importPublicKey(receiverOneTimePublicKey).publicKey
@@ -167,8 +164,7 @@ class SecureSession {
                     receiverLongTermPublicKeyObj,
                     receiverLongTermKeyId,
                     receiverOneTimePublicKeyObj,
-                    receiverOneTimeKeyId,
-                    false
+                    receiverOneTimeKeyId
             )
         }
     }
