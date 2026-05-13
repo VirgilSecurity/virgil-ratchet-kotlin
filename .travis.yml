@@ -1,5 +1,0 @@
-# Travis CI is deprecated for this repository.
-# CI has been migrated to GitHub Actions in .github/workflows.
-language: minimal
-script:
-  - echo "CI migrated to GitHub Actions (.github/workflows)."
