@@ -2,6 +2,40 @@
 
 All notable changes to this project are documented in this file.
 
+## v0.4.2 2026-08-19
+
+### Fixed
+- `FileOneTimeKeysStorage` no longer synchronizes on the boxed `interactionCounter`
+  ([#11](https://github.com/VirgilSecurity/virgil-ratchet-kotlin/issues/11)). Locking on an `Int`
+  boxed it into a `java.lang.Integer`, so the monitor identity changed with the counter value and
+  `startInteraction`/`stopInteraction` never excluded each other — concurrent callers could corrupt
+  the one-time key list (`ConcurrentModificationException`) or lose counter increments. All state is
+  now guarded by a dedicated monitor object, which also keeps the class working under
+  [JEP-401](https://openjdk.org/jeps/401) value objects, where synchronizing on a boxed primitive
+  throws.
+- `retrieveKey`, `retrieveAllKeys` and `reset` in `FileOneTimeKeysStorage` read shared state without
+  holding any lock; they are now guarded as well.
+
+## v0.4.1 2026-06-02
+
+### Changed
+- Updated dependencies:
+  - `com.virgilsecurity.crypto:ratchet` -> `0.19.1` (stable)
+
+## v0.4.0 2026-05-12
+
+### Changed
+- Updated dependencies:
+  - `com.virgilsecurity.crypto:ratchet` -> `0.19.0-rc.11`
+  - `com.virgilsecurity.sdk:virgil-sdk` -> `7.5.0`
+
+### Fixed
+- Resolved a SIGABRT and a JNI serialization failure originating in `virgil-crypto-c`.
+
+### Breaking
+- Upstream `com.virgilsecurity.crypto:ratchet:0.19.x` dropped a boolean argument from the
+  `RatchetSession` initiate/respond API; call sites were updated accordingly.
+
 ## v0.3.0 2026-02-12
 
 ### Changed

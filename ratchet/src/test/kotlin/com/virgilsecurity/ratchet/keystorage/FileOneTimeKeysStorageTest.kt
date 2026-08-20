@@ -41,6 +41,9 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.*
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class FileOneTimeKeysStorageTest {
 
@@ -211,6 +214,89 @@ class FileOneTimeKeysStorageTest {
         Assertions.assertNotNull(key)
         Assertions.assertArrayEquals(keyId, key.identifier)
         Assertions.assertArrayEquals(keyData, key.key)
+        this.keyStorage.stopInteraction()
+    }
+
+    /**
+     * Concurrent interactions must be serialized by the storage monitor.
+     *
+     * Locking on the boxed `interactionCounter` gives a monitor whose identity changes with the
+     * counter value, so `startInteraction` and `stopInteraction` do not exclude each other: one
+     * thread clears `oneTimeKeys` while another is still using it, and the interaction counter
+     * loses increments. Both surface here as ILLEGAL_STORAGE_STATE.
+     */
+    @Test
+    fun concurrent_interactions_are_serialized() {
+        val threadCount = 8
+        val iterations = 30
+
+        val pool = Executors.newFixedThreadPool(threadCount)
+        val startGate = CountDownLatch(1)
+        val failures = Collections.synchronizedList(mutableListOf<Throwable>())
+
+        try {
+            val tasks = (0 until threadCount).map {
+                pool.submit {
+                    startGate.await()
+                    repeat(iterations) {
+                        try {
+                            this.keyStorage.startInteraction()
+                            try {
+                                val keyId = generateKeyId()
+                                val keyData = generatePublicKeyData()
+
+                                this.keyStorage.storeKey(keyData, keyId)
+                                Assertions.assertArrayEquals(keyData, this.keyStorage.retrieveKey(keyId).key)
+                                this.keyStorage.deleteKey(keyId)
+                            } finally {
+                                this.keyStorage.stopInteraction()
+                            }
+                        } catch (e: Throwable) {
+                            failures.add(e)
+                        }
+                    }
+                }
+            }
+
+            startGate.countDown()
+            tasks.forEach { it.get(2, TimeUnit.MINUTES) }
+        } finally {
+            pool.shutdownNow()
+        }
+
+        Assertions.assertTrue(failures.isEmpty()) {
+            "Concurrent interactions failed ${failures.size} time(s), first: ${failures.firstOrNull()}"
+        }
+
+        // Every startInteraction was matched by a stopInteraction, so the counter must be back to
+        // zero. reset() is the only observer of that state and throws when it is not.
+        this.keyStorage.reset()
+    }
+
+    /**
+     * Nesting deeper than the [java.lang.Integer] cache (-128..127) used to hand out a freshly
+     * boxed monitor on every call, which meant no mutual exclusion at all past 127.
+     */
+    @Test
+    fun deeply_nested_interactions() {
+        val depth = 200
+
+        repeat(depth) {
+            this.keyStorage.startInteraction()
+        }
+
+        val keyId = generateKeyId()
+        val keyData = generatePublicKeyData()
+        this.keyStorage.storeKey(keyData, keyId)
+        Assertions.assertArrayEquals(keyData, this.keyStorage.retrieveKey(keyId).key)
+
+        repeat(depth) {
+            this.keyStorage.stopInteraction()
+        }
+
+        // Counter unwound to zero, so the storage is idle again.
+        this.keyStorage.startInteraction()
+        Assertions.assertArrayEquals(keyData, this.keyStorage.retrieveKey(keyId).key)
         this.keyStorage.stopInteraction()
     }
 }
