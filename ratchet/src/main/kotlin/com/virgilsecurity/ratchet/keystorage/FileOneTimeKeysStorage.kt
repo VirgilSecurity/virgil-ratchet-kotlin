@@ -54,6 +54,17 @@ class FileOneTimeKeysStorage(
         rootPath: String? = null
 ) : OneTimeKeysStorage {
 
+    /**
+     * Monitor guarding [oneTimeKeys] and [interactionCounter].
+     *
+     * Must be a plain [Any] instance: locking on [interactionCounter] would lock on the boxed
+     * [java.lang.Integer] of its current value, so the monitor identity would change as the counter
+     * changes, and boxes in the [java.lang.Integer] cache range would be shared with every other
+     * holder of the same value. Synchronizing on a boxed primitive is also rejected outright by
+     * JEP-401 value objects.
+     */
+    private val lock = Any()
+
     private val fileSystem: SecureFileSystem
     private var oneTimeKeys: OneTimeKeys? = null
     private var interactionCounter = 0
@@ -65,7 +76,7 @@ class FileOneTimeKeysStorage(
 
     override fun startInteraction() {
         logger.info("startInteraction")
-        synchronized(interactionCounter) {
+        synchronized(lock) {
             if (interactionCounter > 0) {
                 interactionCounter++
                 return
@@ -89,7 +100,7 @@ class FileOneTimeKeysStorage(
 
     override fun stopInteraction() {
         logger.info("stopInteraction")
-        synchronized(interactionCounter) {
+        synchronized(lock) {
             if (interactionCounter <= 0) {
                 throw KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "interactionCounter should be > 0")
             }
@@ -113,7 +124,7 @@ class FileOneTimeKeysStorage(
 
     override fun storeKey(key: ByteArray, keyId: ByteArray): OneTimeKey {
         logger.fine("storeKey")
-        synchronized(interactionCounter) {
+        synchronized(lock) {
             if (oneTimeKeys == null) {
                 throw KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "oneTimeKeys should not be nil")
             }
@@ -131,21 +142,23 @@ class FileOneTimeKeysStorage(
     }
 
     override fun retrieveKey(keyId: ByteArray): OneTimeKey {
-        if (this.oneTimeKeys == null) {
-            throw KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "oneTimeKeys should not be null")
+        synchronized(lock) {
+            if (this.oneTimeKeys == null) {
+                throw KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "oneTimeKeys should not be null")
+            }
+
+            val oneTimeKey = oneTimeKeys!!.oneTimeKeys.firstOrNull { it.identifier.contentEquals(keyId) }
+                            ?: throw KeyStorageException(
+                                    KeyStorageException.KEY_NOT_FOUND,
+                                    "One time key doesn't exist"
+                            )
+
+            return oneTimeKey
         }
-
-        val oneTimeKey = oneTimeKeys!!.oneTimeKeys.firstOrNull { it.identifier.contentEquals(keyId) }
-                        ?: throw KeyStorageException(
-                                KeyStorageException.KEY_NOT_FOUND,
-                                "One time key doesn't exist"
-                        )
-
-        return oneTimeKey
     }
 
     override fun deleteKey(keyId: ByteArray) {
-        synchronized(interactionCounter) {
+        synchronized(lock) {
             if (this.oneTimeKeys == null) {
                 throw KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "oneTimeKeys should not be null")
             }
@@ -160,14 +173,16 @@ class FileOneTimeKeysStorage(
     }
 
     override fun retrieveAllKeys(): List<OneTimeKey> {
-        if (this.oneTimeKeys == null) {
-            throw KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "oneTimeKeys should not be null")
+        synchronized(lock) {
+            if (this.oneTimeKeys == null) {
+                throw KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "oneTimeKeys should not be null")
+            }
+            return oneTimeKeys!!.oneTimeKeys.toList()
         }
-        return oneTimeKeys!!.oneTimeKeys.toList()
     }
 
     override fun markKeyOrphaned(date: Date, keyId: ByteArray) {
-        synchronized(interactionCounter) {
+        synchronized(lock) {
             if (this.oneTimeKeys == null) {
                 throw KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "oneTimeKeys should not be null")
             }
@@ -186,10 +201,12 @@ class FileOneTimeKeysStorage(
     }
 
     override fun reset() {
-        if (interactionCounter != 0) {
-            throw KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "interactionCounter should be 0")
+        synchronized(lock) {
+            if (interactionCounter != 0) {
+                throw KeyStorageException(KeyStorageException.ILLEGAL_STORAGE_STATE, "interactionCounter should be 0")
+            }
+            this.fileSystem.deleteDir()
         }
-        this.fileSystem.deleteDir()
     }
 
     private class OneTimeKeys {
